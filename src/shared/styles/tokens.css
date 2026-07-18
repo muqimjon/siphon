@@ -1,0 +1,28 @@
+:root, :host {
+  --sp-font: "Inter", "Segoe UI", Roboto, system-ui, sans-serif;
+  --sp-font-yt: Roboto, "Segoe UI", system-ui, sans-serif;
+  --sp-font-mono: "Cascadia Code", Consolas, monospace;
+  --sp-fs-xs: 11px; --sp-fs-sm: 12.5px; --sp-fs-md: 14px; --sp-fs-lg: 16px; --sp-fs-xl: 22px;
+  --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 20px; --sp-6: 24px; --sp-8: 32px;
+  --sp-r-sm: 6px; --sp-r-md: 10px; --sp-r-lg: 14px; --sp-r-pill: 999px;
+  --sp-accent: #06B6D4; --sp-accent-strong: #0891B2;
+  --sp-flow: linear-gradient(90deg, #22D3EE 0%, #06B6D4 55%, #0EA5E9 100%);
+  --sp-ok: #10B981; --sp-warn: #F59E0B; --sp-err: #EF4444;
+  --sp-shadow: 0 4px 24px rgba(0,0,0,.28);
+  --sp-ease: cubic-bezier(.2,.8,.2,1); --sp-t-fast: 120ms; --sp-t-med: 240ms;
+  --sp-bg: #0F1418; --sp-surface: #161C22; --sp-surface-2: #1D242C;
+  --sp-border: rgba(255,255,255,.08); --sp-text: #E8EDF2; --sp-text-dim: #94A3B8;
+  --sp-accent-fg: #0A0F12; --sp-chip: rgba(34,211,238,.12);
+}
+
+[data-theme="dark"], :host([data-theme="dark"]) {
+  --sp-bg: #0F1418; --sp-surface: #161C22; --sp-surface-2: #1D242C;
+  --sp-border: rgba(255,255,255,.08); --sp-text: #E8EDF2; --sp-text-dim: #94A3B8;
+  --sp-accent-fg: #0A0F12; --sp-chip: rgba(34,211,238,.12);
+}
+
+[data-theme="light"], :host([data-theme="light"]) {
+  --sp-bg: #F7FAFC; --sp-surface: #FFFFFF; --sp-surface-2: #EEF3F7;
+  --sp-border: rgba(15,23,42,.10); --sp-text: #0F172A; --sp-text-dim: #64748B;
+  --sp-accent-fg: #FFFFFF; --sp-chip: rgba(8,145,178,.10);
+}
