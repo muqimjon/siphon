@@ -1,0 +1,179 @@
+using System.Text;
+using CliWrap;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Siphon.Media.Delivery;
+using Siphon.Media.Jobs;
+using Siphon.Media.Policy;
+using Siphon.Media.Probing;
+
+namespace Siphon.Media.Engine;
+
+public sealed record DownloadOutcome(string Path, string FileName, string ContentType);
+
+public sealed class YtDlpEngine(IOptions<SiphonOptions> options, SelfUpdater updater, ILogger<YtDlpEngine> logger)
+{
+    private static readonly string[] PostprocessMarkers = ["[Merger]", "[ExtractAudio]", "[VideoRemuxer]", "[VideoConvertor]", "[Fixup"];
+    private readonly SiphonOptions _options = options.Value;
+
+    public async Task<string> ProbeJsonAsync(string url, string? cookiesPath, CancellationToken ct)
+    {
+        var stdout = new StringBuilder();
+        var stderr = new StringBuilder();
+        var args = new List<string> { "-J", "--no-playlist", "--no-warnings", "--socket-timeout", "15", url };
+        AddCommon(args, cookiesPath);
+
+        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(ct);
+        timeout.CancelAfter(TimeSpan.FromSeconds(_options.ProbeTimeoutSeconds));
+        CliWrap.CommandResult result;
+        try
+        {
+            result = await Cli.Wrap(_options.Tools.YtDlpPath)
+                .WithArguments(args)
+                .WithStandardOutputPipe(PipeTarget.ToStringBuilder(stdout))
+                .WithStandardErrorPipe(PipeTarget.ToStringBuilder(stderr))
+                .WithValidation(CommandResultValidation.None)
+                .ExecuteAsync(timeout.Token);
+        }
+        catch (OperationCanceledException) when (!ct.IsCancellationRequested)
+        {
+            throw new MediaEngineException(ErrorCodes.ExtractorBroken, "Probe timed out.");
+        }
+
+        if (result.ExitCode != 0) throw Classified(stderr.ToString());
+        return stdout.ToString();
+    }
+
+    public async Task<DownloadOutcome> DownloadAsync(Job job, Action<double, int?, string> onProgress, CancellationToken ct)
+    {
+        var probe = YtDlpJsonParser.Parse(job.Request.Url, await ProbeJsonAsync(job.Request.Url, job.CookiesPath, ct));
+        if (probe.IsLive)
+            throw new MediaEngineException(ErrorCodes.LiveNotSupported, "Live streams cannot be downloaded.");
+        if (probe.DurationSec is { } duration && duration > _options.MaxDurationMinutes * 60)
+            throw new MediaEngineException(ErrorCodes.TooLarge, $"Media is longer than {_options.MaxDurationMinutes} minutes.");
+        if (probe.Kind == "playlist")
+            throw new MediaEngineException(ErrorCodes.PlaylistNotSupported, "Playlists are not supported yet.");
+
+        var audio = job.Request.Output == "audio";
+        var args = BuildDownloadArgs(job, probe, audio, recode: false);
+        var exit = await RunDownloadAsync(job, args, onProgress, ct);
+        if (exit.Code != 0 && !audio && LooksLikeMuxFailure(exit.Stderr))
+        {
+            logger.LogWarning("remux failed for {Url}, retrying with recode", job.Request.Url);
+            exit = await RunDownloadAsync(job, BuildDownloadArgs(job, probe, audio, recode: true), onProgress, ct);
+        }
+        if (exit.Code != 0) throw Classified(exit.Stderr);
+
+        var ext = audio ? ".mp3" : ".mp4";
+        var produced = Directory.EnumerateFiles(job.Dir)
+            .Where(f => f.EndsWith(ext, StringComparison.OrdinalIgnoreCase))
+            .OrderByDescending(File.GetLastWriteTimeUtc)
+            .FirstOrDefault();
+        if (produced is null)
+        {
+            if (exit.Stdout.Contains("larger than max-filesize"))
+                throw new MediaEngineException(ErrorCodes.TooLarge, $"File is larger than the {_options.MaxFileSizeMb} MB limit.");
+            throw new MediaEngineException(
+                exit.Stdout.Contains("does not pass filter") ? ErrorCodes.LiveNotSupported : ErrorCodes.ExtractorBroken,
+                "Download produced no output file.");
+        }
+
+        var name = FileNameSanitizer.Sanitize(probe.Title) + ext;
+        return new DownloadOutcome(produced, name, audio ? "audio/mpeg" : "video/mp4");
+    }
+
+    public async Task RunSelfUpdateAsync(CancellationToken ct)
+    {
+        var output = new StringBuilder();
+        await Cli.Wrap(_options.Tools.YtDlpPath)
+            .WithArguments(["--update-to", "stable@latest"])
+            .WithStandardOutputPipe(PipeTarget.ToStringBuilder(output))
+            .WithStandardErrorPipe(PipeTarget.ToStringBuilder(output))
+            .WithValidation(CommandResultValidation.None)
+            .ExecuteAsync(ct);
+        logger.LogInformation("yt-dlp self-update: {Output}", output.ToString().Trim());
+    }
+
+    public async Task<string> VersionAsync(CancellationToken ct)
+    {
+        var stdout = new StringBuilder();
+        await Cli.Wrap(_options.Tools.YtDlpPath)
+            .WithArguments(["--version"])
+            .WithStandardOutputPipe(PipeTarget.ToStringBuilder(stdout))
+            .WithValidation(CommandResultValidation.None)
+            .ExecuteAsync(ct);
+        return stdout.ToString().Trim();
+    }
+
+    private List<string> BuildDownloadArgs(Job job, ProbeResult probe, bool audio, bool recode)
+    {
+        var args = new List<string>
+        {
+            "--no-playlist", "--no-warnings", "--newline",
+            "--socket-timeout", "15", "-N", "4",
+            "--max-filesize", $"{_options.MaxFileSizeMb}M",
+            "--match-filter", "!is_live & !is_upcoming",
+            "--progress-template", ProgressParser.Template,
+            "-o", Path.Combine(job.Dir, "%(title).120B [%(id)s].%(ext)s"),
+        };
+
+        if (audio)
+        {
+            var abr = job.Request.FormatId is { } id
+                ? probe.AudioVariants.FirstOrDefault(a => a.FormatId == id)?.AbrKbps
+                : probe.AudioVariants.Select(a => a.AbrKbps).Max();
+            args.AddRange(["-f", FormatSelector.Audio(job.Request.FormatId),
+                "-x", "--audio-format", "mp3", "--audio-quality", Mp3QualityMapper.Map(abr).Qscale.ToString()]);
+        }
+        else
+        {
+            args.AddRange(["-f", FormatSelector.Video(job.Request.FormatId), "--merge-output-format", "mp4"]);
+            args.AddRange(recode ? ["--recode-video", "mp4"] : ["--remux-video", "mp4"]);
+        }
+
+        AddCommon(args, job.CookiesPath);
+        args.Add(job.Request.Url);
+        return args;
+    }
+
+    private void AddCommon(List<string> args, string? cookiesPath)
+    {
+        args.AddRange(["--ffmpeg-location", _options.Tools.FfmpegPath]);
+        if (cookiesPath is not null && File.Exists(cookiesPath)) args.AddRange(["--cookies", cookiesPath]);
+        if (_options.ProxyUrl is not null) args.AddRange(["--proxy", _options.ProxyUrl]);
+    }
+
+    private async Task<(int Code, string Stdout, string Stderr)> RunDownloadAsync(
+        Job job, List<string> args, Action<double, int?, string> onProgress, CancellationToken ct)
+    {
+        var stdout = new StringBuilder();
+        var stderr = new StringBuilder();
+        var result = await Cli.Wrap(_options.Tools.YtDlpPath)
+            .WithArguments(args)
+            .WithStandardOutputPipe(PipeTarget.Merge(
+                PipeTarget.ToStringBuilder(stdout),
+                PipeTarget.ToDelegate(line =>
+                {
+                    if (ProgressParser.Parse(line) is { } update)
+                        onProgress(Math.Min(update.Pct, 99), update.EtaSec, "downloading");
+                    else if (PostprocessMarkers.Any(line.StartsWith))
+                        onProgress(99, null, "converting");
+                })))
+            .WithStandardErrorPipe(PipeTarget.ToStringBuilder(stderr))
+            .WithValidation(CommandResultValidation.None)
+            .ExecuteAsync(ct);
+        return (result.ExitCode, stdout.ToString(), stderr.ToString());
+    }
+
+    private static bool LooksLikeMuxFailure(string stderr) =>
+        stderr.Contains("Postprocessing", StringComparison.OrdinalIgnoreCase)
+        || stderr.Contains("remux", StringComparison.OrdinalIgnoreCase)
+        || stderr.Contains("merg", StringComparison.OrdinalIgnoreCase);
+
+    private MediaEngineException Classified(string stderr)
+    {
+        var code = ErrorClassifier.Classify(stderr);
+        if (code == ErrorCodes.ExtractorBroken) updater.ReportExtractorFailure();
+        return new MediaEngineException(code, ErrorClassifier.FirstErrorLine(stderr));
+    }
+}
