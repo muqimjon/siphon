@@ -1,0 +1,37 @@
+<Solution>
+  <Folder Name="/src/" />
+  <Folder Name="/src/backend/">
+    <Project Path="src/backend/Siphon.Api/Siphon.Api.csproj" />
+    <Project Path="src/backend/Siphon.Media/Siphon.Media.csproj" />
+    <Project Path="src/backend/Siphon.Tests/Siphon.Tests.csproj" />
+  </Folder>
+  <Folder Name="/src/bot/">
+    <Project Path="src/bot/src/Siphon.Bot/Siphon.Bot.csproj" />
+  </Folder>
+  <Folder Name="/shared/">
+    <File Path="src/shared/models.ts" />
+    <File Path="src/shared/format.ts" />
+    <File Path="src/shared/i18n.ts" />
+  </Folder>
+  <Folder Name="/web/">
+    <File Path="src/web/package.json" />
+    <File Path="src/web/angular.json" />
+    <File Path="src/web/proxy.conf.json" />
+  </Folder>
+  <Folder Name="/extension/">
+    <File Path="src/extension/package.json" />
+    <File Path="src/extension/build.mjs" />
+    <File Path="src/extension/tsconfig.json" />
+    <File Path="src/extension/static/manifest.json" />
+  </Folder>
+  <Folder Name="/docker/">
+    <File Path="docker/backend.Dockerfile" />
+    <File Path="docker/docker-compose.yml" />
+    <File Path="docker/.env.example" />
+  </Folder>
+  <Folder Name="/solution/">
+    <File Path="README.md" />
+    <File Path=".gitignore" />
+    <File Path=".dockerignore" />
+  </Folder>
+</Solution>

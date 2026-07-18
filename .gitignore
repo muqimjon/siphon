@@ -1,0 +1,15 @@
+bin/
+obj/
+.vs/
+*.user
+tools/*.exe
+.siphon-tmp/
+src/backend/Siphon.Api/wwwroot/
+src/bot/**/bot.db*
+docker/.env
+
+node_modules/
+src/web/dist/
+src/web/.angular/
+src/extension/dist/
+src/extension/node_modules/

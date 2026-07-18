@@ -1,0 +1,13 @@
+.git
+**/bin
+**/obj
+**/node_modules
+.vs
+tools
+**/.siphon-tmp
+**/.angular
+src/web/dist
+src/extension/dist
+docker/.env
+src/backend/Siphon.Api/wwwroot
+src/bot
