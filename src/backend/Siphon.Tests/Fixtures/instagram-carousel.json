@@ -1,0 +1,12 @@
+{
+ "_type": "playlist",
+ "id": "DEMO123",
+ "title": "Post by demo_user",
+ "uploader": "demo_user",
+ "extractor_key": "Instagram",
+ "entries": [
+  { "id": "DEMO123_1", "ext": "jpg", "url": "https://example.com/1.jpg", "width": 1080, "height": 1350 },
+  { "id": "DEMO123_2", "ext": "jpg", "url": "https://example.com/2.jpg", "width": 1080, "height": 1350 },
+  { "id": "DEMO123_3", "ext": "webp", "url": "https://example.com/3.webp", "width": 1080, "height": 1080 }
+ ]
+}

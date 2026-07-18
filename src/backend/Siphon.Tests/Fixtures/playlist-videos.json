@@ -1,0 +1,10 @@
+{
+ "_type": "playlist",
+ "id": "PL123",
+ "title": "Some playlist",
+ "extractor_key": "YoutubeTab",
+ "entries": [
+  { "id": "vid1", "ext": "mp4", "duration": 200, "formats": [ { "format_id": "18", "vcodec": "avc1.42001E", "acodec": "mp4a.40.2", "tbr": 500 } ] },
+  { "id": "vid2", "ext": "mp4", "duration": 300, "formats": [ { "format_id": "18", "vcodec": "avc1.42001E", "acodec": "mp4a.40.2", "tbr": 500 } ] }
+ ]
+}
