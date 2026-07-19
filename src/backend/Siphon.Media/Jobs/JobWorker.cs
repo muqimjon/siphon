@@ -10,6 +10,7 @@ public sealed class JobWorker(
     JobEngine engine,
     YtDlpEngine ytDlp,
     GalleryDlEngine galleryDl,
+    FfmpegEngine ffmpeg,
     IOptions<SiphonOptions> options,
     IServiceScopeFactory scopes,
     ILogger<JobWorker> logger) : BackgroundService
@@ -48,14 +49,22 @@ public sealed class JobWorker(
             job.Phase = "downloading";
             try
             {
-                var outcome = job.Request.Output == "gallery"
-                    ? await RunGalleryAsync(job, linked.Token)
-                    : await ytDlp.DownloadAsync(job, (pct, eta, phase) =>
+                var outcome = job.Request.Output switch
+                {
+                    "gallery" => await RunGalleryAsync(job, linked.Token),
+                    "convert" => await ffmpeg.ConvertAsync(job, (pct, eta, phase) =>
                     {
                         job.ProgressPct = pct;
                         job.EtaSec = eta;
                         job.Phase = phase;
-                    }, linked.Token);
+                    }, linked.Token),
+                    _ => await ytDlp.DownloadAsync(job, (pct, eta, phase) =>
+                    {
+                        job.ProgressPct = pct;
+                        job.EtaSec = eta;
+                        job.Phase = phase;
+                    }, linked.Token),
+                };
 
                 var produced = new FileInfo(outcome.Path).Length;
                 var cap = (long)job.Request.MaxFileSizeMb * 1024 * 1024;

@@ -53,6 +53,9 @@ services.AddHttpClient("siphon-files", c =>
 });
 services.AddHttpClient("telegram", c => c.Timeout = TimeSpan.FromMinutes(10));
 
+var botToken = config.GetSection("Bot").Get<BotOptions>()?.Token ?? "";
+Siphon.Bot.Backend.SiphonApi.TelegramFileBase = $"https://api.telegram.org/file/bot{botToken}";
+
 services.AddSingleton<ITelegramBotClient>(sp =>
 {
     var bot = sp.GetRequiredService<IOptions<BotOptions>>().Value;
@@ -69,9 +72,11 @@ services.AddScoped<UpdatePipeline>();
 services.AddScoped<IFeatureModule, DownloadModule>();
 services.AddScoped<IFeatureModule, SettingsModule>();
 services.AddScoped<IFeatureModule, GroupModule>();
+services.AddScoped<IFeatureModule, Siphon.Bot.Modules.Convert.ConvertModule>();
 services.AddScoped<IFeatureModule, CoreModule>();
 services.AddSingleton<ProbeCache>();
 services.AddSingleton<JobRunner>();
+services.AddSingleton<Siphon.Bot.Modules.Convert.ConvertCache>();
 services.AddHostedService<PollingService>();
 services.AddHostedService<MenuButtonSetup>();
 services.AddHostedService<Siphon.Bot.Modules.Download.FileCacheJanitor>();
@@ -124,6 +129,7 @@ namespace Siphon.Bot
         public int JobTimeoutMinutes { get; set; } = 10;
         public int DailyDownloadsPerChat { get; set; } = 30;
         public int FileCacheCheckDays { get; set; } = 7;
+        public int MaxTelegramFileMb { get; set; } = 20;
     }
 
     public sealed class MiniAppOptions

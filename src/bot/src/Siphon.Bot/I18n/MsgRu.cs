@@ -19,6 +19,12 @@ public sealed class MsgRu : Msg
     public override string UnlinkHint => "Чтобы отвязать, зайдите в профиль на сайте — там есть кнопка \"Отвязать\".";
     public override string LinkOk(string email) => $"Аккаунт привязан ✅\n\n{email}\n\nТеперь лимиты берутся из этого аккаунта.";
     public override string ConnectCode(string code) => $"Вот ваш код:\n\n<code>{code}</code>\n\nВведите его в профиле на сайте. Код действует 10 минут.";
+    public override string ConvertPrompt => "Что сделать с этим файлом?";
+    public override string ToMp3 => "🎵 В MP3";
+    public override string ToMp4 => "🎬 В MP4";
+    public override string ToVideoNote => "⭕ Кружок";
+    public override string ToGif => "🖼 В GIF";
+    public override string ConvertTooBig(int mb) => $"Telegram не даёт ботам получать файлы больше {mb} МБ 😔";
     public override string Queued => "⏳ В очереди…";
     public override string Downloading => "⬇️ Скачиваю…";
     public override string Converting => "🎛 Обрабатываю…";

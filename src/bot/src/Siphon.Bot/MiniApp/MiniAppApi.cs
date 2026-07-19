@@ -11,7 +11,7 @@ public sealed record PrefUpdate(string Scope, long? GroupChatId, string Platform
 
 public sealed record LangUpdate(string Lang);
 
-public sealed record BehaviorUpdate(bool DeleteSourceLink, bool ShowRequester, bool ShowPlatform);
+public sealed record BehaviorUpdate(long? GroupChatId, bool DeleteSourceLink, bool ShowRequester, bool ShowPlatform, bool ConvertFiles);
 
 public static class MiniAppApi
 {
@@ -51,7 +51,23 @@ public static class MiniAppApi
         var groups = await db.Groups.Where(g => g.OwnerUserId == user.Id).OrderBy(g => g.Title).ToListAsync(ct);
         var groupDtos = new List<object>(groups.Count);
         foreach (var g in groups)
-            groupDtos.Add(new { chatId = g.ChatId, title = g.Title, addedUtc = g.AddedUtc, platforms = await PlatformsFor(db, g.ChatId, ct) });
+        {
+            var gs = await db.Chats.FindAsync([g.ChatId], ct);
+            groupDtos.Add(new
+            {
+                chatId = g.ChatId,
+                title = g.Title,
+                addedUtc = g.AddedUtc,
+                behavior = new
+                {
+                    deleteSourceLink = gs?.DeleteSourceLink ?? false,
+                    showRequester = gs?.ShowRequester ?? false,
+                    showPlatform = gs?.ShowPlatform ?? false,
+                    convertFiles = gs?.ConvertFiles ?? false,
+                },
+                platforms = await PlatformsFor(db, g.ChatId, ct)
+            });
+        }
 
         return Results.Ok(new
         {
@@ -65,7 +81,8 @@ public static class MiniAppApi
                 lang = state?.Lang ?? Msg.Normalize(user.LanguageCode),
                 deleteSourceLink = state?.DeleteSourceLink ?? false,
                 showRequester = state?.ShowRequester ?? false,
-                showPlatform = state?.ShowPlatform ?? false
+                showPlatform = state?.ShowPlatform ?? false,
+                convertFiles = state?.ConvertFiles ?? true
             },
             stats = new
             {
@@ -101,18 +118,24 @@ public static class MiniAppApi
         var user = Authenticate(http, bot.Value, mini.Value);
         if (user is null) return Results.Unauthorized();
 
-        var state = await db.Chats.FindAsync([user.Id], ct);
+        var chatId = user.Id;
+        if (body.GroupChatId is { } gid)
+        {
+            var info = await db.Groups.FindAsync([gid], ct);
+            if (info is null || info.OwnerUserId != user.Id) return Results.StatusCode(StatusCodes.Status403Forbidden);
+            chatId = gid;
+        }
+
+        var state = await db.Chats.FindAsync([chatId], ct);
         if (state is null)
         {
-            state = new ChatState { ChatId = user.Id, DeleteSourceLink = body.DeleteSourceLink, ShowRequester = body.ShowRequester, ShowPlatform = body.ShowPlatform };
+            state = new ChatState { ChatId = chatId };
             db.Chats.Add(state);
         }
-        else
-        {
-            state.DeleteSourceLink = body.DeleteSourceLink;
-            state.ShowRequester = body.ShowRequester;
-            state.ShowPlatform = body.ShowPlatform;
-        }
+        state.DeleteSourceLink = body.DeleteSourceLink;
+        state.ShowRequester = body.ShowRequester;
+        state.ShowPlatform = body.ShowPlatform;
+        state.ConvertFiles = body.ConvertFiles;
         await db.SaveChangesAsync(ct);
         return Results.Ok(new { ok = true });
     }

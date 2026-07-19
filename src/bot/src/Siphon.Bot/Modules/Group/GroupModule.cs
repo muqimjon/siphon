@@ -71,6 +71,8 @@ public sealed class GroupModule(BotDb db) : IFeatureModule
                     OwnerUserId = upd.From.Id,
                     AddedUtc = DateTime.UtcNow
                 });
+                if (await db.Chats.FindAsync([upd.Chat.Id], ct) is { } groupState)
+                    groupState.ConvertFiles = false;
                 try
                 {
                     await ctx.Bot.SendMessage(ctx.ChatId, ctx.L.GroupAdded, cancellationToken: ct);

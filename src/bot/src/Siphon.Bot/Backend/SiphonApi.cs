@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
+using Telegram.Bot;
 
 namespace Siphon.Bot.Backend;
 
@@ -11,6 +12,8 @@ public sealed class BackendException(string code, string? message) : Exception(m
 
 public sealed class SiphonApi(HttpClient http, IHttpClientFactory factory)
 {
+    public static string TelegramFileBase { get; set; } = "";
+
     static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
 
     public Task<ProbeResult> ProbeAsync(string url, long? telegramUserId, CancellationToken ct) =>
@@ -18,6 +21,19 @@ public sealed class SiphonApi(HttpClient http, IHttpClientFactory factory)
 
     public async Task<string> CreateJobAsync(string url, string output, string format, string? formatId, long? telegramUserId, CancellationToken ct) =>
         (await PostAsync<JobCreated>("api/v1/jobs", new { url, output, format, formatId }, telegramUserId, ct)).JobId;
+
+    public async Task<string?> TelegramFileUrlAsync(Telegram.Bot.ITelegramBotClient bot, string fileId, CancellationToken ct)
+    {
+        try
+        {
+            var file = await bot.GetFile(fileId, ct);
+            return file.FilePath is null ? null : $"{TelegramFileBase}/{file.FilePath}";
+        }
+        catch (Exception)
+        {
+            return null;
+        }
+    }
 
     public Task<ConnectCode> IssueConnectCodeAsync(long telegramUserId, string? username, string? firstName, CancellationToken ct) =>
         PostAsync<ConnectCode>("api/v1/telegram/code", new { telegramUserId, username, firstName }, null, ct);

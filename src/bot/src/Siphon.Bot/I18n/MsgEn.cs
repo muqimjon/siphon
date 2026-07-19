@@ -19,6 +19,12 @@ public sealed class MsgEn : Msg
     public override string UnlinkHint => "To unlink, open your profile on the website — there is an \"Unlink\" button.";
     public override string LinkOk(string email) => $"Account linked ✅\n\n{email}\n\nYour limits now come from this account.";
     public override string ConnectCode(string code) => $"Here is your code:\n\n<code>{code}</code>\n\nEnter it in your profile on the website. It is valid for 10 minutes.";
+    public override string ConvertPrompt => "What should I do with this file?";
+    public override string ToMp3 => "🎵 To MP3";
+    public override string ToMp4 => "🎬 To MP4";
+    public override string ToVideoNote => "⭕ Video note";
+    public override string ToGif => "🖼 To GIF";
+    public override string ConvertTooBig(int mb) => $"Telegram does not let bots fetch files larger than {mb} MB 😔";
     public override string Queued => "⏳ In the queue…";
     public override string Downloading => "⬇️ Downloading…";
     public override string Converting => "🎛 Processing…";

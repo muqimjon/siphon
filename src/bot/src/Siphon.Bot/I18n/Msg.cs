@@ -90,6 +90,12 @@ public abstract class Msg
     public abstract string UnlinkHint { get; }
     public abstract string LinkOk(string email);
     public abstract string ConnectCode(string code);
+    public abstract string ConvertPrompt { get; }
+    public abstract string ToMp3 { get; }
+    public abstract string ToMp4 { get; }
+    public abstract string ToVideoNote { get; }
+    public abstract string ToGif { get; }
+    public abstract string ConvertTooBig(int mb);
     public abstract string Queued { get; }
     public abstract string Downloading { get; }
     public abstract string Converting { get; }

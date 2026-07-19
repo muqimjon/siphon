@@ -44,6 +44,7 @@ public static class MediaModule
         services.AddSingleton<ProbeJsonCache>();
         services.AddSingleton<YtDlpEngine>();
         services.AddSingleton<GalleryDlEngine>();
+        services.AddSingleton<FfmpegEngine>();
         services.AddSingleton<ProbeHandler>();
         services.AddScoped<JobHandlers>();
         services.AddSingleton<FileHandler>();

@@ -19,6 +19,12 @@ public sealed class MsgUz : Msg
     public override string UnlinkHint => "Hisobni uzish uchun saytdagi profilingizga kiring — u yerda \"Uzish\" tugmasi bor.";
     public override string LinkOk(string email) => $"Hisobingiz bog'landi ✅\n\n{email}\n\nEndi limitlaringiz shu hisobdan olinadi.";
     public override string ConnectCode(string code) => $"Mana kodingiz:\n\n<code>{code}</code>\n\nUni saytdagi profilingizga kiriting. Kod 10 daqiqa amal qiladi.";
+    public override string ConvertPrompt => "Bu fayl bilan nima qilay?";
+    public override string ToMp3 => "🎵 MP3 ga";
+    public override string ToMp4 => "🎬 MP4 ga";
+    public override string ToVideoNote => "⭕ Dumaloq video";
+    public override string ToGif => "🖼 GIF ga";
+    public override string ConvertTooBig(int mb) => $"Telegram botlarga {mb} MB dan katta faylni berishga ruxsat bermaydi 😔";
     public override string Queued => "⏳ Navbatda…";
     public override string Downloading => "⬇️ Yuklab olyapman…";
     public override string Converting => "🎛 Tayyorlayapman…";

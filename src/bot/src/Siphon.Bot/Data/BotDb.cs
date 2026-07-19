@@ -13,6 +13,7 @@ public sealed class ChatState
     public bool DeleteSourceLink { get; set; }
     public bool ShowRequester { get; set; }
     public bool ShowPlatform { get; set; }
+    public bool ConvertFiles { get; set; } = true;
 }
 
 public sealed class UsageEvent

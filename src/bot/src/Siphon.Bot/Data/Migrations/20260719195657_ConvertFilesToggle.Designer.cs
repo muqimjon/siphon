@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Siphon.Bot.Data;
 
@@ -10,9 +11,11 @@ using Siphon.Bot.Data;
 namespace Siphon.Bot.Data.Migrations
 {
     [DbContext(typeof(BotDb))]
-    partial class BotDbModelSnapshot : ModelSnapshot
+    [Migration("20260719195657_ConvertFilesToggle")]
+    partial class ConvertFilesToggle
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.10");

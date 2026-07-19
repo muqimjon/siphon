@@ -66,6 +66,13 @@ public sealed class JobRunner(IOptions<LimitsOptions> limits, IHttpClientFactory
         }
     }
 
+    public async Task RunConvertAsync(UpdateContext ctx, string sourceUrl, string action, int sourceMessageId, int messageId, CancellationToken ct)
+    {
+        var probe = new ProbeResult { Title = "" };
+        var entry = new CachedProbe(sourceUrl, probe, sourceMessageId, new UserPref());
+        await RunAsync(ctx, entry, "convert", action, null, messageId, ct);
+    }
+
     async Task ExecuteAsync(UpdateContext ctx, CachedProbe entry, string output, string format, string? formatId, int messageId, CancellationToken ct)
     {
         var api = ctx.Services.GetRequiredService<SiphonApi>();

@@ -79,7 +79,7 @@ public sealed class ProbeHandler(YtDlpEngine ytDlp, GalleryDlEngine galleryDl, P
 
 public sealed class JobHandlers(JobEngine engine, JobStore store, GalleryDlEngine galleryDl, FileTokenService tokens, IHttpContextAccessor http, IOptions<SiphonOptions> options, IUsageSink usage)
 {
-    private static readonly HashSet<string> Outputs = ["audio", "video", "gallery"];
+    private static readonly HashSet<string> Outputs = ["audio", "video", "gallery", "convert"];
 
     public async Task<IResult> Create(CreateJobRequest request)
     {
@@ -90,9 +90,23 @@ public sealed class JobHandlers(JobEngine engine, JobStore store, GalleryDlEngin
         if (request.Output == "gallery" && !galleryDl.Enabled)
             return Problems.Create(ErrorCodes.UnsupportedSite, "Image galleries are disabled on this server.");
 
-        var format = request.Output == "gallery" ? "" : request.Format ?? OutputFormat.Default(request.Output);
-        if (request.Output != "gallery" && !OutputFormat.IsValid(request.Output, format))
-            return Problems.Create(ErrorCodes.InvalidUrl, "Unsupported format for this output.");
+        string format;
+        if (request.Output == "gallery")
+        {
+            format = "";
+        }
+        else if (request.Output == "convert")
+        {
+            format = request.Format ?? "";
+            if (!ConvertAction.IsValid(format))
+                return Problems.Create(ErrorCodes.InvalidUrl, "Unsupported conversion.");
+        }
+        else
+        {
+            format = request.Format ?? OutputFormat.Default(request.Output);
+            if (!OutputFormat.IsValid(request.Output, format))
+                return Problems.Create(ErrorCodes.InvalidUrl, "Unsupported format for this output.");
+        }
 
         var caller = http.HttpContext?.Items["caller"] as ApiCaller;
         if (caller?.Limits.MaxConcurrent is int maxActive && store.ActiveFor(caller.Id) >= maxActive)
