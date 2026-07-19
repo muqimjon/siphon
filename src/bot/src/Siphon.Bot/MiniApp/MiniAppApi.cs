@@ -11,6 +11,8 @@ public sealed record PrefUpdate(string Scope, long? GroupChatId, string Platform
 
 public sealed record LangUpdate(string Lang);
 
+public sealed record BehaviorUpdate(bool DeleteSourceLink, bool ShowRequester);
+
 public static class MiniAppApi
 {
     static readonly string[] Kinds = ["ask", "audio", "video"];
@@ -26,6 +28,7 @@ public static class MiniAppApi
         group.MapPut("/prefs", PutPrefs);
         group.MapPut("/lang", PutLang);
         group.MapPost("/connect-code", ConnectCode);
+        group.MapPut("/behavior", PutBehavior);
     }
 
     static async Task<IResult> GetProfile(HttpContext http, BotDb db, IOptions<BotOptions> bot, IOptions<MiniAppOptions> mini, IOptions<LimitsOptions> limits, CancellationToken ct)
@@ -59,7 +62,9 @@ public static class MiniAppApi
                 lastName = user.LastName,
                 username = user.Username,
                 photoUrl = user.PhotoUrl,
-                lang = state?.Lang ?? Msg.Normalize(user.LanguageCode)
+                lang = state?.Lang ?? Msg.Normalize(user.LanguageCode),
+                deleteSourceLink = state?.DeleteSourceLink ?? false,
+                showRequester = state?.ShowRequester ?? false
             },
             stats = new
             {
@@ -88,6 +93,26 @@ public static class MiniAppApi
         {
             return Results.StatusCode(StatusCodes.Status502BadGateway);
         }
+    }
+
+    static async Task<IResult> PutBehavior(HttpContext http, BotDb db, IOptions<BotOptions> bot, IOptions<MiniAppOptions> mini, BehaviorUpdate body, CancellationToken ct)
+    {
+        var user = Authenticate(http, bot.Value, mini.Value);
+        if (user is null) return Results.Unauthorized();
+
+        var state = await db.Chats.FindAsync([user.Id], ct);
+        if (state is null)
+        {
+            state = new ChatState { ChatId = user.Id, DeleteSourceLink = body.DeleteSourceLink, ShowRequester = body.ShowRequester };
+            db.Chats.Add(state);
+        }
+        else
+        {
+            state.DeleteSourceLink = body.DeleteSourceLink;
+            state.ShowRequester = body.ShowRequester;
+        }
+        await db.SaveChangesAsync(ct);
+        return Results.Ok(new { ok = true });
     }
 
     static async Task<IResult> PutLang(HttpContext http, BotDb db, IOptions<BotOptions> bot, IOptions<MiniAppOptions> mini, LangUpdate body, CancellationToken ct)

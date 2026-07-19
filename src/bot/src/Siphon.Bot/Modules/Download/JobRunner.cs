@@ -94,6 +94,7 @@ public sealed class JobRunner(IOptions<LimitsOptions> limits, IHttpClientFactory
         if (await db.Files.FindAsync([cacheKey], ct) is { } hit && await ResendAsync(ctx, entry.SourceMessageId, hit, messageId, ct))
         {
             await CountDownloadAsync(ctx, entry, db);
+            await DeleteSourceAsync(ctx, entry.SourceMessageId, ct);
             return;
         }
 
@@ -174,6 +175,7 @@ public sealed class JobRunner(IOptions<LimitsOptions> limits, IHttpClientFactory
         var probe = entry.Probe;
         var reply = new ReplyParameters { MessageId = entry.SourceMessageId, AllowSendingWithoutReply = true };
         var duration = probe.DurationSec is double d ? (int?)d : null;
+        var caption = SourceCaption(ctx, entry.Url);
         await ctx.Bot.SendChatAction(ctx.ChatId, ActionFor(file.ContentType), cancellationToken: ct);
         await using var stream = await api.OpenFileAsync(file.Url, ct);
         var input = InputFile.FromStream(stream, file.FileName);
@@ -182,20 +184,20 @@ public sealed class JobRunner(IOptions<LimitsOptions> limits, IHttpClientFactory
         {
             var (performer, title) = SplitTitle(probe);
             var thumbnail = await GetThumbnailAsync(probe.ThumbnailUrl, ct);
-            sent = await ctx.Bot.SendAudio(ctx.ChatId, input, replyParameters: reply, duration: duration, performer: performer, title: title, thumbnail: thumbnail, cancellationToken: ct);
+            sent = await ctx.Bot.SendAudio(ctx.ChatId, input, caption: caption, replyParameters: reply, duration: duration, performer: performer, title: title, thumbnail: thumbnail, cancellationToken: ct);
         }
         else if (file.ContentType.StartsWith("video"))
         {
             var variant = probe.VideoVariants.FirstOrDefault(v => v.FormatId == formatId);
-            sent = await ctx.Bot.SendVideo(ctx.ChatId, input, replyParameters: reply, duration: duration, width: variant?.Width, height: variant?.Height, supportsStreaming: true, cancellationToken: ct);
+            sent = await ctx.Bot.SendVideo(ctx.ChatId, input, caption: caption, replyParameters: reply, duration: duration, width: variant?.Width, height: variant?.Height, supportsStreaming: true, cancellationToken: ct);
         }
         else if (file.ContentType.StartsWith("image"))
         {
-            sent = await ctx.Bot.SendPhoto(ctx.ChatId, input, replyParameters: reply, cancellationToken: ct);
+            sent = await ctx.Bot.SendPhoto(ctx.ChatId, input, caption: caption, replyParameters: reply, cancellationToken: ct);
         }
         else
         {
-            sent = await ctx.Bot.SendDocument(ctx.ChatId, input, replyParameters: reply, cancellationToken: ct);
+            sent = await ctx.Bot.SendDocument(ctx.ChatId, input, caption: caption, replyParameters: reply, cancellationToken: ct);
         }
         try
         {
@@ -206,8 +208,30 @@ public sealed class JobRunner(IOptions<LimitsOptions> limits, IHttpClientFactory
         }
         var db = ctx.Services.GetRequiredService<BotDb>();
         Remember(db, cacheKey, sent);
+        await DeleteSourceAsync(ctx, entry.SourceMessageId, ct);
         if (IsDecided(entry.Pref)) Remember(db, PrefKey(entry.Url, entry.Pref), sent);
         await CountDownloadAsync(ctx, entry, db);
+    }
+
+    static string? SourceCaption(UpdateContext ctx, string url)
+    {
+        if (!ctx.State.ShowRequester) return null;
+        var from = ctx.Callback?.From ?? ctx.Message?.From;
+        var who = from?.Username is { Length: > 0 } u ? "@" + u : from?.FirstName;
+        var site = Platforms.Label(Platforms.Detect(url));
+        return who is null ? site : $"{site} · {who}";
+    }
+
+    static async Task DeleteSourceAsync(UpdateContext ctx, int sourceMessageId, CancellationToken ct)
+    {
+        if (!ctx.State.DeleteSourceLink) return;
+        try
+        {
+            await ctx.Bot.DeleteMessage(ctx.ChatId, sourceMessageId, ct);
+        }
+        catch (ApiRequestException)
+        {
+        }
     }
 
     static void Remember(BotDb db, string cacheKey, Message sent)
@@ -258,6 +282,7 @@ public sealed class JobRunner(IOptions<LimitsOptions> limits, IHttpClientFactory
         var db = ctx.Services.GetRequiredService<BotDb>();
         if (await db.Files.FindAsync([PrefKey(url, pref)], ct) is not { } hit) return false;
         if (!await ResendAsync(ctx, sourceMessageId, hit, null, ct)) return false;
+        await DeleteSourceAsync(ctx, sourceMessageId, ct);
         ctx.State.DownloadsToday++;
         db.Events.Add(new UsageEvent
         {
