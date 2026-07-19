@@ -41,10 +41,10 @@ public sealed class DownloadModule(SiphonApi api, ProbeCache probes, JobRunner r
                 var token = probes.Put(new CachedProbe(url, probe, message.MessageId));
                 if (Uri.TryCreate(url, UriKind.Absolute, out var uri))
                     db.Events.Add(new UsageEvent { ChatId = ctx.ChatId, Kind = "probe", Site = uri.Host, Utc = DateTime.UtcNow });
-                bool allBlocked;
-                (markup, allBlocked) = VariantKeyboard.Build(probe, token, 0, limits.Value.MaxUploadMb, ctx.L);
+                markup = VariantKeyboard.BuildTypes(probe, token, limits.Value.MaxUploadMb, ctx.L);
                 var title = string.IsNullOrWhiteSpace(probe.Title) ? url : probe.Title;
-                text = $"{title}\n\n{(allBlocked ? ctx.L.AllTooLarge(limits.Value.MaxUploadMb) : ctx.L.ChooseVariant)}";
+                var prompt = markup is null ? ctx.L.AllTooLarge(limits.Value.MaxUploadMb) : ctx.L.ChooseType;
+                text = $"{title}\n\n{prompt}";
             }
         }
         catch (BackendException ex)
@@ -61,7 +61,7 @@ public sealed class DownloadModule(SiphonApi api, ProbeCache probes, JobRunner r
     async Task HandleCallbackAsync(UpdateContext ctx, CancellationToken ct)
     {
         var cb = ctx.Callback!;
-        var parts = cb.Data!.Split(':', 4);
+        var parts = cb.Data!.Split(':');
         if (parts.Length < 3 || cb.Message is null)
         {
             await ctx.Bot.AnswerCallbackQuery(cb.Id, ctx.L.Expired, showAlert: true, cancellationToken: ct);
@@ -85,41 +85,117 @@ public sealed class DownloadModule(SiphonApi api, ProbeCache probes, JobRunner r
             await ctx.Bot.AnswerCallbackQuery(cb.Id, ctx.L.Expired, showAlert: true, cancellationToken: ct);
             return;
         }
-        if (kind == "p")
+        switch (kind)
         {
-            var page = parts.Length > 3 && int.TryParse(parts[3], out var p) ? p : 0;
-            var (markup, _) = VariantKeyboard.Build(entry.Probe, token, page, limits.Value.MaxUploadMb, ctx.L);
-            await ctx.Bot.AnswerCallbackQuery(cb.Id, cancellationToken: ct);
-            try
-            {
-                await ctx.Bot.EditMessageReplyMarkup(ctx.ChatId, cb.Message.MessageId, markup, cancellationToken: ct);
-            }
-            catch (ApiRequestException ex) when (ex.Message.Contains("not modified"))
-            {
-            }
+            case "t":
+                if (parts.Length == 3)
+                    await ShowTypesAsync(ctx, entry, token, cb, ct);
+                else
+                    await ShowFormatAsync(ctx, entry, token, parts[3], cb, ct);
+                break;
+            case "f" when parts.Length >= 5:
+                await ShowQualityAsync(ctx, entry, token, parts[3], parts[4], 0, cb, ct);
+                break;
+            case "pq" when parts.Length >= 6:
+                await ShowQualityAsync(ctx, entry, token, parts[3], parts[4], int.TryParse(parts[5], out var page) ? page : 0, cb, ct);
+                break;
+            case "d" when parts.Length >= 6:
+                await StartAsync(ctx, entry, parts[3], parts[4], parts[5], cb, ct);
+                break;
+            case "g":
+                await StartGalleryAsync(ctx, entry, cb, ct);
+                break;
+            default:
+                await ctx.Bot.AnswerCallbackQuery(cb.Id, ctx.L.Expired, showAlert: true, cancellationToken: ct);
+                break;
+        }
+    }
+
+    async Task ShowTypesAsync(UpdateContext ctx, CachedProbe entry, string token, CallbackQuery cb, CancellationToken ct)
+    {
+        var markup = VariantKeyboard.BuildTypes(entry.Probe, token, limits.Value.MaxUploadMb, ctx.L);
+        var prompt = markup is null ? ctx.L.AllTooLarge(limits.Value.MaxUploadMb) : ctx.L.ChooseType;
+        await EditScreenAsync(ctx, entry, cb, prompt, markup, ct);
+    }
+
+    async Task ShowFormatAsync(UpdateContext ctx, CachedProbe entry, string token, string kind, CallbackQuery cb, CancellationToken ct)
+    {
+        if (kind is not ("a" or "v"))
+        {
+            await ctx.Bot.AnswerCallbackQuery(cb.Id, ctx.L.Expired, showAlert: true, cancellationToken: ct);
             return;
         }
-        string? formatId = null;
-        if (kind is "v" or "a")
+        var formats = kind == "v" ? entry.Probe.VideoFormats : entry.Probe.AudioFormats;
+        if (formats.Count == 1)
         {
-            formatId = int.TryParse(parts.ElementAtOrDefault(3), out var index)
-                ? kind == "v"
-                    ? entry.Probe.VideoVariants.ElementAtOrDefault(index)?.FormatId
-                    : entry.Probe.AudioVariants.ElementAtOrDefault(index)?.FormatId
-                : null;
-            if (formatId is null)
-            {
-                await ctx.Bot.AnswerCallbackQuery(cb.Id, ctx.L.Expired, showAlert: true, cancellationToken: ct);
-                return;
-            }
+            await ShowQualityAsync(ctx, entry, token, kind, formats[0], 0, cb, ct);
+            return;
+        }
+        await EditScreenAsync(ctx, entry, cb, ctx.L.ChooseFormat, VariantKeyboard.BuildFormats(entry.Probe, token, kind, ctx.L), ct);
+    }
+
+    async Task ShowQualityAsync(UpdateContext ctx, CachedProbe entry, string token, string kind, string format, int page, CallbackQuery cb, CancellationToken ct)
+    {
+        if (kind is not ("a" or "v"))
+        {
+            await ctx.Bot.AnswerCallbackQuery(cb.Id, ctx.L.Expired, showAlert: true, cancellationToken: ct);
+            return;
+        }
+        var (markup, autoRun) = VariantKeyboard.BuildQuality(entry.Probe, token, kind, format, page, limits.Value.MaxUploadMb, ctx.L);
+        if (autoRun is int index)
+        {
+            await RunAsync(ctx, entry, kind, format, index, cb, ct);
+            return;
+        }
+        await EditScreenAsync(ctx, entry, cb, ctx.L.ChooseQuality, markup, ct);
+    }
+
+    Task StartAsync(UpdateContext ctx, CachedProbe entry, string kind, string format, string indexText, CallbackQuery cb, CancellationToken ct)
+    {
+        if (kind is not ("a" or "v") || !int.TryParse(indexText, out var index))
+            return ctx.Bot.AnswerCallbackQuery(cb.Id, ctx.L.Expired, showAlert: true, cancellationToken: ct);
+        return RunAsync(ctx, entry, kind, format, index, cb, ct);
+    }
+
+    async Task RunAsync(UpdateContext ctx, CachedProbe entry, string kind, string format, int index, CallbackQuery cb, CancellationToken ct)
+    {
+        var formatId = kind == "v"
+            ? entry.Probe.VideoVariants.ElementAtOrDefault(index)?.FormatId
+            : entry.Probe.AudioVariants.ElementAtOrDefault(index)?.FormatId;
+        if (formatId is null)
+        {
+            await ctx.Bot.AnswerCallbackQuery(cb.Id, ctx.L.Expired, showAlert: true, cancellationToken: ct);
+            return;
         }
         if (ctx.State.DownloadsToday >= limits.Value.DailyDownloadsPerChat)
         {
             await ctx.Bot.AnswerCallbackQuery(cb.Id, ctx.L.DailyLimit(limits.Value.DailyDownloadsPerChat), showAlert: true, cancellationToken: ct);
             return;
         }
-        var output = kind switch { "v" => "video", "a" => "audio", _ => "gallery" };
-        await runner.RunAsync(ctx, entry, output, formatId, cb.Message.MessageId, ct);
+        await runner.RunAsync(ctx, entry, kind == "v" ? "video" : "audio", format, formatId, cb.Message!.MessageId, ct);
+    }
+
+    async Task StartGalleryAsync(UpdateContext ctx, CachedProbe entry, CallbackQuery cb, CancellationToken ct)
+    {
+        if (ctx.State.DownloadsToday >= limits.Value.DailyDownloadsPerChat)
+        {
+            await ctx.Bot.AnswerCallbackQuery(cb.Id, ctx.L.DailyLimit(limits.Value.DailyDownloadsPerChat), showAlert: true, cancellationToken: ct);
+            return;
+        }
+        await runner.RunAsync(ctx, entry, "gallery", "", null, cb.Message!.MessageId, ct);
+    }
+
+    async Task EditScreenAsync(UpdateContext ctx, CachedProbe entry, CallbackQuery cb, string prompt, InlineKeyboardMarkup? markup, CancellationToken ct)
+    {
+        await ctx.Bot.AnswerCallbackQuery(cb.Id, cancellationToken: ct);
+        var header = string.IsNullOrWhiteSpace(entry.Probe.Title) ? entry.Url : entry.Probe.Title!;
+        try
+        {
+            await ctx.Bot.EditMessageText(ctx.ChatId, cb.Message!.MessageId, $"{header}\n\n{prompt}", replyMarkup: markup, cancellationToken: ct);
+        }
+        catch (ApiRequestException ex) when (ex.Message.Contains("not modified"))
+        {
+        }
     }
 
     static string? ExtractUrl(Message? message)

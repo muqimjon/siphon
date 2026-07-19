@@ -6,7 +6,13 @@ public sealed class MsgUz : Msg
     public override string Welcome => "Salom! 👋 Men internetdan video, musiqa va rasm yuklab beraman.\n\nMenga havola yuboring — masalan YouTube, Instagram yoki TikTokdan. Qolganini o'zim qilaman 😉";
     public override string SendLink => "Havola yuboring — yuklab beraman 😉";
     public override string Probing => "🔎 Havolani tekshiryapman…";
-    public override string ChooseVariant => "Qaysi birini yuklay?";
+    public override string ChooseType => "Nimani yuklay?";
+    public override string ChooseFormat => "Qaysi formatda?";
+    public override string ChooseQuality => "Qaysi sifatda?";
+    public override string TypeAudio => "Audio";
+    public override string TypeVideo => "Video";
+    public override string Back => "⬅️ Orqaga";
+    public override string Original => "asl";
     public override string Queued => "⏳ Navbatda…";
     public override string Downloading => "⬇️ Yuklab olyapman…";
     public override string Converting => "🎛 Tayyorlayapman…";

@@ -33,7 +33,13 @@ public abstract class Msg
     public abstract string Welcome { get; }
     public abstract string SendLink { get; }
     public abstract string Probing { get; }
-    public abstract string ChooseVariant { get; }
+    public abstract string ChooseType { get; }
+    public abstract string ChooseFormat { get; }
+    public abstract string ChooseQuality { get; }
+    public abstract string TypeAudio { get; }
+    public abstract string TypeVideo { get; }
+    public abstract string Back { get; }
+    public abstract string Original { get; }
     public abstract string Queued { get; }
     public abstract string Downloading { get; }
     public abstract string Converting { get; }

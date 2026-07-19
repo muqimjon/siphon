@@ -16,8 +16,8 @@ public sealed class SiphonApi(HttpClient http, IHttpClientFactory factory)
     public Task<ProbeResult> ProbeAsync(string url, CancellationToken ct) =>
         PostAsync<ProbeResult>("api/v1/probe", new { url }, ct);
 
-    public async Task<string> CreateJobAsync(string url, string output, string? formatId, CancellationToken ct) =>
-        (await PostAsync<JobCreated>("api/v1/jobs", new { url, output, formatId }, ct)).JobId;
+    public async Task<string> CreateJobAsync(string url, string output, string format, string? formatId, CancellationToken ct) =>
+        (await PostAsync<JobCreated>("api/v1/jobs", new { url, output, format, formatId }, ct)).JobId;
 
     public async Task<JobStatus> GetJobAsync(string id, CancellationToken ct)
     {

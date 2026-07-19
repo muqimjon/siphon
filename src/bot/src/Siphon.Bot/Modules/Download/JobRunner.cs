@@ -17,7 +17,7 @@ public sealed class JobRunner(IOptions<LimitsOptions> limits, IHttpClientFactory
     readonly ConcurrentDictionary<long, SemaphoreSlim> _chatSlots = new();
     readonly SemaphoreSlim _globalSlots = new(limits.Value.GlobalMaxActiveJobs);
 
-    public async Task RunAsync(UpdateContext ctx, CachedProbe entry, string output, string? formatId, int messageId, CancellationToken ct)
+    public async Task RunAsync(UpdateContext ctx, CachedProbe entry, string output, string format, string? formatId, int messageId, CancellationToken ct)
     {
         var cb = ctx.Callback!;
         var chatSlot = _chatSlots.GetOrAdd(ctx.ChatId, _ => new SemaphoreSlim(limits.Value.MaxActiveJobsPerChat));
@@ -36,7 +36,7 @@ public sealed class JobRunner(IOptions<LimitsOptions> limits, IHttpClientFactory
             try
             {
                 await ctx.Bot.AnswerCallbackQuery(cb.Id, cancellationToken: ct);
-                await ExecuteAsync(ctx, entry, output, formatId, messageId, ct);
+                await ExecuteAsync(ctx, entry, output, format, formatId, messageId, ct);
             }
             finally
             {
@@ -49,7 +49,7 @@ public sealed class JobRunner(IOptions<LimitsOptions> limits, IHttpClientFactory
         }
     }
 
-    async Task ExecuteAsync(UpdateContext ctx, CachedProbe entry, string output, string? formatId, int messageId, CancellationToken ct)
+    async Task ExecuteAsync(UpdateContext ctx, CachedProbe entry, string output, string format, string? formatId, int messageId, CancellationToken ct)
     {
         var api = ctx.Services.GetRequiredService<SiphonApi>();
         var lim = limits.Value;
@@ -76,7 +76,7 @@ public sealed class JobRunner(IOptions<LimitsOptions> limits, IHttpClientFactory
         string jobId;
         try
         {
-            jobId = await api.CreateJobAsync(entry.Url, output, formatId, ct);
+            jobId = await api.CreateJobAsync(entry.Url, output, format, formatId, ct);
         }
         catch (BackendException ex)
         {

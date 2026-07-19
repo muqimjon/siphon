@@ -6,7 +6,13 @@ public sealed class MsgEn : Msg
     public override string Welcome => "Hi! 👋 I download videos, music and pictures from the internet.\n\nSend me a link — from YouTube, Instagram, TikTok and more. I'll handle the rest 😉";
     public override string SendLink => "Send me a link and I'll download it 😉";
     public override string Probing => "🔎 Checking the link…";
-    public override string ChooseVariant => "What should I download?";
+    public override string ChooseType => "What should I download?";
+    public override string ChooseFormat => "Which format?";
+    public override string ChooseQuality => "Which quality?";
+    public override string TypeAudio => "Audio";
+    public override string TypeVideo => "Video";
+    public override string Back => "⬅️ Back";
+    public override string Original => "original";
     public override string Queued => "⏳ In the queue…";
     public override string Downloading => "⬇️ Downloading…";
     public override string Converting => "🎛 Processing…";

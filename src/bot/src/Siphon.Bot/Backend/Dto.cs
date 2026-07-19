@@ -11,6 +11,8 @@ public sealed record ProbeResult
     public IReadOnlyList<VideoVariant> VideoVariants { get; init; } = [];
     public IReadOnlyList<AudioVariant> AudioVariants { get; init; } = [];
     public IReadOnlyList<ImageInfo> Images { get; init; } = [];
+    public IReadOnlyList<string> AudioFormats { get; init; } = [];
+    public IReadOnlyList<string> VideoFormats { get; init; } = [];
 }
 
 public sealed record VideoVariant
