@@ -9,7 +9,10 @@
     <Project Path="src/bot/src/Siphon.Bot/Siphon.Bot.csproj" />
   </Folder>
   <Folder Name="/src/web/">
-    <Project Path="src/web/siphon-web.esproj" />
+    <Project Path="src/web/siphon-web.esproj">
+      <Build />
+      <Deploy />
+    </Project>
   </Folder>
   <Folder Name="/shared/">
     <File Path="src/shared/models.ts" />

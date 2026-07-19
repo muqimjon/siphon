@@ -68,14 +68,20 @@ public static class MediaModule
     public static IEndpointRouteBuilder MapMedia(this IEndpointRouteBuilder app)
     {
         var api = app.MapGroup("/api/v1");
-        api.MapGet("/health", (HealthHandler handler, CancellationToken ct) => handler.Handle(ct));
-        api.MapGet("/files/{id}", (string id, string? token, FileHandler handler) => handler.Handle(id, token));
+        api.MapGet("/health", (HealthHandler handler, CancellationToken ct) => handler.Handle(ct))
+            .WithName("Health").WithSummary("Service health and tool versions").WithTags("System");
+        api.MapGet("/files/{id}", (string id, string? token, FileHandler handler) => handler.Handle(id, token))
+            .WithName("DownloadFile").WithSummary("Download a finished job's file with its short-lived token").WithTags("Files");
 
         var secured = api.MapGroup("").AddEndpointFilter<ApiKeyFilter>().RequireRateLimiting("per-key");
-        secured.MapPost("/probe", (ProbeRequest request, ProbeHandler handler, CancellationToken ct) => handler.Handle(request, ct));
-        secured.MapPost("/jobs", (CreateJobRequest request, JobHandlers handler) => handler.Create(request));
-        secured.MapGet("/jobs/{id}", (string id, JobHandlers handler) => handler.Status(id));
-        secured.MapDelete("/jobs/{id}", (string id, JobHandlers handler) => handler.Delete(id));
+        secured.MapPost("/probe", (ProbeRequest request, ProbeHandler handler, CancellationToken ct) => handler.Handle(request, ct))
+            .WithName("Probe").WithSummary("Inspect a URL and return the available audio/video/image variants").WithTags("Media");
+        secured.MapPost("/jobs", (CreateJobRequest request, JobHandlers handler) => handler.Create(request))
+            .WithName("CreateJob").WithSummary("Start a download job for a URL in the chosen output and format").WithTags("Media");
+        secured.MapGet("/jobs/{id}", (string id, JobHandlers handler) => handler.Status(id))
+            .WithName("JobStatus").WithSummary("Poll a job's state, progress and (when ready) its file link").WithTags("Media");
+        secured.MapDelete("/jobs/{id}", (string id, JobHandlers handler) => handler.Delete(id))
+            .WithName("CancelJob").WithSummary("Cancel a running job or expire a finished one").WithTags("Media");
         return app;
     }
 
