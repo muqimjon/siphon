@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Siphon.Media.Delivery;
 using Siphon.Media.Engine;
 using Siphon.Media.Http;
@@ -65,6 +66,24 @@ public static class MediaModule
                     PermitLimit = 300,
                     QueueLimit = 0,
                 }));
+
+            o.AddPolicy("anon-jobs", context =>
+            {
+                var media = context.RequestServices.GetRequiredService<IOptions<SiphonOptions>>().Value;
+                var key = context.Request.Headers["X-Api-Key"].ToString();
+                var client = key.Length == 0 ? null : media.ApiKeys.FirstOrDefault(kv => kv.Value == key).Key;
+                if (client != "web" || context.Request.Headers.Authorization.Count > 0)
+                    return RateLimitPartition.GetNoLimiter("identified");
+
+                return RateLimitPartition.GetFixedWindowLimiter(
+                    context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                    _ => new FixedWindowRateLimiterOptions
+                    {
+                        Window = TimeSpan.FromHours(1),
+                        PermitLimit = media.AnonymousJobsPerHour,
+                        QueueLimit = 0,
+                    });
+            });
         });
 
         return services;
@@ -82,6 +101,7 @@ public static class MediaModule
         secured.MapPost("/probe", (ProbeRequest request, ProbeHandler handler, CancellationToken ct) => handler.Handle(request, ct))
             .WithName("Probe").WithSummary("Inspect a URL and return the available audio/video/image variants").WithTags("Media");
         secured.MapPost("/jobs", (CreateJobRequest request, JobHandlers handler) => handler.Create(request))
+            .RequireRateLimiting("anon-jobs")
             .WithName("CreateJob").WithSummary("Start a download job for a URL in the chosen output and format").WithTags("Media");
         secured.MapGet("/jobs/{id}", (string id, JobHandlers handler) => handler.Status(id))
             .WithName("JobStatus").WithSummary("Poll a job's state, progress and (when ready) its file link").WithTags("Media");

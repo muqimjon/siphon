@@ -10,6 +10,7 @@ public sealed class SiphonOptions
     public int MaxQueuedJobs { get; set; } = 20;
     public int JobTtlMinutes { get; set; } = 30;
     public int MaxFileSizeMb { get; set; } = 2048;
+    public int AnonymousJobsPerHour { get; set; } = 20;
     public int MaxDurationMinutes { get; set; } = 240;
     public int MaxGalleryImages { get; set; } = 50;
     public int ProbeTimeoutSeconds { get; set; } = 30;
