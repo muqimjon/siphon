@@ -33,8 +33,15 @@ public static class OutputFormat
 
     public static string ForCodec(string? codec) => codec is not null && codec.StartsWith("opus") ? "opus" : "m4a";
 
-    public static IReadOnlyList<string> AvailableVideo(IEnumerable<string> sourceCodecs) =>
-        sourceCodecs.Any(c => c is "vp9" or "av1") ? [Best, "mp4", "webm"] : [Best, "mp4"];
+    public static IReadOnlyList<string> AvailableVideo(IEnumerable<string> videoCodecs, IEnumerable<string> audioCodecs) =>
+        videoCodecs.Any(c => c is "vp9" or "av1") && WebmAudio(audioCodecs) ? [Best, "mp4", "webm"] : [Best, "mp4"];
 
-    public static string ForVideoCodec(string? codec) => codec is "vp9" or "av1" ? "webm" : "mp4";
+    public static string ForVideoCodec(string? videoCodec, string? audioCodec) =>
+        videoCodec is "vp9" or "av1" && WebmAudio(audioCodec is null ? [] : [audioCodec]) ? "webm" : "mp4";
+
+    static bool WebmAudio(IEnumerable<string> audioCodecs)
+    {
+        var list = audioCodecs.ToList();
+        return list.Count == 0 || list.Any(c => c is "opus" or "vorbis");
+    }
 }

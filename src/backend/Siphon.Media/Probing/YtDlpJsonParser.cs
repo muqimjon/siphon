@@ -72,7 +72,7 @@ public static class YtDlpJsonParser
         {
             Extractor = extractor,
             AudioFormats = audio.Count > 0 ? OutputFormat.AvailableAudio(audio.Select(a => a.Codec)) : [],
-            VideoFormats = video.Count > 0 ? OutputFormat.AvailableVideo(video.Select(v => v.Codec)) : [],
+            VideoFormats = video.Count > 0 ? OutputFormat.AvailableVideo(video.Select(v => v.Codec), audio.Select(a => a.Codec)) : [],
         };
     }
 

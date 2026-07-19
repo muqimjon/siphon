@@ -112,7 +112,8 @@ public sealed class YtDlpEngine(IOptions<SiphonOptions> options, SelfUpdater upd
         var clip = id is null
             ? probe.VideoVariants.MaxBy(v => v.Height ?? 0)
             : probe.VideoVariants.FirstOrDefault(v => v.FormatId == id);
-        return OutputFormat.ForVideoCodec(clip?.Codec);
+        var sound = probe.AudioVariants.MaxBy(a => a.AbrKbps ?? 0);
+        return OutputFormat.ForVideoCodec(clip?.Codec, sound?.Codec);
     }
 
     public async Task RunSelfUpdateAsync(CancellationToken ct)
