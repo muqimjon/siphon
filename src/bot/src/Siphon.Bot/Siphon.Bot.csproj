@@ -5,6 +5,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>dotnet-Siphon.Bot-d96f74fc-6aa2-4d78-9992-09bf8e61f493</UserSecretsId>
+    <Version>0.0.1</Version>
   </PropertyGroup>
 
   <ItemGroup>
