@@ -254,5 +254,15 @@
   "account.passwordWeak": "Parol kamida 8 belgidan iborat bo'lsin.",
   "account.passwordRejected": "Parolni o'zgartirib bo'lmadi. Joriy parolni tekshiring.",
   "tokens.usageTotal": "Jami",
-  "tokens.usageToday": "Bugun"
+  "tokens.usageToday": "Bugun",
+  "admin.concurrentLabel": "Bir vaqtda (parallel)",
+  "admin.expiresLabel": "Amal qilish muddati",
+  "admin.grant1": "1 oy",
+  "admin.grant3": "3 oy",
+  "admin.grant12": "1 yil",
+  "admin.grantForever": "Muddatsiz",
+  "admin.until": "{date} gacha",
+  "admin.expired": "Muddati tugagan — Free tarifda",
+  "admin.expiryHint": "Muddat tugagach limitlar avtomatik Free tarifiga qaytadi. Bo'sh qoldirilsa — muddatsiz.",
+  "tokens.bytes": "Hajm"
 }

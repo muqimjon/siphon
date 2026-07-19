@@ -6,7 +6,7 @@ using Siphon.Media.Http;
 
 namespace Siphon.Accounts.Admin;
 
-public sealed record SetUserLimitsRequest(int? FileSizeLimitMb, int? DailyRequestLimit);
+public sealed record SetUserLimitsRequest(int? FileSizeLimitMb, int? DailyRequestLimit, int? ConcurrentLimit, DateTime? ExpiresAt);
 
 public sealed class AdminHandlers(AccountsDb db)
 {
@@ -29,22 +29,19 @@ public sealed class AdminHandlers(AccountsDb db)
             .Select(g => new { UserId = g.Key, Total = g.Sum(u => u.Count) })
             .ToDictionaryAsync(x => x.UserId, x => x.Total);
 
-        var users = await db.Users.Include(u => u.Plan)
-            .Select(u => new { u.Id, u.Email, u.Role, u.Plan, u.CreatedAt, u.FileSizeLimitMbOverride, u.DailyRequestLimitOverride })
-            .ToListAsync();
+        var users = await db.Users.Include(u => u.Plan).ToListAsync();
 
         var result = users.Select(u => new
         {
             u.Id,
             u.Email,
+            u.FirstName,
+            u.LastName,
             u.Role,
             Plan = u.Plan!.Name,
             u.CreatedAt,
             TotalUsage = totals.GetValueOrDefault(u.Id),
-            Limits = new UserLimitsView(
-                u.FileSizeLimitMbOverride ?? u.Plan!.MaxFileSizeMb,
-                u.DailyRequestLimitOverride ?? u.Plan!.DailyRequests,
-                u.FileSizeLimitMbOverride, u.DailyRequestLimitOverride),
+            Limits = u.EffectiveLimits(),
         });
         return Results.Ok(result);
     }
@@ -57,6 +54,8 @@ public sealed class AdminHandlers(AccountsDb db)
 
         user.FileSizeLimitMbOverride = request.FileSizeLimitMb;
         user.DailyRequestLimitOverride = request.DailyRequestLimit;
+        user.ConcurrentLimitOverride = request.ConcurrentLimit;
+        user.OverridesExpireAt = request.ExpiresAt;
         await db.SaveChangesAsync();
         return Results.Ok(user.EffectiveLimits());
     }

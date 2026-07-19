@@ -4,7 +4,8 @@
     <div class="identity">
       <div class="identity-avatar">{{ (p.firstName || p.email || '?').charAt(0).toUpperCase() }}</div>
       <div>
-        <div class="identity-email">{{ p.email }}</div>
+        <div class="identity-email">{{ (p.firstName || p.lastName) ? (p.firstName + ' ' + (p.lastName || '')).trim() : p.email }}</div>
+        @if (p.firstName || p.lastName) { <div class="identity-meta">{{ p.email }}</div> }
         <div class="identity-meta">{{ i18n.t('account.since', { date: fmtDate(p.createdAt) }) }}</div>
       </div>
       @if (p.role === 'admin') {

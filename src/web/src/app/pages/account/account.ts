@@ -58,6 +58,7 @@ export class Account {
       .then((p) => {
         this.apply(p);
         this.savedName.set(true);
+        this.auth.refreshUser();
       })
       .catch((err: ApiError) => this.nameError.set('account.' + (err.code === 'name-taken' ? 'nameTaken' : 'nameInvalid')))
       .finally(() => this.busy.set(false));

@@ -254,5 +254,15 @@
   "account.passwordWeak": "Пароль должен быть не короче 8 символов.",
   "account.passwordRejected": "Не удалось изменить пароль. Проверьте текущий.",
   "tokens.usageTotal": "Всего",
-  "tokens.usageToday": "Сегодня"
+  "tokens.usageToday": "Сегодня",
+  "admin.concurrentLabel": "Одновременно",
+  "admin.expiresLabel": "Срок действия",
+  "admin.grant1": "1 месяц",
+  "admin.grant3": "3 месяца",
+  "admin.grant12": "1 год",
+  "admin.grantForever": "Бессрочно",
+  "admin.until": "до {date}",
+  "admin.expired": "Срок истёк — тариф Free",
+  "admin.expiryHint": "По истечении срока лимиты автоматически вернутся к Free. Пусто — бессрочно.",
+  "tokens.bytes": "Объём"
 }

@@ -1,3 +1,4 @@
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -10,10 +11,25 @@ public sealed class JobWorker(
     YtDlpEngine ytDlp,
     GalleryDlEngine galleryDl,
     IOptions<SiphonOptions> options,
+    IServiceScopeFactory scopes,
     ILogger<JobWorker> logger) : BackgroundService
 {
     protected override Task ExecuteAsync(CancellationToken stoppingToken) =>
         Task.WhenAll(Enumerable.Range(0, options.Value.MaxConcurrentJobs).Select(_ => RunLoopAsync(stoppingToken)));
+
+    private async Task RecordBytesAsync(Job job)
+    {
+        if (job.Caller is not { } caller || job.FileSizeBytes is not { } bytes) return;
+        try
+        {
+            using var scope = scopes.CreateScope();
+            await scope.ServiceProvider.GetRequiredService<Http.IUsageSink>().RecordBytesAsync(caller, bytes);
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Could not record usage bytes for job {Job}", job.Id);
+        }
+    }
 
     private async Task RunLoopAsync(CancellationToken stoppingToken)
     {
@@ -49,6 +65,7 @@ public sealed class JobWorker(
                 job.EtaSec = 0;
                 job.Phase = null;
                 job.State = JobState.Completed;
+                await RecordBytesAsync(job);
                 job.CompletedAt = DateTimeOffset.UtcNow;
             }
             catch (OperationCanceledException) when (job.Cts.IsCancellationRequested)

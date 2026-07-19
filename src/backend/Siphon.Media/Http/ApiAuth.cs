@@ -3,9 +3,12 @@ using Microsoft.Extensions.Options;
 
 namespace Siphon.Media.Http;
 
-public sealed record CallerLimits(int MaxFileSizeMb, int? DailyRequests);
+public sealed record CallerLimits(int MaxFileSizeMb, int? DailyRequests, int? MaxConcurrent = null);
 
-public sealed record ApiCaller(string Kind, string Id, CallerLimits Limits);
+public sealed record ApiCaller(string Kind, string Id, CallerLimits Limits)
+{
+    public Guid? TokenId { get; init; }
+}
 
 public sealed record AuthOutcome(ApiCaller? Caller, string? ErrorCode)
 {
@@ -21,6 +24,7 @@ public interface IApiAuthenticator
 public interface IUsageSink
 {
     Task<bool> TryConsumeAsync(ApiCaller caller, string endpoint);
+    Task RecordBytesAsync(ApiCaller caller, long bytes);
 }
 
 public sealed class StaticKeyAuthenticator(IOptions<SiphonOptions> options) : IApiAuthenticator
@@ -38,4 +42,5 @@ public sealed class StaticKeyAuthenticator(IOptions<SiphonOptions> options) : IA
 public sealed class NullUsageSink : IUsageSink
 {
     public Task<bool> TryConsumeAsync(ApiCaller caller, string endpoint) => Task.FromResult(true);
+    public Task RecordBytesAsync(ApiCaller caller, long bytes) => Task.CompletedTask;
 }

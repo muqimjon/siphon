@@ -8,4 +8,5 @@ public sealed class UsageDaily
     public DateOnly DateUtc { get; set; }
     public string Endpoint { get; set; } = "";
     public int Count { get; set; }
+    public long Bytes { get; set; }
 }

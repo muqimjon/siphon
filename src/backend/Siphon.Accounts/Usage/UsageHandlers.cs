@@ -49,7 +49,7 @@ public sealed class UsageHandlers(AccountsDb db)
         var rows = await db.Usage
             .Where(u => u.UserId == id && u.DateUtc >= start && u.DateUtc <= today)
             .GroupBy(u => u.TokenId)
-            .Select(g => new { g.Key, Total = g.Sum(u => u.Count), Today = g.Sum(u => u.DateUtc == today ? u.Count : 0) })
+            .Select(g => new { g.Key, Total = g.Sum(u => u.Count), Today = g.Sum(u => u.DateUtc == today ? u.Count : 0), Bytes = g.Sum(u => u.Bytes) })
             .ToListAsync();
 
         var tokens = await db.ApiTokens
@@ -66,6 +66,7 @@ public sealed class UsageHandlers(AccountsDb db)
             prefix = r.Key is null ? null : tokens.FirstOrDefault(t => t.Id == r.Key)?.Prefix,
             total = r.Total,
             today = r.Today,
+            bytes = r.Bytes,
         }).OrderByDescending(x => x.total).ToList();
 
         return Results.Ok(perToken);

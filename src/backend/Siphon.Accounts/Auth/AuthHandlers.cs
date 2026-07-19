@@ -98,7 +98,7 @@ public sealed class AuthHandlers(
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
         var used = await db.Usage.Where(u => u.UserId == user.Id && u.DateUtc == today).SumAsync(u => (int?)u.Count) ?? 0;
         var limits = user.EffectiveLimits();
-        return Results.Ok(new MeResponse(user.Email ?? "", user.Role,
-            new PlanView(user.Plan!.Name, limits.DailyRequests, user.Plan!.MaxConcurrent, limits.MaxFileSizeMb, used), providers));
+        return Results.Ok(new MeResponse(user.Email ?? "", user.FirstName, user.LastName, user.Role,
+            new PlanView(user.Plan!.Name, limits.DailyRequests, limits.MaxConcurrent, limits.MaxFileSizeMb, used), providers));
     }
 }

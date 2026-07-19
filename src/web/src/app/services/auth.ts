@@ -13,6 +13,8 @@ export interface Plan {
 
 export interface Me {
   email: string;
+  firstName?: string | null;
+  lastName?: string | null;
   role: string;
   plan: Plan;
   providers: string[];
@@ -43,8 +45,12 @@ export interface UsageRow {
 export interface Limits {
   maxFileSizeMb: number;
   dailyRequests: number;
+  maxConcurrent: number;
   fileSizeLimitMbOverride: number | null;
   dailyRequestLimitOverride: number | null;
+  concurrentLimitOverride: number | null;
+  overridesExpireAt: string | null;
+  overridesActive: boolean;
 }
 
 export interface LoginView {
@@ -69,6 +75,7 @@ export interface TokenUsage {
   prefix: string | null;
   total: number;
   today: number;
+  bytes: number;
 }
 
 export interface ProviderInfo {
@@ -100,6 +107,8 @@ export interface Usage {
 export interface AdminUser {
   id: string;
   email: string | null;
+  firstName: string | null;
+  lastName: string | null;
   role: string;
   plan: string;
   createdAt: string;
@@ -238,8 +247,29 @@ export class Auth {
     return this.request<AdminUser[]>('GET', '/admin/users');
   }
 
-  adminSetLimits(id: string, fileSizeLimitMb: number | null, dailyRequestLimit: number | null): Promise<Limits> {
-    return this.request<Limits>('PUT', `/admin/users/${id}/limits`, { fileSizeLimitMb, dailyRequestLimit });
+  adminSetLimits(
+    id: string,
+    fileSizeLimitMb: number | null,
+    dailyRequestLimit: number | null,
+    concurrentLimit: number | null,
+    expiresAt: string | null,
+  ): Promise<Limits> {
+    return this.request<Limits>('PUT', `/admin/users/${id}/limits`, {
+      fileSizeLimitMb,
+      dailyRequestLimit,
+      concurrentLimit,
+      expiresAt,
+    });
+  }
+
+  refreshUser(): void {
+    this.loadMe();
+  }
+
+  displayName(): string {
+    const u = this.user();
+    const full = [u?.firstName, u?.lastName].filter(Boolean).join(' ');
+    return full || u?.email || '';
   }
 
   async request<T>(method: string, path: string, body?: unknown): Promise<T> {

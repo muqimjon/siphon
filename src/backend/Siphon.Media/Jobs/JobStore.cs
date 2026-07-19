@@ -10,4 +10,7 @@ public sealed class JobStore
     public Job? Get(string id) => _jobs.GetValueOrDefault(id);
     public bool Remove(string id) => _jobs.TryRemove(id, out _);
     public IReadOnlyCollection<Job> All => [.. _jobs.Values];
+
+    public int ActiveFor(string callerId) =>
+        _jobs.Values.Count(j => j.Caller?.Id == callerId && j.State is JobState.Queued or JobState.Running);
 }

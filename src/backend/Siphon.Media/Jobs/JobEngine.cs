@@ -21,7 +21,7 @@ public sealed class JobEngine
 
     public ChannelReader<Job> Reader => _queue.Reader;
 
-    public Job Create(JobRequest request)
+    public Job Create(JobRequest request, Http.ApiCaller? caller = null)
     {
         var tempRoot = Path.GetFullPath(_options.TempRoot);
         Directory.CreateDirectory(tempRoot);
@@ -32,7 +32,7 @@ public sealed class JobEngine
         var id = Guid.NewGuid().ToString("N");
         var dir = Path.Combine(tempRoot, id);
         Directory.CreateDirectory(dir);
-        var job = new Job { Id = id, Request = request, Dir = dir };
+        var job = new Job { Id = id, Request = request, Dir = dir, Caller = caller };
         if (request.Cookies is not null)
             File.WriteAllText(job.CookiesPath!, request.Cookies);
 

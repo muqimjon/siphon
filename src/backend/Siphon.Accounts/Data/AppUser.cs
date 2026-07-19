@@ -12,4 +12,6 @@ public sealed class AppUser : IdentityUser
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public int? FileSizeLimitMbOverride { get; set; }
     public int? DailyRequestLimitOverride { get; set; }
+    public int? ConcurrentLimitOverride { get; set; }
+    public DateTime? OverridesExpireAt { get; set; }
 }

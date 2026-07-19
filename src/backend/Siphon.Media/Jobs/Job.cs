@@ -22,6 +22,7 @@ public sealed class Job
     public long? FileSizeBytes { get; set; }
     public DateTimeOffset CreatedAt { get; } = DateTimeOffset.UtcNow;
     public DateTimeOffset? CompletedAt { get; set; }
+    public Http.ApiCaller? Caller { get; init; }
     public CancellationTokenSource Cts { get; } = new();
 
     public string? CookiesPath => Request.Cookies is null ? null : Path.Combine(Dir, "cookies.txt");

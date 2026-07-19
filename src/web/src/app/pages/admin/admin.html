@@ -38,9 +38,19 @@
       <tbody>
         @for (u of users(); track u.id) {
           <tr>
-            <td>{{ u.email }}</td>
+            <td>
+              <div class="admin-user">{{ userLabel(u) }}</div>
+              @if (u.firstName || u.lastName) { <div class="admin-sub">{{ u.email }}</div> }
+            </td>
             <td><span class="sp-badge">{{ u.role }}</span></td>
-            <td>{{ u.plan }}</td>
+            <td>
+              {{ u.plan }}
+              @if (u.limits.overridesExpireAt) {
+                <div class="admin-sub" [class.expired]="!u.limits.overridesActive">
+                  {{ u.limits.overridesActive ? i18n.t('admin.until', { date: fmtDate(u.limits.overridesExpireAt) }) : i18n.t('admin.expired') }}
+                </div>
+              }
+            </td>
             <td>
               {{ i18n.t('dash.mb', { size: u.limits.maxFileSizeMb }) }}
               @if (u.limits.fileSizeLimitMbOverride !== null) {
@@ -59,31 +69,6 @@
               <button type="button" class="sp-btn sp-btn-secondary sp-btn-sm" (click)="startEdit(u)">{{ i18n.t('admin.editLimits') }}</button>
             </td>
           </tr>
-          @if (editing() === u.id) {
-            <tr class="edit-row">
-              <td colspan="8">
-                <form class="limits-form" (submit)="save(u); $event.preventDefault()">
-                  <label class="limits-field">
-                    <span>{{ i18n.t('admin.fileSizeLabel') }}</span>
-                    <input #fileInput type="number" min="1" inputmode="numeric"
-                           [placeholder]="i18n.t('admin.limitPlaceholder')"
-                           [value]="fileVal()" (input)="fileVal.set(fileInput.value)">
-                  </label>
-                  <label class="limits-field">
-                    <span>{{ i18n.t('admin.dailyLabel') }}</span>
-                    <input #dailyInput type="number" min="1" inputmode="numeric"
-                           [placeholder]="i18n.t('admin.limitPlaceholder')"
-                           [value]="dailyVal()" (input)="dailyVal.set(dailyInput.value)">
-                  </label>
-                  <div class="limits-actions">
-                    <button type="submit" class="sp-btn sp-btn-primary sp-btn-sm" [disabled]="saving()">{{ i18n.t('admin.save') }}</button>
-                    <button type="button" class="sp-btn sp-btn-secondary sp-btn-sm" (click)="cancelEdit()">{{ i18n.t('admin.cancel') }}</button>
-                  </div>
-                </form>
-                <p class="limits-hint">{{ i18n.t('admin.limitsHint') }}</p>
-              </td>
-            </tr>
-          }
         } @empty {
           <tr><td colspan="8" class="admin-empty">{{ i18n.t('admin.empty') }}</td></tr>
         }
@@ -91,3 +76,55 @@
     </table>
   </div>
 </section>
+
+@if (edited(); as u) {
+  <div class="modal-backdrop" (click)="cancelEdit()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-head">
+        <h3>{{ i18n.t('admin.editLimits') }}</h3>
+        <div class="modal-sub">{{ userLabel(u) }}</div>
+      </div>
+
+      <form class="modal-body" (submit)="save(); $event.preventDefault()">
+        <label class="limits-field">
+          <span>{{ i18n.t('admin.fileSizeLabel') }}</span>
+          <input class="sp-input" #fileInput type="number" min="1" inputmode="numeric"
+                 [placeholder]="i18n.t('admin.limitPlaceholder')"
+                 [value]="fileVal()" (input)="fileVal.set(fileInput.value)">
+        </label>
+        <label class="limits-field">
+          <span>{{ i18n.t('admin.dailyLabel') }}</span>
+          <input class="sp-input" #dailyInput type="number" min="1" inputmode="numeric"
+                 [placeholder]="i18n.t('admin.limitPlaceholder')"
+                 [value]="dailyVal()" (input)="dailyVal.set(dailyInput.value)">
+        </label>
+        <label class="limits-field">
+          <span>{{ i18n.t('admin.concurrentLabel') }}</span>
+          <input class="sp-input" #conInput type="number" min="1" inputmode="numeric"
+                 [placeholder]="i18n.t('admin.limitPlaceholder')"
+                 [value]="concurrentVal()" (input)="concurrentVal.set(conInput.value)">
+        </label>
+        <label class="limits-field">
+          <span>{{ i18n.t('admin.expiresLabel') }}</span>
+          <input class="sp-input" #expInput type="date"
+                 [value]="expiresVal()" (input)="expiresVal.set(expInput.value)">
+        </label>
+
+        <div class="grant-row">
+          <button type="button" class="sp-btn sp-btn-secondary sp-btn-sm" (click)="grantMonths(1)">{{ i18n.t('admin.grant1') }}</button>
+          <button type="button" class="sp-btn sp-btn-secondary sp-btn-sm" (click)="grantMonths(3)">{{ i18n.t('admin.grant3') }}</button>
+          <button type="button" class="sp-btn sp-btn-secondary sp-btn-sm" (click)="grantMonths(12)">{{ i18n.t('admin.grant12') }}</button>
+          <button type="button" class="sp-btn sp-btn-secondary sp-btn-sm" (click)="clearExpiry()">{{ i18n.t('admin.grantForever') }}</button>
+        </div>
+
+        <p class="limits-hint">{{ i18n.t('admin.limitsHint') }}</p>
+        <p class="limits-hint">{{ i18n.t('admin.expiryHint') }}</p>
+
+        <div class="modal-actions">
+          <button type="button" class="sp-btn sp-btn-secondary" (click)="cancelEdit()">{{ i18n.t('admin.cancel') }}</button>
+          <button type="submit" class="sp-btn sp-btn-primary" [disabled]="saving()">{{ i18n.t('admin.save') }}</button>
+        </div>
+      </form>
+    </div>
+  </div>
+}

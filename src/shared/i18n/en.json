@@ -254,5 +254,15 @@
   "account.passwordWeak": "Use at least 8 characters.",
   "account.passwordRejected": "Could not change the password. Check the current one.",
   "tokens.usageTotal": "Total",
-  "tokens.usageToday": "Today"
+  "tokens.usageToday": "Today",
+  "admin.concurrentLabel": "Concurrent",
+  "admin.expiresLabel": "Valid until",
+  "admin.grant1": "1 month",
+  "admin.grant3": "3 months",
+  "admin.grant12": "1 year",
+  "admin.grantForever": "No expiry",
+  "admin.until": "until {date}",
+  "admin.expired": "Expired — back on Free",
+  "admin.expiryHint": "When it expires the limits fall back to Free automatically. Leave empty for no expiry.",
+  "tokens.bytes": "Volume"
 }

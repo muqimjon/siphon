@@ -95,6 +95,8 @@ public sealed class JobHandlers(JobEngine engine, JobStore store, GalleryDlEngin
             return Problems.Create(ErrorCodes.InvalidUrl, "Unsupported format for this output.");
 
         var caller = http.HttpContext?.Items["caller"] as ApiCaller;
+        if (caller?.Limits.MaxConcurrent is int maxActive && store.ActiveFor(caller.Id) >= maxActive)
+            return Problems.Create(ErrorCodes.QuotaExceeded, $"You already have {maxActive} download(s) running.");
         if (caller is not null && !await usage.TryConsumeAsync(caller, "download"))
             return Problems.Create(ErrorCodes.QuotaExceeded, "Daily download quota exceeded.");
 
@@ -102,7 +104,7 @@ public sealed class JobHandlers(JobEngine engine, JobStore store, GalleryDlEngin
 
         try
         {
-            var job = engine.Create(new JobRequest(request.Url, request.Output, format, request.FormatId, request.Cookies, maxFileSizeMb));
+            var job = engine.Create(new JobRequest(request.Url, request.Output, format, request.FormatId, request.Cookies, maxFileSizeMb), caller);
             return Results.Accepted($"/api/v1/jobs/{job.Id}", new CreateJobResponse(job.Id, $"/api/v1/jobs/{job.Id}"));
         }
         catch (MediaEngineException ex)

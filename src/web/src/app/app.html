@@ -44,7 +44,7 @@
           </svg>
         </button>
         <div class="account-menu" (click)="$event.stopPropagation()">
-          <div class="account-email">{{ auth.user()?.email }}</div>
+          <div class="account-email">{{ auth.displayName() }}</div>
           <a routerLink="/dashboard" routerLinkActive="active" (click)="accountOpen.set(false)">{{ i18n.t('nav.dashboard') }}</a>
           <a routerLink="/tokens" routerLinkActive="active" (click)="accountOpen.set(false)">{{ i18n.t('nav.tokens') }}</a>
           <a routerLink="/telegram" routerLinkActive="active" (click)="accountOpen.set(false)">{{ i18n.t('nav.telegram') }}</a>

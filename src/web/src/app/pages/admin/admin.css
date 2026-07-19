@@ -49,3 +49,24 @@
 @media (prefers-reduced-motion: reduce) {
   .bar { transition: none; }
 }
+
+.admin-user { font-weight: 600; }
+.admin-sub { font-size: var(--sp-fs-xs); color: var(--sp-text-dim); margin-top: 2px; }
+.admin-sub.expired { color: var(--sp-warn); }
+
+.modal-backdrop {
+  position: fixed; inset: 0; z-index: 60;
+  display: grid; place-items: center; padding: var(--sp-4);
+  background: rgba(0,0,0,.55); backdrop-filter: blur(3px);
+}
+.modal {
+  width: min(460px, 100%); max-height: 90vh; overflow-y: auto;
+  background: var(--sp-surface); border: 1px solid var(--sp-border);
+  border-radius: var(--sp-r-lg); box-shadow: var(--sp-shadow);
+}
+.modal-head { padding: var(--sp-5) var(--sp-5) var(--sp-3); border-bottom: 1px solid var(--sp-border); }
+.modal-head h3 { margin: 0; font-size: var(--sp-fs-lg); font-weight: 700; }
+.modal-sub { margin-top: 2px; font-size: var(--sp-fs-sm); color: var(--sp-text-dim); }
+.modal-body { display: grid; gap: var(--sp-4); padding: var(--sp-5); }
+.modal-actions { display: flex; justify-content: flex-end; gap: var(--sp-3); }
+.grant-row { display: flex; flex-wrap: wrap; gap: var(--sp-2); }

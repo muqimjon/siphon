@@ -3,7 +3,7 @@
     <div class="side-card">
       <div class="side-avatar">{{ initial() }}</div>
       <div class="side-id">
-        <div class="side-email">{{ auth.user()?.email }}</div>
+        <div class="side-email">{{ auth.displayName() }}</div>
         <div class="side-plan">{{ auth.user()?.plan?.name }}</div>
       </div>
     </div>

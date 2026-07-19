@@ -7,11 +7,22 @@ namespace Siphon.Accounts.Integration;
 
 public sealed class DbUsageSink(AccountsDb db, IHttpContextAccessor http) : IUsageSink
 {
+    public async Task RecordBytesAsync(ApiCaller caller, long bytes)
+    {
+        if (caller.Kind != "user" || bytes <= 0) return;
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        var row = await db.Usage.FirstOrDefaultAsync(u =>
+            u.UserId == caller.Id && u.TokenId == caller.TokenId && u.DateUtc == today && u.Endpoint == "download");
+        if (row is null) return;
+        row.Bytes += bytes;
+        await db.SaveChangesAsync();
+    }
+
     public async Task<bool> TryConsumeAsync(ApiCaller caller, string endpoint)
     {
         if (caller.Kind != "user") return true;
 
-        var tokenId = http.HttpContext?.Items[DbApiAuthenticator.TokenIdItem] as Guid?;
+        var tokenId = caller.TokenId ?? http.HttpContext?.Items[DbApiAuthenticator.TokenIdItem] as Guid?;
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
 
         if (caller.Limits.DailyRequests is { } cap)

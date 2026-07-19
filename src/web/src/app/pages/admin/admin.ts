@@ -22,7 +22,9 @@ export class Admin {
   readonly users = signal<AdminUser[]>([]);
   readonly bars = signal<Bar[]>([]);
   readonly total = signal(0);
-  readonly editing = signal<string | null>(null);
+  readonly edited = signal<AdminUser | null>(null);
+  readonly concurrentVal = signal('');
+  readonly expiresVal = signal('');
   readonly fileVal = signal('');
   readonly dailyVal = signal('');
   readonly saving = signal(false);
@@ -39,23 +41,49 @@ export class Admin {
   startEdit(u: AdminUser): void {
     this.fileVal.set(u.limits.fileSizeLimitMbOverride?.toString() ?? '');
     this.dailyVal.set(u.limits.dailyRequestLimitOverride?.toString() ?? '');
-    this.editing.set(u.id);
+    this.concurrentVal.set(u.limits.concurrentLimitOverride?.toString() ?? '');
+    this.expiresVal.set(u.limits.overridesExpireAt ? u.limits.overridesExpireAt.slice(0, 10) : '');
+    this.edited.set(u);
   }
 
   cancelEdit(): void {
-    this.editing.set(null);
+    this.edited.set(null);
   }
 
-  save(u: AdminUser): void {
+  grantMonths(months: number): void {
+    const d = new Date();
+    d.setMonth(d.getMonth() + months);
+    this.expiresVal.set(d.toISOString().slice(0, 10));
+  }
+
+  clearExpiry(): void {
+    this.expiresVal.set('');
+  }
+
+  save(): void {
+    const u = this.edited();
+    if (!u) return;
     this.saving.set(true);
+    const expires = this.expiresVal().trim();
     this.auth
-      .adminSetLimits(u.id, this.parse(this.fileVal()), this.parse(this.dailyVal()))
+      .adminSetLimits(
+        u.id,
+        this.parse(this.fileVal()),
+        this.parse(this.dailyVal()),
+        this.parse(this.concurrentVal()),
+        expires ? new Date(expires + 'T23:59:59Z').toISOString() : null,
+      )
       .then((limits) => {
         this.users.update((rows) => rows.map((r) => (r.id === u.id ? { ...r, limits } : r)));
-        this.editing.set(null);
+        this.edited.set(null);
       })
       .catch(() => {})
       .finally(() => this.saving.set(false));
+  }
+
+  userLabel(u: AdminUser): string {
+    const full = [u.firstName, u.lastName].filter(Boolean).join(' ');
+    return full || u.email || u.id;
   }
 
   private parse(value: string): number | null {
