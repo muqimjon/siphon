@@ -28,9 +28,7 @@
           <th>{{ i18n.t('admin.colEmail') }}</th>
           <th>{{ i18n.t('admin.colRole') }}</th>
           <th>{{ i18n.t('admin.colPlan') }}</th>
-          <th>{{ i18n.t('admin.colFileSize') }}</th>
-          <th>{{ i18n.t('admin.colMonthly') }}</th>
-          <th>{{ i18n.t('admin.colDaily') }}</th>
+          <th>{{ i18n.t('admin.colLimits') }}</th>
           <th>{{ i18n.t('admin.colJoined') }}</th>
           <th class="num">{{ i18n.t('admin.colUsage') }}</th>
           <th></th>
@@ -53,22 +51,15 @@
               }
             </td>
             <td>
-              {{ i18n.t('dash.mb', { size: u.limits.maxFileSizeMb }) }}
-              @if (u.limits.fileSizeLimitMbOverride !== null) {
-                <span class="sp-badge sp-badge-warn">{{ i18n.t('admin.override') }}</span>
-              }
-            </td>
-            <td>
-              {{ i18n.t('admin.gb', { size: u.limits.monthlyGb }) }}
-              @if (u.limits.monthlyGbOverride !== null) {
-                <span class="sp-badge sp-badge-warn">{{ i18n.t('admin.override') }}</span>
-              }
-            </td>
-            <td>
-              {{ u.limits.dailyRequests }}
-              @if (u.limits.dailyRequestLimitOverride !== null) {
-                <span class="sp-badge sp-badge-warn">{{ i18n.t('admin.override') }}</span>
-              }
+              <div class="limit-chips">
+                <span class="limit-chip" [title]="i18n.t('admin.monthlyLabel')">{{ u.limits.monthlyGb }} GB</span>
+                <span class="limit-chip" [title]="i18n.t('admin.fileSizeLabel')">{{ u.limits.maxFileSizeMb }} MB</span>
+                <span class="limit-chip" [title]="i18n.t('admin.dailyLabel')">{{ u.limits.dailyRequests }}/kun</span>
+                <span class="limit-chip" [title]="i18n.t('admin.concurrentLabel')">×{{ u.limits.maxConcurrent }}</span>
+                @if (u.limits.fileSizeLimitMbOverride !== null || u.limits.monthlyGbOverride !== null || u.limits.dailyRequestLimitOverride !== null || u.limits.concurrentLimitOverride !== null) {
+                  <span class="sp-badge sp-badge-warn">{{ i18n.t('admin.override') }}</span>
+                }
+              </div>
             </td>
             <td>{{ fmtDate(u.createdAt) }}</td>
             <td class="num">{{ u.totalUsage }}</td>
@@ -77,7 +68,7 @@
             </td>
           </tr>
         } @empty {
-          <tr><td colspan="9" class="admin-empty">{{ i18n.t('admin.empty') }}</td></tr>
+          <tr><td colspan="7" class="admin-empty">{{ i18n.t('admin.empty') }}</td></tr>
         }
       </tbody>
     </table>
@@ -93,45 +84,64 @@
       </div>
 
       <form class="modal-body" (submit)="save(); $event.preventDefault()">
-        <label class="limits-field">
-          <span>{{ i18n.t('admin.fileSizeLabel') }}</span>
-          <input class="sp-input" #fileInput type="number" min="1" inputmode="numeric"
-                 [placeholder]="i18n.t('admin.limitPlaceholder')"
-                 [value]="fileVal()" (input)="fileVal.set(fileInput.value)">
-        </label>
-        <label class="limits-field">
-          <span>{{ i18n.t('admin.dailyLabel') }}</span>
-          <input class="sp-input" #dailyInput type="number" min="1" inputmode="numeric"
-                 [placeholder]="i18n.t('admin.limitPlaceholder')"
-                 [value]="dailyVal()" (input)="dailyVal.set(dailyInput.value)">
-        </label>
-        <label class="limits-field">
-          <span>{{ i18n.t('admin.concurrentLabel') }}</span>
-          <input class="sp-input" #conInput type="number" min="1" inputmode="numeric"
-                 [placeholder]="i18n.t('admin.limitPlaceholder')"
-                 [value]="concurrentVal()" (input)="concurrentVal.set(conInput.value)">
-        </label>
-        <label class="limits-field">
-          <span>{{ i18n.t('admin.monthlyLabel') }}</span>
-          <input class="sp-input" #monInput type="number" min="1" inputmode="numeric"
-                 [placeholder]="i18n.t('admin.limitPlaceholder')"
-                 [value]="monthlyVal()" (input)="monthlyVal.set(monInput.value)">
-        </label>
-        <label class="limits-field">
-          <span>{{ i18n.t('admin.expiresLabel') }}</span>
-          <input class="sp-input" #expInput type="date"
-                 [value]="expiresVal()" (input)="expiresVal.set(expInput.value)">
-        </label>
-
-        <div class="grant-row">
-          <button type="button" class="sp-btn sp-btn-secondary sp-btn-sm" (click)="grantMonths(1)">{{ i18n.t('admin.grant1') }}</button>
-          <button type="button" class="sp-btn sp-btn-secondary sp-btn-sm" (click)="grantMonths(3)">{{ i18n.t('admin.grant3') }}</button>
-          <button type="button" class="sp-btn sp-btn-secondary sp-btn-sm" (click)="grantMonths(12)">{{ i18n.t('admin.grant12') }}</button>
-          <button type="button" class="sp-btn sp-btn-secondary sp-btn-sm" (click)="clearExpiry()">{{ i18n.t('admin.grantForever') }}</button>
+        <div class="field-block">
+          <span class="field-title">{{ i18n.t('admin.planLabel') }}</span>
+          <div class="plan-picker">
+            @for (p of plans(); track p.id) {
+              <button type="button" class="plan-option" [class.on]="planId() === p.id" (click)="choosePlan(p.id)">
+                <strong>{{ p.name }}</strong>
+                <small>{{ p.monthlyGb }} GB · {{ p.maxFileSizeMb }} MB</small>
+              </button>
+            }
+          </div>
+          <p class="field-note">{{ i18n.t('admin.planNote') }}</p>
         </div>
 
-        <p class="limits-hint">{{ i18n.t('admin.limitsHint') }}</p>
-        <p class="limits-hint">{{ i18n.t('admin.expiryHint') }}</p>
+        <div class="field-block">
+          <span class="field-title">{{ i18n.t('admin.overridesTitle') }}</span>
+          <div class="limits-grid">
+            <label class="limits-field">
+              <span>📦 {{ i18n.t('admin.monthlyLabel') }}</span>
+              <input class="sp-input" #monInput type="number" min="1" inputmode="numeric"
+                     [placeholder]="planDefaults()?.monthlyGb?.toString() ?? ''"
+                     [value]="monthlyVal()" (input)="monthlyVal.set(monInput.value)">
+            </label>
+            <label class="limits-field">
+              <span>📄 {{ i18n.t('admin.fileSizeLabel') }}</span>
+              <input class="sp-input" #fileInput type="number" min="1" inputmode="numeric"
+                     [placeholder]="planDefaults()?.maxFileSizeMb?.toString() ?? ''"
+                     [value]="fileVal()" (input)="fileVal.set(fileInput.value)">
+            </label>
+            <label class="limits-field">
+              <span>🔁 {{ i18n.t('admin.dailyLabel') }}</span>
+              <input class="sp-input" #dailyInput type="number" min="1" inputmode="numeric"
+                     [placeholder]="planDefaults()?.dailyRequests?.toString() ?? ''"
+                     [value]="dailyVal()" (input)="dailyVal.set(dailyInput.value)">
+            </label>
+            <label class="limits-field">
+              <span>⚡ {{ i18n.t('admin.concurrentLabel') }}</span>
+              <input class="sp-input" #conInput type="number" min="1" inputmode="numeric"
+                     [placeholder]="planDefaults()?.maxConcurrent?.toString() ?? ''"
+                     [value]="concurrentVal()" (input)="concurrentVal.set(conInput.value)">
+            </label>
+          </div>
+          <p class="field-note">{{ i18n.t('admin.limitsHint') }}</p>
+        </div>
+
+        <div class="field-block">
+          <span class="field-title">{{ i18n.t('admin.expiresLabel') }}</span>
+          <div class="expiry-row">
+            <input class="sp-input" #expInput type="date"
+                   [value]="expiresVal()" (input)="expiresVal.set(expInput.value)">
+            <div class="grant-row">
+              <button type="button" class="sp-btn sp-btn-secondary sp-btn-sm" (click)="grantMonths(1)">{{ i18n.t('admin.grant1') }}</button>
+              <button type="button" class="sp-btn sp-btn-secondary sp-btn-sm" (click)="grantMonths(3)">{{ i18n.t('admin.grant3') }}</button>
+              <button type="button" class="sp-btn sp-btn-secondary sp-btn-sm" (click)="grantMonths(12)">{{ i18n.t('admin.grant12') }}</button>
+              <button type="button" class="sp-btn sp-btn-secondary sp-btn-sm" (click)="clearExpiry()">{{ i18n.t('admin.grantForever') }}</button>
+            </div>
+          </div>
+          <p class="field-note">{{ i18n.t('admin.expiryHint') }}</p>
+        </div>
 
         <div class="modal-actions">
           <button type="button" class="sp-btn sp-btn-secondary" (click)="cancelEdit()">{{ i18n.t('admin.cancel') }}</button>

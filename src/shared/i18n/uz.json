@@ -268,5 +268,9 @@
   "admin.colMonthly": "Oylik hajm",
   "admin.monthlyLabel": "Oylik hajm (GB)",
   "admin.gb": "{size} GB",
-  "dash.monthVolume": "Shu oyda yuklangan"
+  "dash.monthVolume": "Shu oyda yuklangan",
+  "admin.colLimits": "Cheklovlar",
+  "admin.planLabel": "Tarif",
+  "admin.planNote": "Tarif tanlansa maydonlar bo'shaydi — tarif qiymatlari ishlaydi (kulrang matn).",
+  "admin.overridesTitle": "Shaxsiy cheklovlar"
 }

@@ -3,6 +3,8 @@ namespace Siphon.Accounts.Data;
 public sealed class Plan
 {
     public const int FreeId = 1;
+    public const int StandardId = 2;
+    public const int ProId = 3;
 
     public int Id { get; set; }
     public string Name { get; set; } = "";

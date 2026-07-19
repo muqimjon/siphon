@@ -6,7 +6,7 @@ using Siphon.Media.Http;
 
 namespace Siphon.Accounts.Admin;
 
-public sealed record SetUserLimitsRequest(int? FileSizeLimitMb, int? DailyRequestLimit, int? ConcurrentLimit, int? MonthlyGb, DateTime? ExpiresAt);
+public sealed record SetUserLimitsRequest(int? PlanId, int? FileSizeLimitMb, int? DailyRequestLimit, int? ConcurrentLimit, int? MonthlyGb, DateTime? ExpiresAt);
 
 public sealed class AdminHandlers(AccountsDb db)
 {
@@ -38,6 +38,7 @@ public sealed class AdminHandlers(AccountsDb db)
             u.FirstName,
             u.LastName,
             u.Role,
+            PlanId = u.PlanId,
             Plan = u.Plan!.Name,
             u.CreatedAt,
             TotalUsage = totals.GetValueOrDefault(u.Id),
@@ -52,6 +53,12 @@ public sealed class AdminHandlers(AccountsDb db)
         if (user?.Plan is null)
             return Problems.Create(ErrorCodes.JobNotFound, "User not found.");
 
+        if (request.PlanId is { } planId && planId != user.PlanId
+            && await db.Plans.AnyAsync(p => p.Id == planId))
+        {
+            user.PlanId = planId;
+            user.Plan = await db.Plans.FirstAsync(p => p.Id == planId);
+        }
         user.FileSizeLimitMbOverride = request.FileSizeLimitMb;
         user.DailyRequestLimitOverride = request.DailyRequestLimit;
         user.ConcurrentLimitOverride = request.ConcurrentLimit;

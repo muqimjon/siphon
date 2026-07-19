@@ -19,15 +19,10 @@ public sealed class AccountsDb(DbContextOptions<AccountsDb> options) : IdentityD
         builder.Entity<AppUser>()
             .HasOne(u => u.Plan).WithMany().HasForeignKey(u => u.PlanId).OnDelete(DeleteBehavior.Restrict);
 
-        builder.Entity<Plan>().HasData(new Plan
-        {
-            Id = Plan.FreeId,
-            Name = "Free",
-            DailyRequests = 100,
-            MaxConcurrent = 2,
-            MaxFileSizeMb = 500,
-            MonthlyGb = 5,
-        });
+        builder.Entity<Plan>().HasData(
+            new Plan { Id = Plan.FreeId, Name = "Free", DailyRequests = 100, MaxConcurrent = 2, MaxFileSizeMb = 500, MonthlyGb = 5 },
+            new Plan { Id = Plan.StandardId, Name = "Standard", DailyRequests = 500, MaxConcurrent = 4, MaxFileSizeMb = 2048, MonthlyGb = 50 },
+            new Plan { Id = Plan.ProId, Name = "Pro", DailyRequests = 2000, MaxConcurrent = 8, MaxFileSizeMb = 8192, MonthlyGb = 200 });
 
         builder.Entity<ApiToken>().HasIndex(t => t.TokenHash).IsUnique();
         builder.Entity<ApiToken>().HasIndex(t => t.UserId);

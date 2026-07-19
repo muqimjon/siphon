@@ -268,5 +268,9 @@
   "admin.colMonthly": "Monthly volume",
   "admin.monthlyLabel": "Monthly volume (GB)",
   "admin.gb": "{size} GB",
-  "dash.monthVolume": "Downloaded this month"
+  "dash.monthVolume": "Downloaded this month",
+  "admin.colLimits": "Limits",
+  "admin.planLabel": "Plan",
+  "admin.planNote": "Picking a plan clears the fields — the plan values apply (shown greyed).",
+  "admin.overridesTitle": "Personal overrides"
 }

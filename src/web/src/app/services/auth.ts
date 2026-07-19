@@ -108,12 +108,22 @@ export interface Usage {
   monthBytes: number;
 }
 
+export interface PlanOption {
+  id: number;
+  name: string;
+  dailyRequests: number;
+  maxConcurrent: number;
+  maxFileSizeMb: number;
+  monthlyGb: number;
+}
+
 export interface AdminUser {
   id: string;
   email: string | null;
   firstName: string | null;
   lastName: string | null;
   role: string;
+  planId: number;
   plan: string;
   createdAt: string;
   totalUsage: number;
@@ -251,8 +261,13 @@ export class Auth {
     return this.request<AdminUser[]>('GET', '/admin/users');
   }
 
+  adminPlans(): Promise<PlanOption[]> {
+    return this.request<PlanOption[]>('GET', '/admin/plans');
+  }
+
   adminSetLimits(
     id: string,
+    planId: number | null,
     fileSizeLimitMb: number | null,
     dailyRequestLimit: number | null,
     concurrentLimit: number | null,
@@ -260,6 +275,7 @@ export class Auth {
     expiresAt: string | null,
   ): Promise<Limits> {
     return this.request<Limits>('PUT', `/admin/users/${id}/limits`, {
+      planId,
       fileSizeLimitMb,
       dailyRequestLimit,
       concurrentLimit,

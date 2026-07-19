@@ -70,3 +70,37 @@
 .modal-body { display: grid; gap: var(--sp-4); padding: var(--sp-5); }
 .modal-actions { display: flex; justify-content: flex-end; gap: var(--sp-3); }
 .grant-row { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
+
+.limit-chips { display: flex; flex-wrap: wrap; gap: var(--sp-1); align-items: center; }
+.limit-chip {
+  font-family: var(--sp-font-mono); font-size: var(--sp-fs-xs);
+  padding: 2px var(--sp-2); border-radius: var(--sp-r-sm);
+  background: var(--sp-surface-2); color: var(--sp-text-dim); white-space: nowrap;
+}
+
+.modal { width: min(560px, 100%); }
+.field-block { display: grid; gap: var(--sp-2); }
+.field-title { font-size: var(--sp-fs-xs); font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--sp-text-dim); }
+.field-note { margin: 0; font-size: var(--sp-fs-xs); color: var(--sp-text-dim); line-height: 1.5; }
+
+.plan-picker { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--sp-2); }
+.plan-option {
+  display: grid; gap: 2px; padding: var(--sp-3); cursor: pointer; text-align: left;
+  font-family: inherit; color: var(--sp-text);
+  background: var(--sp-bg); border: 1px solid var(--sp-border); border-radius: var(--sp-r-md);
+  transition: border-color var(--sp-t-fast) var(--sp-ease), background var(--sp-t-fast) var(--sp-ease);
+}
+.plan-option strong { font-size: var(--sp-fs-sm); }
+.plan-option small { font-size: var(--sp-fs-xs); color: var(--sp-text-dim); font-family: var(--sp-font-mono); }
+.plan-option:hover { border-color: var(--sp-accent); }
+.plan-option.on { border-color: var(--sp-accent); background: var(--sp-chip); }
+
+.limits-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-3); }
+.limits-field { display: grid; gap: var(--sp-1); font-size: var(--sp-fs-sm); }
+.limits-field span { color: var(--sp-text-dim); font-weight: 600; font-size: var(--sp-fs-xs); }
+.expiry-row { display: flex; flex-wrap: wrap; gap: var(--sp-2); align-items: center; }
+.expiry-row .sp-input { flex: 0 1 170px; }
+
+@media (max-width: 520px) {
+  .plan-picker, .limits-grid { grid-template-columns: 1fr; }
+}

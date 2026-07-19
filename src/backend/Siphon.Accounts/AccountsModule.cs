@@ -183,6 +183,11 @@ public static class AccountsModule
         var admin = app.MapGroup("/api/v1/admin").WithTags("Admin").RequireAuthorization(p => p.RequireRole("admin"));
         admin.MapGet("/usage", (DateOnly? from, DateOnly? to, AdminHandlers h) => h.Usage(from, to))
             .WithSummary("Usage aggregated by user and day");
+        admin.MapGet("/plans", async (AccountsDb db) => Results.Ok(await db.Plans
+                .OrderBy(p => p.Id)
+                .Select(p => new { p.Id, p.Name, p.DailyRequests, p.MaxConcurrent, p.MaxFileSizeMb, p.MonthlyGb })
+                .ToListAsync()))
+            .WithSummary("Plan catalogue with their default limits");
         admin.MapGet("/users", (AdminHandlers h) => h.Users()).WithSummary("All users with plan and total usage");
         admin.MapPut("/users/{id}/limits", (string id, SetUserLimitsRequest r, AdminHandlers h) => h.SetLimits(id, r))
             .WithSummary("Set per-user file-size and daily-request overrides");

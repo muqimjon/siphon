@@ -268,5 +268,9 @@
   "admin.colMonthly": "Объём/мес",
   "admin.monthlyLabel": "Объём в месяц (ГБ)",
   "admin.gb": "{size} ГБ",
-  "dash.monthVolume": "Скачано в этом месяце"
+  "dash.monthVolume": "Скачано в этом месяце",
+  "admin.colLimits": "Лимиты",
+  "admin.planLabel": "Тариф",
+  "admin.planNote": "При выборе тарифа поля очищаются — действуют значения тарифа (серый текст).",
+  "admin.overridesTitle": "Персональные лимиты"
 }

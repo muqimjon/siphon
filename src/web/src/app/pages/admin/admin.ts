@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
-import { AdminUser, Auth, UsageRow } from '../../services/auth';
+import { AdminUser, Auth, PlanOption, UsageRow } from '../../services/auth';
 import { I18n } from '../../services/i18n';
 
 interface Bar {
@@ -26,12 +26,15 @@ export class Admin {
   readonly concurrentVal = signal('');
   readonly expiresVal = signal('');
   readonly monthlyVal = signal('');
+  readonly plans = signal<PlanOption[]>([]);
+  readonly planId = signal<number | null>(null);
   readonly fileVal = signal('');
   readonly dailyVal = signal('');
   readonly saving = signal(false);
 
   constructor() {
     this.auth.adminUsers().then((users) => this.users.set(users)).catch(() => {});
+    this.auth.adminPlans().then((p) => this.plans.set(p)).catch(() => {});
     this.auth.adminUsage().then((rows) => this.buildChart(rows)).catch(() => {});
   }
 
@@ -45,6 +48,7 @@ export class Admin {
     this.concurrentVal.set(u.limits.concurrentLimitOverride?.toString() ?? '');
     this.expiresVal.set(u.limits.overridesExpireAt ? u.limits.overridesExpireAt.slice(0, 10) : '');
     this.monthlyVal.set(u.limits.monthlyGbOverride?.toString() ?? '');
+    this.planId.set(u.planId);
     this.edited.set(u);
   }
 
@@ -70,6 +74,7 @@ export class Admin {
     this.auth
       .adminSetLimits(
         u.id,
+        this.planId(),
         this.parse(this.fileVal()),
         this.parse(this.dailyVal()),
         this.parse(this.concurrentVal()),
@@ -82,6 +87,18 @@ export class Admin {
       })
       .catch(() => {})
       .finally(() => this.saving.set(false));
+  }
+
+  choosePlan(id: number): void {
+    this.planId.set(id);
+    this.fileVal.set('');
+    this.dailyVal.set('');
+    this.concurrentVal.set('');
+    this.monthlyVal.set('');
+  }
+
+  planDefaults(): PlanOption | undefined {
+    return this.plans().find((p) => p.id === this.planId());
   }
 
   userLabel(u: AdminUser): string {
