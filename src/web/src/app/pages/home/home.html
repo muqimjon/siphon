@@ -44,10 +44,24 @@
       </div>
     }
     @case ('error') {
-      <div class="sp-error-card">
-        <strong>{{ errText() }}</strong>
-        <button type="button" class="sp-btn sp-btn-secondary" (click)="retry()">{{ i18n.t('retry') }}</button>
-      </div>
+      @if (upsell(); as u) {
+        <div class="sp-warn-card">
+          <strong>{{ u.text }}</strong>
+          <div class="sp-actions">
+            @if (u.loggedIn) {
+              <a class="sp-btn sp-btn-secondary" routerLink="/dashboard">{{ i18n.t('nav.dashboard') }}</a>
+            } @else {
+              <a class="sp-btn sp-btn-primary" routerLink="/register">{{ i18n.t('upsell.register') }}</a>
+            }
+            <button type="button" class="sp-btn sp-btn-secondary" (click)="retry()">{{ i18n.t('retry') }}</button>
+          </div>
+        </div>
+      } @else {
+        <div class="sp-error-card">
+          <strong>{{ errText() }}</strong>
+          <button type="button" class="sp-btn sp-btn-secondary" (click)="retry()">{{ i18n.t('retry') }}</button>
+        </div>
+      }
     }
   }
 </section>

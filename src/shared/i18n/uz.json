@@ -198,5 +198,20 @@
   "admin.colPlan": "Tarif",
   "admin.colJoined": "Qo'shilgan",
   "admin.colUsage": "So'rovlar",
-  "admin.empty": "Ma'lumot yo'q."
+  "admin.colFileSize": "Fayl hajmi",
+  "admin.colDaily": "Kunlik so'rovlar",
+  "admin.override": "maxsus",
+  "admin.editLimits": "O'zgartirish",
+  "admin.fileSizeLabel": "Fayl hajmi (MB)",
+  "admin.dailyLabel": "Kunlik so'rovlar",
+  "admin.limitPlaceholder": "Tarif bo'yicha",
+  "admin.save": "Saqlash",
+  "admin.cancel": "Bekor qilish",
+  "admin.limitsHint": "Bo'sh qoldiring — tarif limiti qo'llanadi.",
+  "admin.empty": "Ma'lumot yo'q.",
+  "dash.usedToday": "Bugun: {used} / {limit}",
+  "upsell.tooLargeUser": "Bu fayl sizning limitingizdan katta ({size} MB). Ko'proq uchun admin bilan bog'laning.",
+  "upsell.tooLargeAnon": "Bu fayl juda katta. Ro'yxatdan o'ting yoki admin bilan bog'laning.",
+  "upsell.quota": "Bugungi limit tugadi. Ertaga qayta urinib ko'ring yoki admin bilan bog'laning.",
+  "upsell.register": "Ro'yxatdan o'tish"
 }

@@ -31,6 +31,20 @@
 .admin-table td { padding: var(--sp-2) var(--sp-3); border-bottom: 1px solid var(--sp-border); white-space: nowrap; }
 .admin-table .num { text-align: right; font-family: var(--sp-font-mono); }
 .admin-empty { text-align: center; color: var(--sp-text-dim); padding: var(--sp-5); }
+.admin-cell-action { text-align: right; }
+.sp-btn-sm { padding: 4px var(--sp-3); font-size: var(--sp-fs-xs); }
+
+.edit-row td { background: var(--sp-bg); }
+.limits-form { display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--sp-3); }
+.limits-field { display: flex; flex-direction: column; gap: var(--sp-1); font-size: var(--sp-fs-xs); color: var(--sp-text-dim); }
+.limits-field input {
+  width: 140px; font-family: inherit; font-size: var(--sp-fs-md); color: var(--sp-text);
+  padding: 8px var(--sp-3); border-radius: var(--sp-r-md);
+  background: var(--sp-surface); border: 1px solid var(--sp-border);
+}
+.limits-field input:focus { outline: none; border-color: var(--sp-accent); }
+.limits-actions { display: flex; gap: var(--sp-2); }
+.limits-hint { margin: var(--sp-2) 0 0; font-size: var(--sp-fs-xs); color: var(--sp-text-dim); }
 
 @media (prefers-reduced-motion: reduce) {
   .bar { transition: none; }

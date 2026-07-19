@@ -198,5 +198,20 @@
   "admin.colPlan": "Plan",
   "admin.colJoined": "Joined",
   "admin.colUsage": "Requests",
-  "admin.empty": "No data."
+  "admin.colFileSize": "File size",
+  "admin.colDaily": "Daily requests",
+  "admin.override": "custom",
+  "admin.editLimits": "Edit",
+  "admin.fileSizeLabel": "File size (MB)",
+  "admin.dailyLabel": "Daily requests",
+  "admin.limitPlaceholder": "Plan default",
+  "admin.save": "Save",
+  "admin.cancel": "Cancel",
+  "admin.limitsHint": "Leave empty to use the plan limit.",
+  "admin.empty": "No data.",
+  "dash.usedToday": "Today: {used} / {limit}",
+  "upsell.tooLargeUser": "This file is larger than your limit ({size} MB). For more, contact the admin.",
+  "upsell.tooLargeAnon": "This file is too large. Register or contact the admin.",
+  "upsell.quota": "You've hit today's limit. Try again tomorrow or contact the admin.",
+  "upsell.register": "Register"
 }

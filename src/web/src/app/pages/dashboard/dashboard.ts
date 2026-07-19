@@ -1,8 +1,15 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ApiError } from '@shared/models';
-import { Auth, CreatedToken, TokenView } from '../../services/auth';
+import { Auth, CreatedToken, TokenView, Usage } from '../../services/auth';
 import { I18n } from '../../services/i18n';
+
+interface Bar {
+  date: string;
+  label: string;
+  count: number;
+  pct: number;
+}
 
 @Component({
   selector: 'sp-dashboard',
@@ -22,9 +29,12 @@ export class Dashboard {
   readonly busy = signal(false);
   readonly copied = signal(false);
   readonly error = signal<string | null>(null);
+  readonly usage = signal<Usage | null>(null);
+  readonly bars = signal<Bar[]>([]);
 
   constructor() {
     this.load();
+    this.auth.usage(14).then((u) => this.applyUsage(u)).catch(() => {});
   }
 
   create(event: Event): void {
@@ -71,5 +81,18 @@ export class Dashboard {
 
   private load(): void {
     this.auth.tokens().then((tokens) => this.tokens.set(tokens)).catch(() => {});
+  }
+
+  private applyUsage(usage: Usage): void {
+    this.usage.set(usage);
+    const max = Math.max(1, ...usage.daily.map((d) => d.count));
+    this.bars.set(
+      usage.daily.map((d) => ({
+        date: d.dateUtc,
+        label: String(Number(d.dateUtc.slice(8))),
+        count: d.count,
+        pct: Math.round((d.count / max) * 100),
+      })),
+    );
   }
 }

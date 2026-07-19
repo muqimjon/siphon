@@ -198,5 +198,20 @@
   "admin.colPlan": "Тариф",
   "admin.colJoined": "Регистрация",
   "admin.colUsage": "Запросы",
-  "admin.empty": "Нет данных."
+  "admin.colFileSize": "Размер файла",
+  "admin.colDaily": "Запросов в день",
+  "admin.override": "особый",
+  "admin.editLimits": "Изменить",
+  "admin.fileSizeLabel": "Размер файла (МБ)",
+  "admin.dailyLabel": "Запросов в день",
+  "admin.limitPlaceholder": "По тарифу",
+  "admin.save": "Сохранить",
+  "admin.cancel": "Отмена",
+  "admin.limitsHint": "Оставьте пустым — применится лимит тарифа.",
+  "admin.empty": "Нет данных.",
+  "dash.usedToday": "Сегодня: {used} / {limit}",
+  "upsell.tooLargeUser": "Этот файл больше вашего лимита ({size} МБ). Чтобы больше — свяжитесь с админом.",
+  "upsell.tooLargeAnon": "Этот файл слишком большой. Зарегистрируйтесь или свяжитесь с админом.",
+  "upsell.quota": "Дневной лимит исчерпан. Попробуйте завтра или свяжитесь с админом.",
+  "upsell.register": "Зарегистрироваться"
 }

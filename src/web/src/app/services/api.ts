@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import {
   ApiError,
   CreateJobResponse,
@@ -7,6 +7,7 @@ import {
   OutputKind,
   ProbeResult,
 } from '@shared/models';
+import { Auth } from './auth';
 
 const BASE = '/api/v1';
 
@@ -16,6 +17,8 @@ function apiKey(): string {
 
 @Injectable({ providedIn: 'root' })
 export class Api {
+  private readonly auth = inject(Auth);
+
   probe(url: string): Promise<ProbeResult> {
     return this.request<ProbeResult>('POST', '/probe', { url });
   }
@@ -38,7 +41,7 @@ export class Api {
     try {
       res = await fetch(BASE + path, {
         method,
-        headers: { 'Content-Type': 'application/json', 'X-Api-Key': apiKey() },
+        headers: { 'Content-Type': 'application/json', 'X-Api-Key': apiKey(), ...this.auth.authHeader() },
         body: body ? JSON.stringify(body) : undefined,
       });
     } catch {

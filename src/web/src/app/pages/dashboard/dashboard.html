@@ -95,20 +95,38 @@
 </section>
 
 <section class="dash-card">
-  <h2>{{ i18n.t('dash.usageTitle') }}</h2>
-  <div class="usage-grid">
-    <div class="usage-stat">
-      <span class="usage-value">{{ auth.user()?.plan?.dailyRequests }}</span>
-      <span class="usage-label">{{ i18n.t('dash.usageDaily') }}</span>
-    </div>
-    <div class="usage-stat">
-      <span class="usage-value">{{ auth.user()?.plan?.maxConcurrent }}</span>
-      <span class="usage-label">{{ i18n.t('dash.usageConcurrent') }}</span>
-    </div>
-    <div class="usage-stat">
-      <span class="usage-value">{{ i18n.t('dash.mb', { size: auth.user()?.plan?.maxFileSizeMb ?? 0 }) }}</span>
-      <span class="usage-label">{{ i18n.t('dash.usageFileSize') }}</span>
-    </div>
+  <div class="dash-card-head">
+    <h2>{{ i18n.t('dash.usageTitle') }}</h2>
+    @if (usage(); as u) {
+      <span class="usage-today">{{ i18n.t('dash.usedToday', { used: u.usedToday, limit: u.limits.dailyRequests }) }}</span>
+    }
   </div>
-  <p class="dash-lead">{{ i18n.t('dash.usageNote') }}</p>
+
+  @if (bars().length) {
+    <div class="chart">
+      @for (b of bars(); track b.date) {
+        <div class="bar-col" [attr.title]="b.count">
+          <div class="bar-track"><div class="bar" [style.height.%]="b.pct"></div></div>
+          <span class="bar-label">{{ b.label }}</span>
+        </div>
+      }
+    </div>
+  }
+
+  @if (usage(); as u) {
+    <div class="usage-grid">
+      <div class="usage-stat">
+        <span class="usage-value">{{ u.usedToday }} / {{ u.limits.dailyRequests }}</span>
+        <span class="usage-label">{{ i18n.t('dash.usageDaily') }}</span>
+      </div>
+      <div class="usage-stat">
+        <span class="usage-value">{{ i18n.t('dash.mb', { size: u.limits.maxFileSizeMb }) }}</span>
+        <span class="usage-label">{{ i18n.t('dash.usageFileSize') }}</span>
+      </div>
+      <div class="usage-stat">
+        <span class="usage-value">{{ auth.user()?.plan?.maxConcurrent }}</span>
+        <span class="usage-label">{{ i18n.t('dash.usageConcurrent') }}</span>
+      </div>
+    </div>
+  }
 </section>

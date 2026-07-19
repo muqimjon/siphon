@@ -40,6 +40,19 @@ export interface UsageRow {
   count: number;
 }
 
+export interface Limits {
+  maxFileSizeMb: number;
+  dailyRequests: number;
+  fileSizeLimitMbOverride: number | null;
+  dailyRequestLimitOverride: number | null;
+}
+
+export interface Usage {
+  daily: { dateUtc: string; count: number }[];
+  limits: Limits;
+  usedToday: number;
+}
+
 export interface AdminUser {
   id: string;
   email: string | null;
@@ -47,6 +60,7 @@ export interface AdminUser {
   plan: string;
   createdAt: string;
   totalUsage: number;
+  limits: Limits;
 }
 
 export interface TelegramAuth {
@@ -123,12 +137,20 @@ export class Auth {
     return this.request<void>('DELETE', `/tokens/${id}`);
   }
 
+  usage(days: number): Promise<Usage> {
+    return this.request<Usage>('GET', `/usage?days=${days}`);
+  }
+
   adminUsage(): Promise<UsageRow[]> {
     return this.request<UsageRow[]>('GET', '/admin/usage');
   }
 
   adminUsers(): Promise<AdminUser[]> {
     return this.request<AdminUser[]>('GET', '/admin/users');
+  }
+
+  adminSetLimits(id: string, fileSizeLimitMb: number | null, dailyRequestLimit: number | null): Promise<Limits> {
+    return this.request<Limits>('PUT', `/admin/users/${id}/limits`, { fileSizeLimitMb, dailyRequestLimit });
   }
 
   async request<T>(method: string, path: string, body?: unknown): Promise<T> {

@@ -22,6 +22,10 @@ export class Admin {
   readonly users = signal<AdminUser[]>([]);
   readonly bars = signal<Bar[]>([]);
   readonly total = signal(0);
+  readonly editing = signal<string | null>(null);
+  readonly fileVal = signal('');
+  readonly dailyVal = signal('');
+  readonly saving = signal(false);
 
   constructor() {
     this.auth.adminUsers().then((users) => this.users.set(users)).catch(() => {});
@@ -30,6 +34,35 @@ export class Admin {
 
   fmtDate(iso: string): string {
     return new Date(iso).toLocaleDateString(this.i18n.lang());
+  }
+
+  startEdit(u: AdminUser): void {
+    this.fileVal.set(u.limits.fileSizeLimitMbOverride?.toString() ?? '');
+    this.dailyVal.set(u.limits.dailyRequestLimitOverride?.toString() ?? '');
+    this.editing.set(u.id);
+  }
+
+  cancelEdit(): void {
+    this.editing.set(null);
+  }
+
+  save(u: AdminUser): void {
+    this.saving.set(true);
+    this.auth
+      .adminSetLimits(u.id, this.parse(this.fileVal()), this.parse(this.dailyVal()))
+      .then((limits) => {
+        this.users.update((rows) => rows.map((r) => (r.id === u.id ? { ...r, limits } : r)));
+        this.editing.set(null);
+      })
+      .catch(() => {})
+      .finally(() => this.saving.set(false));
+  }
+
+  private parse(value: string): number | null {
+    const text = value.trim();
+    if (!text) return null;
+    const n = Math.floor(Number(text));
+    return Number.isFinite(n) && n > 0 ? n : null;
   }
 
   private buildChart(rows: UsageRow[]): void {

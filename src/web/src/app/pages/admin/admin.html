@@ -28,8 +28,11 @@
           <th>{{ i18n.t('admin.colEmail') }}</th>
           <th>{{ i18n.t('admin.colRole') }}</th>
           <th>{{ i18n.t('admin.colPlan') }}</th>
+          <th>{{ i18n.t('admin.colFileSize') }}</th>
+          <th>{{ i18n.t('admin.colDaily') }}</th>
           <th>{{ i18n.t('admin.colJoined') }}</th>
           <th class="num">{{ i18n.t('admin.colUsage') }}</th>
+          <th></th>
         </tr>
       </thead>
       <tbody>
@@ -38,11 +41,51 @@
             <td>{{ u.email }}</td>
             <td><span class="sp-badge">{{ u.role }}</span></td>
             <td>{{ u.plan }}</td>
+            <td>
+              {{ i18n.t('dash.mb', { size: u.limits.maxFileSizeMb }) }}
+              @if (u.limits.fileSizeLimitMbOverride !== null) {
+                <span class="sp-badge sp-badge-warn">{{ i18n.t('admin.override') }}</span>
+              }
+            </td>
+            <td>
+              {{ u.limits.dailyRequests }}
+              @if (u.limits.dailyRequestLimitOverride !== null) {
+                <span class="sp-badge sp-badge-warn">{{ i18n.t('admin.override') }}</span>
+              }
+            </td>
             <td>{{ fmtDate(u.createdAt) }}</td>
             <td class="num">{{ u.totalUsage }}</td>
+            <td class="admin-cell-action">
+              <button type="button" class="sp-btn sp-btn-secondary sp-btn-sm" (click)="startEdit(u)">{{ i18n.t('admin.editLimits') }}</button>
+            </td>
           </tr>
+          @if (editing() === u.id) {
+            <tr class="edit-row">
+              <td colspan="8">
+                <form class="limits-form" (submit)="save(u); $event.preventDefault()">
+                  <label class="limits-field">
+                    <span>{{ i18n.t('admin.fileSizeLabel') }}</span>
+                    <input #fileInput type="number" min="1" inputmode="numeric"
+                           [placeholder]="i18n.t('admin.limitPlaceholder')"
+                           [value]="fileVal()" (input)="fileVal.set(fileInput.value)">
+                  </label>
+                  <label class="limits-field">
+                    <span>{{ i18n.t('admin.dailyLabel') }}</span>
+                    <input #dailyInput type="number" min="1" inputmode="numeric"
+                           [placeholder]="i18n.t('admin.limitPlaceholder')"
+                           [value]="dailyVal()" (input)="dailyVal.set(dailyInput.value)">
+                  </label>
+                  <div class="limits-actions">
+                    <button type="submit" class="sp-btn sp-btn-primary sp-btn-sm" [disabled]="saving()">{{ i18n.t('admin.save') }}</button>
+                    <button type="button" class="sp-btn sp-btn-secondary sp-btn-sm" (click)="cancelEdit()">{{ i18n.t('admin.cancel') }}</button>
+                  </div>
+                </form>
+                <p class="limits-hint">{{ i18n.t('admin.limitsHint') }}</p>
+              </td>
+            </tr>
+          }
         } @empty {
-          <tr><td colspan="5" class="admin-empty">{{ i18n.t('admin.empty') }}</td></tr>
+          <tr><td colspan="8" class="admin-empty">{{ i18n.t('admin.empty') }}</td></tr>
         }
       </tbody>
     </table>

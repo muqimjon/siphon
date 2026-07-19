@@ -12,6 +12,7 @@ import { RouterLink } from '@angular/router';
 import { bytes, eta } from '@shared/format';
 import { ApiError, JobFile, JobStatus, OutputKind, ProbeResult } from '@shared/models';
 import { Api } from '../../services/api';
+import { Auth } from '../../services/auth';
 import { I18n } from '../../services/i18n';
 import { Variants } from '../../variants/variants';
 
@@ -34,6 +35,7 @@ interface Progress {
 export class Home {
   private readonly api = inject(Api);
   readonly i18n = inject(I18n);
+  readonly auth = inject(Auth);
   readonly bytes = bytes;
 
   readonly stage = signal<Stage>('idle');
@@ -42,6 +44,7 @@ export class Home {
   readonly progress = signal<Progress | null>(null);
   readonly doneFile = signal<JobFile | null>(null);
   readonly errorKey = signal<string | null>(null);
+  readonly errorCode = signal<string | null>(null);
 
   readonly sites = ['YouTube', 'Instagram', 'TikTok', 'X', 'Facebook', 'SoundCloud', 'Vimeo', 'Reddit'];
 
@@ -71,6 +74,18 @@ export class Home {
     if (!key) return '';
     const text = this.i18n.t(key);
     return text === key && key.startsWith('err.') ? this.i18n.t('err.unknown') : text;
+  });
+  readonly upsell = computed(() => {
+    const code = this.errorCode();
+    if (code !== 'too-large' && code !== 'quota-exceeded') return null;
+    const user = this.auth.user();
+    const text =
+      code === 'quota-exceeded'
+        ? this.i18n.t('upsell.quota')
+        : user
+          ? this.i18n.t('upsell.tooLargeUser', { size: user.plan.maxFileSizeMb })
+          : this.i18n.t('upsell.tooLargeAnon');
+    return { text, loggedIn: !!user };
   });
 
   constructor() {
@@ -185,10 +200,12 @@ export class Home {
 
   private fail(code: string, retry: () => void): void {
     this.setError('err.' + code, retry);
+    this.errorCode.set(code);
   }
 
   private setError(key: string, retry: () => void): void {
     this.retryAction = retry;
+    this.errorCode.set(null);
     this.errorKey.set(key);
     this.stage.set('error');
   }
