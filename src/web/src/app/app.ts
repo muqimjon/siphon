@@ -10,6 +10,7 @@ import { Theme } from './services/theme';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [RouterOutlet, RouterLink, RouterLinkActive],
   templateUrl: './app.html',
+  host: { '(document:click)': 'accountOpen.set(false)' },
 })
 export class App {
   private readonly api = inject(Api);
@@ -20,6 +21,9 @@ export class App {
 
   readonly health = signal<{ ok: boolean; version: string } | null>(null);
   readonly menuOpen = signal(false);
+  readonly accountOpen = signal(false);
+
+  readonly initial = computed(() => (this.auth.user()?.email ?? '?').charAt(0).toUpperCase());
 
   readonly healthText = computed(() => {
     const h = this.health();
@@ -37,6 +41,7 @@ export class App {
   logout(): void {
     this.auth.logout();
     this.menuOpen.set(false);
+    this.accountOpen.set(false);
     this.router.navigateByUrl('/');
   }
 }

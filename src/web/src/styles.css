@@ -12,9 +12,12 @@ sp-root { display: flex; flex-direction: column; flex: 1; }
 .hidden { display: none; }
 
 .site-header {
-  position: relative;
+  position: sticky; top: 0; z-index: 30;
   display: flex; align-items: center; gap: var(--sp-4);
   padding: var(--sp-3) var(--sp-5);
+  background: color-mix(in srgb, var(--sp-bg) 82%, transparent);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--sp-border);
 }
 .brand {
   display: inline-flex; align-items: center; gap: var(--sp-2);
@@ -33,6 +36,54 @@ sp-root { display: flex; flex-direction: column; flex: 1; }
 .site-nav a:focus-visible, .site-nav button:focus-visible { outline: 2px solid var(--sp-accent); outline-offset: 2px; }
 
 .header-actions { display: flex; align-items: center; gap: var(--sp-3); }
+.header-sep { width: 1px; height: 20px; background: var(--sp-border); }
+
+.btn-signin, .btn-signup {
+  font-size: var(--sp-fs-sm); font-weight: 600; text-decoration: none;
+  padding: var(--sp-2) var(--sp-4); border-radius: var(--sp-r-pill);
+  transition: background var(--sp-t-fast) var(--sp-ease), color var(--sp-t-fast) var(--sp-ease);
+}
+.btn-signin { color: var(--sp-text-dim); }
+.btn-signin:hover { color: var(--sp-text); background: var(--sp-surface-2); }
+.btn-signup { color: var(--sp-accent-fg); background: var(--sp-accent); }
+.btn-signup:hover { filter: brightness(1.08); }
+.btn-signin:focus-visible, .btn-signup:focus-visible { outline: 2px solid var(--sp-accent); outline-offset: 2px; }
+
+.account { position: relative; }
+.account-btn {
+  display: inline-flex; align-items: center; gap: var(--sp-1);
+  padding: 3px var(--sp-2) 3px 3px; border: 1px solid var(--sp-border);
+  border-radius: var(--sp-r-pill); background: var(--sp-surface);
+  color: var(--sp-text-dim); cursor: pointer;
+}
+.account-btn:hover { color: var(--sp-text); }
+.account-btn:focus-visible { outline: 2px solid var(--sp-accent); outline-offset: 2px; }
+.avatar {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 26px; height: 26px; border-radius: var(--sp-r-pill);
+  background: var(--sp-accent); color: var(--sp-accent-fg);
+  font-size: var(--sp-fs-xs); font-weight: 700;
+}
+.account-menu {
+  display: none; position: absolute; top: calc(100% + var(--sp-2)); right: 0; z-index: 40;
+  min-width: 200px; flex-direction: column; gap: 2px; padding: var(--sp-2);
+  background: var(--sp-surface); border: 1px solid var(--sp-border);
+  border-radius: var(--sp-r-md); box-shadow: var(--sp-shadow);
+}
+.account.open .account-menu { display: flex; }
+.account-email {
+  padding: var(--sp-1) var(--sp-3) var(--sp-2);
+  font-size: var(--sp-fs-xs); color: var(--sp-text-dim);
+  border-bottom: 1px solid var(--sp-border); margin-bottom: var(--sp-1);
+  overflow: hidden; text-overflow: ellipsis;
+}
+.account-menu a, .account-menu button {
+  font-family: inherit; font-size: var(--sp-fs-sm); font-weight: 600; text-align: left;
+  color: var(--sp-text-dim); text-decoration: none; cursor: pointer;
+  padding: var(--sp-2) var(--sp-3); border: 0; border-radius: var(--sp-r-sm); background: none;
+  transition: background var(--sp-t-fast) var(--sp-ease), color var(--sp-t-fast) var(--sp-ease);
+}
+.account-menu a:hover, .account-menu a.active, .account-menu button:hover { color: var(--sp-text); background: var(--sp-surface-2); }
 
 .lang-switch {
   display: flex; gap: 2px; padding: 2px;
@@ -87,6 +138,7 @@ main {
   }
   .site-nav.open { display: flex; }
   .site-nav a { padding: var(--sp-2) var(--sp-3); }
+  .btn-signup, .header-sep { display: none; }
 }
 
 @media (max-width: 480px) {

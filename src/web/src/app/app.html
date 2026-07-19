@@ -16,15 +16,6 @@
     <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="menuOpen.set(false)">{{ i18n.t('nav.home') }}</a>
     <a routerLink="/docs" routerLinkActive="active" (click)="menuOpen.set(false)">{{ i18n.t('nav.api') }}</a>
     <a routerLink="/bot" routerLinkActive="active" (click)="menuOpen.set(false)">{{ i18n.t('nav.bot') }}</a>
-    @if (auth.token()) {
-      <a routerLink="/dashboard" routerLinkActive="active" (click)="menuOpen.set(false)">{{ i18n.t('nav.dashboard') }}</a>
-      @if (auth.isAdmin()) {
-        <a routerLink="/admin" routerLinkActive="active" (click)="menuOpen.set(false)">{{ i18n.t('nav.admin') }}</a>
-      }
-      <button type="button" (click)="logout()">{{ i18n.t('nav.logout') }}</button>
-    } @else {
-      <a routerLink="/login" routerLinkActive="active" (click)="menuOpen.set(false)">{{ i18n.t('nav.login') }}</a>
-    }
   </nav>
 
   <div class="header-actions">
@@ -42,6 +33,30 @@
         <path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/>
       </svg>
     </button>
+    <span class="header-sep"></span>
+
+    @if (auth.token()) {
+      <div class="account" [class.open]="accountOpen()">
+        <button type="button" class="account-btn" [attr.aria-expanded]="accountOpen()" (click)="accountOpen.update((v) => !v); $event.stopPropagation()">
+          <span class="avatar">{{ initial() }}</span>
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m6 9 6 6 6-6"/>
+          </svg>
+        </button>
+        <div class="account-menu" (click)="$event.stopPropagation()">
+          <div class="account-email">{{ auth.user()?.email }}</div>
+          <a routerLink="/dashboard" routerLinkActive="active" (click)="accountOpen.set(false)">{{ i18n.t('nav.dashboard') }}</a>
+          @if (auth.isAdmin()) {
+            <a routerLink="/admin" routerLinkActive="active" (click)="accountOpen.set(false)">{{ i18n.t('nav.admin') }}</a>
+          }
+          <button type="button" (click)="logout()">{{ i18n.t('nav.logout') }}</button>
+        </div>
+      </div>
+    } @else {
+      <a class="btn-signin" routerLink="/login">{{ i18n.t('nav.login') }}</a>
+      <a class="btn-signup" routerLink="/register">{{ i18n.t('auth.register') }}</a>
+    }
+
     <button type="button" class="nav-toggle" [attr.aria-label]="i18n.t('nav.menu')" [attr.aria-expanded]="menuOpen()" (click)="menuOpen.update((v) => !v)">
       <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
         <path d="M4 7h16M4 12h16M4 17h16"/>
