@@ -32,7 +32,7 @@ curl -L --create-dirs https://github.com/mikf/gallery-dl/releases/latest/downloa
 **PostgreSQL** (akkaunt/token/foydalanish uchun) — dev'da:
 
 ```bash
-docker run -d --name siphon-pg -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=siphon -p 5432:5432 postgres:17
+docker run -d --name siphon-pg -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=siphon -p 5432:5432 postgres:18-alpine
 ```
 
 **Backend** (`appsettings.Development.json` dev kalitlari + connection string bilan tayyor):
