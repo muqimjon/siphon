@@ -26,8 +26,10 @@ Talab: .NET 10 SDK, Node 22+, ffmpeg. Binary'lar bir marta:
 
 ```bash
 curl -L --create-dirs https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe -o tools/yt-dlp.exe
-curl -L --create-dirs https://github.com/mikf/gallery-dl/releases/latest/download/gallery-dl.exe -o tools/gallery-dl.exe
+curl -fL --create-dirs https://github.com/mikf/gallery-dl/releases/download/v1.31.10/gallery-dl.exe -o tools/gallery-dl.exe
 ```
+
+gallery-dl v1.32.0 dan boshlab tayyor binar chiqarmaydi, shuning uchun oxirgi binarli reliz (v1.31.10) qadab qo'yilgan. `curl -f` muhim: usiz 404 javobi `.exe` sifatida saqlanib, galereya yuklash jimgina ishlamay qoladi.
 
 **PostgreSQL** (akkaunt/token/foydalanish uchun) — dev'da:
 

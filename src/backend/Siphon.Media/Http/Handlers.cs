@@ -46,9 +46,11 @@ public sealed class ProbeHandler(YtDlpEngine ytDlp, GalleryDlEngine galleryDl, I
                 return Results.Ok(new ProbeResult(request.Url, "gallery", uri.Segments.Length > 1 ? uri.Segments[^1].Trim('/') : "gallery",
                     null, null, null, false, [], [], images));
             }
-            catch (MediaEngineException)
+            catch (MediaEngineException gallery)
             {
-                return Problems.Create(ex.Code, ex.Message);
+                return gallery.Code == ErrorCodes.LoginRequired
+                    ? Problems.Create(gallery.Code, gallery.Message)
+                    : Problems.Create(ex.Code, ex.Message);
             }
         }
         catch (MediaEngineException ex)

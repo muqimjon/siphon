@@ -23,11 +23,14 @@ public sealed class GalleryDlEngine(IOptions<SiphonOptions> options)
 
     public async Task<int> CountAsync(string url, string? cookiesPath, CancellationToken ct)
     {
+        if (!Enabled) return 0;
         var stdout = new StringBuilder();
         var result = await Run(["--dump-json", url], cookiesPath)
             .WithStandardOutputPipe(PipeTarget.ToStringBuilder(stdout))
             .WithValidation(CommandResultValidation.None)
-            .ExecuteAsync(ct);
+            .RunGuardedAsync(ct);
+        if (stdout.ToString().Contains("login", StringComparison.OrdinalIgnoreCase))
+            throw new MediaEngineException(ErrorCodes.LoginRequired, "This link is behind a login.");
         if (result.ExitCode != 0) throw new MediaEngineException(ErrorCodes.Unavailable, "No downloadable media found at this link.");
         try
         {
@@ -54,7 +57,7 @@ public sealed class GalleryDlEngine(IOptions<SiphonOptions> options)
         var result = await Run(["-D", job.Dir, "--range", $"1-{_options.MaxGalleryImages}", job.Request.Url], job.CookiesPath)
             .WithStandardErrorPipe(PipeTarget.ToStringBuilder(stderr))
             .WithValidation(CommandResultValidation.None)
-            .ExecuteAsync(ct);
+            .RunGuardedAsync(ct);
 
         var files = Directory.EnumerateFiles(job.Dir)
             .Where(f => !f.EndsWith("cookies.txt", StringComparison.OrdinalIgnoreCase)

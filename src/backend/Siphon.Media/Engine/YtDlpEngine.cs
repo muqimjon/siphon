@@ -47,7 +47,7 @@ public sealed class YtDlpEngine(IOptions<SiphonOptions> options, SelfUpdater upd
                 .WithStandardOutputPipe(PipeTarget.ToStringBuilder(stdout))
                 .WithStandardErrorPipe(PipeTarget.ToStringBuilder(stderr))
                 .WithValidation(CommandResultValidation.None)
-                .ExecuteAsync(timeout.Token);
+                .RunGuardedAsync(timeout.Token);
         }
         catch (OperationCanceledException) when (!ct.IsCancellationRequested)
         {
@@ -197,7 +197,7 @@ public sealed class YtDlpEngine(IOptions<SiphonOptions> options, SelfUpdater upd
                 })))
             .WithStandardErrorPipe(PipeTarget.ToStringBuilder(stderr))
             .WithValidation(CommandResultValidation.None)
-            .ExecuteAsync(ct);
+            .RunGuardedAsync(ct);
         return (result.ExitCode, stdout.ToString(), stderr.ToString());
     }
 
