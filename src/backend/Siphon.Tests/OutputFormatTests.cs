@@ -11,6 +11,8 @@ public class OutputFormatTests
         Assert.Equal(expected, OutputFormat.Default(output));
 
     [Theory]
+    [InlineData("audio", "best", true)]
+    [InlineData("video", "best", false)]
     [InlineData("audio", "mp3", true)]
     [InlineData("audio", "m4a", true)]
     [InlineData("audio", "opus", true)]
@@ -34,11 +36,18 @@ public class OutputFormatTests
         Assert.Equal("." + format, OutputFormat.Extension(format));
     }
 
+    [Theory]
+    [InlineData("opus", "opus")]
+    [InlineData("mp4a.40.2", "m4a")]
+    [InlineData(null, "m4a")]
+    public void ForCodec_keeps_the_source_container(string? codec, string expected) =>
+        Assert.Equal(expected, OutputFormat.ForCodec(codec));
+
     [Fact]
     public void AvailableAudio_adds_opus_only_when_source_has_opus()
     {
-        Assert.Equal(["mp3", "m4a"], OutputFormat.AvailableAudio(["aac"]));
-        Assert.Equal(["mp3", "m4a", "opus"], OutputFormat.AvailableAudio(["aac", "opus"]));
+        Assert.Equal(["best", "mp3", "m4a"], OutputFormat.AvailableAudio(["aac"]));
+        Assert.Equal(["best", "mp3", "m4a", "opus"], OutputFormat.AvailableAudio(["aac", "opus"]));
     }
 
     [Fact]

@@ -70,16 +70,17 @@ public sealed class YtDlpEngine(IOptions<SiphonOptions> options, SelfUpdater upd
             throw new MediaEngineException(ErrorCodes.PlaylistNotSupported, "Playlists are not supported yet.");
 
         var audio = job.Request.Output == "audio";
-        var args = BuildDownloadArgs(job, probe, audio, recode: false);
+        var format = ResolveFormat(job, probe, audio);
+        var args = BuildDownloadArgs(job, probe, audio, format, recode: false);
         var exit = await RunDownloadAsync(job, args, onProgress, ct);
         if (exit.Code != 0 && !audio && LooksLikeMuxFailure(exit.Stderr))
         {
             logger.LogWarning("remux failed for {Url}, retrying with recode", job.Request.Url);
-            exit = await RunDownloadAsync(job, BuildDownloadArgs(job, probe, audio, recode: true), onProgress, ct);
+            exit = await RunDownloadAsync(job, BuildDownloadArgs(job, probe, audio, format, recode: true), onProgress, ct);
         }
         if (exit.Code != 0) throw Classified(exit.Stderr);
 
-        var ext = OutputFormat.Extension(job.Request.Format);
+        var ext = OutputFormat.Extension(format);
         var produced = Directory.EnumerateFiles(job.Dir)
             .Where(f => f.EndsWith(ext, StringComparison.OrdinalIgnoreCase))
             .OrderByDescending(File.GetLastWriteTimeUtc)
@@ -94,7 +95,16 @@ public sealed class YtDlpEngine(IOptions<SiphonOptions> options, SelfUpdater upd
         }
 
         var name = FileNameSanitizer.Sanitize(probe.Title) + ext;
-        return new DownloadOutcome(produced, name, OutputFormat.ContentType(job.Request.Format));
+        return new DownloadOutcome(produced, name, OutputFormat.ContentType(format));
+    }
+
+    private static string ResolveFormat(Job job, ProbeResult probe, bool audio)
+    {
+        if (!audio || job.Request.Format != OutputFormat.Best) return job.Request.Format;
+        var best = job.Request.FormatId is { } id
+            ? probe.AudioVariants.FirstOrDefault(a => a.FormatId == id)
+            : probe.AudioVariants.MaxBy(a => a.AbrKbps ?? 0);
+        return OutputFormat.ForCodec(best?.Codec);
     }
 
     public async Task RunSelfUpdateAsync(CancellationToken ct)
@@ -120,7 +130,7 @@ public sealed class YtDlpEngine(IOptions<SiphonOptions> options, SelfUpdater upd
         return stdout.ToString().Trim();
     }
 
-    private List<string> BuildDownloadArgs(Job job, ProbeResult probe, bool audio, bool recode)
+    private List<string> BuildDownloadArgs(Job job, ProbeResult probe, bool audio, string format, bool recode)
     {
         var args = new List<string>
         {
@@ -132,7 +142,6 @@ public sealed class YtDlpEngine(IOptions<SiphonOptions> options, SelfUpdater upd
             "-o", Path.Combine(job.Dir, "%(title).120B [%(id)s].%(ext)s"),
         };
 
-        var format = job.Request.Format;
         if (audio)
         {
             args.AddRange(["-f", FormatSelector.Audio(job.Request.FormatId, format), "-x", "--audio-format", format]);

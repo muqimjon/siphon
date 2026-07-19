@@ -2,7 +2,9 @@ namespace Siphon.Media.Policy;
 
 public static class OutputFormat
 {
-    public static readonly string[] Audio = ["mp3", "m4a", "opus"];
+    public const string Best = "best";
+
+    public static readonly string[] Audio = [Best, "mp3", "m4a", "opus"];
     public static readonly string[] Video = ["mp4", "webm"];
 
     public static string Default(string output) => output == "audio" ? "mp3" : "mp4";
@@ -27,7 +29,9 @@ public static class OutputFormat
     };
 
     public static IReadOnlyList<string> AvailableAudio(IEnumerable<string> sourceCodecs) =>
-        sourceCodecs.Any(c => c == "opus") ? ["mp3", "m4a", "opus"] : ["mp3", "m4a"];
+        sourceCodecs.Any(c => c == "opus") ? [Best, "mp3", "m4a", "opus"] : [Best, "mp3", "m4a"];
+
+    public static string ForCodec(string? codec) => codec is not null && codec.StartsWith("opus") ? "opus" : "m4a";
 
     public static IReadOnlyList<string> AvailableVideo(IEnumerable<string> sourceCodecs) =>
         sourceCodecs.Any(c => c is "vp9" or "av1") ? ["mp4", "webm"] : ["mp4"];
