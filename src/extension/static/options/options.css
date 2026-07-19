@@ -1,0 +1,43 @@
+* { box-sizing: border-box; }
+body {
+  margin: 0; padding: var(--sp-8) var(--sp-4);
+  background: var(--sp-bg); color: var(--sp-text);
+  font-family: var(--sp-font); font-size: var(--sp-fs-md);
+}
+main {
+  max-width: 560px; margin: 0 auto;
+  display: flex; flex-direction: column; gap: var(--sp-6);
+}
+h1 {
+  display: flex; align-items: center; gap: var(--sp-2);
+  margin: 0; font-size: var(--sp-fs-xl); font-weight: 700;
+}
+h1 svg { width: 22px; height: 22px; color: var(--sp-accent); }
+h1 .muted { color: var(--sp-text-dim); font-weight: 400; }
+section {
+  display: flex; flex-direction: column; gap: var(--sp-2);
+  background: var(--sp-surface); border: 1px solid var(--sp-border);
+  border-radius: var(--sp-r-lg); padding: var(--sp-4);
+}
+section > label { font-weight: 600; font-size: var(--sp-fs-sm); }
+.row { display: flex; gap: var(--sp-2); }
+.row input { flex: 1; min-width: 0; }
+input[type="url"], input[type="password"], input[type="text"] {
+  padding: 9px var(--sp-3); border: 1px solid var(--sp-border);
+  border-radius: var(--sp-r-md); background: var(--sp-surface-2);
+  color: var(--sp-text); font: inherit;
+}
+input:focus { outline: 2px solid var(--sp-accent); outline-offset: -1px; }
+.row .sp-icon-btn { width: 38px; height: 38px; }
+.seg { display: inline-flex; border: 1px solid var(--sp-border); border-radius: var(--sp-r-md); overflow: hidden; align-self: flex-start; }
+.seg button {
+  padding: 8px var(--sp-4); border: 0; background: none;
+  color: var(--sp-text-dim); font: inherit; font-size: var(--sp-fs-sm); cursor: pointer;
+}
+.seg button.active { background: var(--sp-chip); color: var(--sp-accent-strong); font-weight: 600; }
+.choice { display: flex; align-items: center; gap: var(--sp-2); font-size: var(--sp-fs-md); cursor: pointer; }
+.choice input { accent-color: var(--sp-accent); }
+.hint { margin: 0; font-size: var(--sp-fs-sm); color: var(--sp-text-dim); }
+.hint.ok { color: var(--sp-ok); }
+.hint.err { color: var(--sp-err); }
+footer { display: flex; align-items: center; gap: var(--sp-3); }

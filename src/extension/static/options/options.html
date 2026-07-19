@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Siphon</title>
+  <link rel="stylesheet" href="../styles/tokens.css">
+  <link rel="stylesheet" href="../styles/components.css">
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <main>
+    <h1>
+      <svg viewBox="0 0 24 24"><path d="M12 2C12 2 5 10.5 5 15a7 7 0 0 0 14 0C19 10.5 12 2 12 2Z" fill="currentColor"/></svg>
+      <span>Siphon</span>
+      <span class="muted" data-i18n="opt.title"></span>
+    </h1>
+    <section>
+      <label for="backend" data-i18n="opt.server"></label>
+      <div class="row">
+        <input id="backend" type="url" spellcheck="false">
+        <button id="test" type="button" class="sp-btn sp-btn-secondary" data-i18n="opt.test"></button>
+      </div>
+      <p id="test-result" class="hint"></p>
+    </section>
+    <section>
+      <label for="api-key" data-i18n="opt.apiKey"></label>
+      <div class="row">
+        <input id="api-key" type="password" spellcheck="false" autocomplete="off">
+        <button id="reveal" type="button" class="sp-icon-btn" data-i18n-attr="aria-label:opt.reveal">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+      </div>
+    </section>
+    <section>
+      <label data-i18n="opt.language"></label>
+      <div class="seg" id="lang-seg">
+        <button type="button" data-lang="uz">O'zbekcha</button>
+        <button type="button" data-lang="ru">Русский</button>
+        <button type="button" data-lang="en">English</button>
+      </div>
+    </section>
+    <section>
+      <label data-i18n="opt.behavior"></label>
+      <label class="choice"><input type="radio" name="behavior" value="auto"><span data-i18n="opt.behaviorAuto"></span></label>
+      <label class="choice"><input type="radio" name="behavior" value="ask"><span data-i18n="opt.behaviorAsk"></span></label>
+    </section>
+    <section>
+      <label class="choice"><input type="checkbox" id="cookies"><span data-i18n="opt.cookies"></span></label>
+      <p class="hint" data-i18n="opt.cookiesHint"></p>
+    </section>
+    <section>
+      <label class="choice"><input type="checkbox" id="warn-large"><span data-i18n="opt.warnLarge"></span></label>
+    </section>
+    <footer>
+      <button id="save" type="button" class="sp-btn sp-btn-primary" data-i18n="opt.save"></button>
+      <span id="saved" class="hint ok"></span>
+    </footer>
+  </main>
+  <script src="options.js"></script>
+</body>
+</html>
