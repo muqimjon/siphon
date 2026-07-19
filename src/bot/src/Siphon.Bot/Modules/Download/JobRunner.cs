@@ -91,7 +91,7 @@ public sealed class JobRunner(IOptions<LimitsOptions> limits, IHttpClientFactory
 
         var db = ctx.Services.GetRequiredService<BotDb>();
         var cacheKey = $"{entry.Url}|{output}|{format}|{formatId}";
-        if (await db.Files.FindAsync([cacheKey], ct) is { } hit && await ResendAsync(ctx, entry, hit, messageId, ct))
+        if (await db.Files.FindAsync([cacheKey], ct) is { } hit && await ResendAsync(ctx, entry.SourceMessageId, hit, messageId, ct))
         {
             await CountDownloadAsync(ctx, entry, db);
             return;
@@ -206,6 +206,7 @@ public sealed class JobRunner(IOptions<LimitsOptions> limits, IHttpClientFactory
         }
         var db = ctx.Services.GetRequiredService<BotDb>();
         Remember(db, cacheKey, sent);
+        if (IsDecided(entry.Pref)) Remember(db, PrefKey(entry.Url, entry.Pref), sent);
         await CountDownloadAsync(ctx, entry, db);
     }
 
@@ -242,9 +243,33 @@ public sealed class JobRunner(IOptions<LimitsOptions> limits, IHttpClientFactory
         return Task.CompletedTask;
     }
 
-    static async Task<bool> ResendAsync(UpdateContext ctx, CachedProbe entry, CachedFile hit, int messageId, CancellationToken ct)
+    public static string PrefKey(string url, UserPref pref) =>
+        $"{url}|pref|{pref.Kind}|{pref.AudioFormat}|{pref.VideoFormat}|{pref.Quality}";
+
+    public static bool IsDecided(UserPref pref) =>
+        pref.Kind is "audio" or "video"
+        && pref.Quality != "ask"
+        && (pref.Kind == "video" ? pref.VideoFormat : pref.AudioFormat) != "ask";
+
+    public async Task<bool> TryInstantAsync(UpdateContext ctx, string url, UserPref pref, int sourceMessageId, CancellationToken ct)
     {
-        var reply = new ReplyParameters { MessageId = entry.SourceMessageId, AllowSendingWithoutReply = true };
+        var db = ctx.Services.GetRequiredService<BotDb>();
+        if (await db.Files.FindAsync([PrefKey(url, pref)], ct) is not { } hit) return false;
+        if (!await ResendAsync(ctx, sourceMessageId, hit, null, ct)) return false;
+        ctx.State.DownloadsToday++;
+        db.Events.Add(new UsageEvent
+        {
+            ChatId = ctx.ChatId,
+            Kind = "download",
+            Site = Uri.TryCreate(url, UriKind.Absolute, out var uri) ? uri.Host : null,
+            Utc = DateTime.UtcNow
+        });
+        return true;
+    }
+
+    static async Task<bool> ResendAsync(UpdateContext ctx, int sourceMessageId, CachedFile hit, int? placeholderId, CancellationToken ct)
+    {
+        var reply = new ReplyParameters { MessageId = sourceMessageId, AllowSendingWithoutReply = true };
         var input = InputFile.FromFileId(hit.FileId);
         try
         {
@@ -265,12 +290,15 @@ public sealed class JobRunner(IOptions<LimitsOptions> limits, IHttpClientFactory
         {
             return false;
         }
-        try
+        if (placeholderId is int id)
         {
-            await ctx.Bot.DeleteMessage(ctx.ChatId, messageId, ct);
-        }
-        catch (ApiRequestException)
-        {
+            try
+            {
+                await ctx.Bot.DeleteMessage(ctx.ChatId, id, ct);
+            }
+            catch (ApiRequestException)
+            {
+            }
         }
         return true;
     }

@@ -25,6 +25,14 @@ public sealed class DownloadModule(SiphonApi api, ProbeCache probes, JobRunner r
     {
         var message = ctx.Message!;
         var url = ExtractUrl(message)!;
+        var platform = Platforms.Detect(url);
+        var pref = await db.Prefs.FindAsync([ctx.ChatId, platform], ct) ?? new UserPref { ChatId = ctx.ChatId, Platform = platform };
+
+        if (!ctx.IsGroup && JobRunner.IsDecided(pref)
+            && ctx.State.DownloadsToday < limits.Value.DailyDownloadsPerChat
+            && await runner.TryInstantAsync(ctx, url, pref, message.MessageId, ct))
+            return;
+
         var placeholder = await ctx.Bot.SendMessage(ctx.ChatId, ctx.L.Probing, replyParameters: new ReplyParameters { MessageId = message.MessageId, AllowSendingWithoutReply = true }, cancellationToken: ct);
         await ctx.Bot.SendChatAction(ctx.ChatId, ChatAction.Typing, cancellationToken: ct);
         ProbeResult? probe;
@@ -49,8 +57,6 @@ public sealed class DownloadModule(SiphonApi api, ProbeCache probes, JobRunner r
         }
 
         var mb = limits.Value.MaxUploadMb;
-        var platform = Platforms.Detect(url);
-        var pref = await db.Prefs.FindAsync([ctx.ChatId, platform], ct) ?? new UserPref { ChatId = ctx.ChatId, Platform = platform };
         var entry = new CachedProbe(url, probe, message.MessageId, pref);
         var token = probes.Put(entry);
         if (Uri.TryCreate(url, UriKind.Absolute, out var uri))

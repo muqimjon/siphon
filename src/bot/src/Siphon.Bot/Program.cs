@@ -74,6 +74,7 @@ services.AddSingleton<ProbeCache>();
 services.AddSingleton<JobRunner>();
 services.AddHostedService<PollingService>();
 services.AddHostedService<MenuButtonSetup>();
+services.AddHostedService<Siphon.Bot.Modules.Download.FileCacheJanitor>();
 
 var miniApp = config.GetSection("MiniApp").Get<MiniAppOptions>() ?? new();
 if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("ASPNETCORE_URLS")))
@@ -122,6 +123,7 @@ namespace Siphon.Bot
         public int ProbeCacheMinutes { get; set; } = 15;
         public int JobTimeoutMinutes { get; set; } = 10;
         public int DailyDownloadsPerChat { get; set; } = 30;
+        public int FileCacheCheckDays { get; set; } = 7;
     }
 
     public sealed class MiniAppOptions
