@@ -44,7 +44,7 @@ public sealed class CoreModule(SubscriptionGateMiddleware gate) : IFeatureModule
         if (text.StartsWith("/start") || text.StartsWith("/lang"))
             await ctx.Bot.SendMessage(ctx.ChatId, Msg.ChooseLang, replyMarkup: LangKeyboard, cancellationToken: ct);
         else
-            await ctx.Bot.SendMessage(ctx.ChatId, ctx.L.SendLink, cancellationToken: ct);
+            await ctx.Bot.SendMessage(ctx.ChatId, ctx.L.SendLink, replyMarkup: new ReplyKeyboardRemove(), cancellationToken: ct);
     }
 
     async Task HandleCallbackAsync(UpdateContext ctx, CallbackQuery cb, CancellationToken ct)
@@ -83,7 +83,7 @@ public sealed class CoreModule(SubscriptionGateMiddleware gate) : IFeatureModule
                     {
                     }
                 }
-                await ctx.Bot.SendMessage(ctx.ChatId, ctx.L.SendLink, cancellationToken: ct);
+                await ctx.Bot.SendMessage(ctx.ChatId, ctx.L.SendLink, replyMarkup: new ReplyKeyboardRemove(), cancellationToken: ct);
             }
             else
             {

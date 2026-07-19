@@ -25,7 +25,7 @@ public sealed class DownloadModule(SiphonApi api, ProbeCache probes, JobRunner r
     {
         var message = ctx.Message!;
         var url = ExtractUrl(message)!;
-        var placeholder = await ctx.Bot.SendMessage(ctx.ChatId, ctx.L.Probing, replyParameters: new ReplyParameters { MessageId = message.MessageId, AllowSendingWithoutReply = true }, cancellationToken: ct);
+        var placeholder = await ctx.Bot.SendMessage(ctx.ChatId, ctx.L.Probing, replyParameters: new ReplyParameters { MessageId = message.MessageId, AllowSendingWithoutReply = true }, replyMarkup: new ReplyKeyboardRemove(), cancellationToken: ct);
         await ctx.Bot.SendChatAction(ctx.ChatId, ChatAction.Typing, cancellationToken: ct);
         ProbeResult? probe;
         try
