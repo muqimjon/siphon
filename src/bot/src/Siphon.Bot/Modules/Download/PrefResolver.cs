@@ -64,8 +64,8 @@ public static class PrefResolver
     {
         var formats = kind == "v" ? probe.VideoFormats : probe.AudioFormats;
         var want = kind == "v" ? pref.VideoFormat : pref.AudioFormat;
-        if (want != "ask" && formats.Contains(want)) return want;
-        if (want != "ask" && formats.Contains(kind == "v" ? "mp4" : "mp3")) return kind == "v" ? "mp4" : "mp3";
-        return formats.Count == 1 ? formats[0] : null;
+        if (want == "ask") want = "best";
+        if (formats.Contains(want)) return want;
+        return formats.Count > 0 ? formats[0] : null;
     }
 }

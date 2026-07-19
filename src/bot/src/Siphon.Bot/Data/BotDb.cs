@@ -26,8 +26,8 @@ public sealed class UserPref
     public long ChatId { get; set; }
     public string Platform { get; set; } = "";
     public string Kind { get; set; } = "ask";
-    public string AudioFormat { get; set; } = "ask";
-    public string VideoFormat { get; set; } = "ask";
+    public string AudioFormat { get; set; } = "best";
+    public string VideoFormat { get; set; } = "best";
     public string Quality { get; set; } = "ask";
 }
 

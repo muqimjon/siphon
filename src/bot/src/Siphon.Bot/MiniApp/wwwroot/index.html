@@ -111,6 +111,15 @@
   }
   .pill:active { transform: scale(.93); }
 
+  .adv-toggle {
+    display: flex; align-items: center; gap: 6px; width: 100%; margin-top: 6px;
+    border: 0; background: none; color: var(--hint); cursor: pointer;
+    font-family: inherit; font-size: 12px; font-weight: 700; padding: 8px 2px;
+  }
+  .adv-toggle::after { content: "▾"; transition: transform .15s; }
+  .adv-toggle.open::after { transform: rotate(180deg); }
+  .adv-box { padding-top: 4px; }
+
   .empty { color: var(--hint); font-size: 14px; text-align: center; padding: 26px 10px; }
   .empty .big { font-size: 30px; display: block; margin-bottom: 8px; }
 
@@ -147,8 +156,8 @@ const PLATFORMS = [
 ];
 
 const KIND_OPTIONS = ["ask", "audio", "video"];
-const AUDIO_OPTIONS = ["ask", "best", "mp3", "m4a", "opus"];
-const VIDEO_OPTIONS = ["ask", "best", "mp4", "webm"];
+const AUDIO_OPTIONS = ["best", "mp3", "m4a", "opus"];
+const VIDEO_OPTIONS = ["best", "mp4", "webm"];
 const QUALITY_OPTIONS = ["ask", "high", "medium", "low"];
 const LANGS = [
   { id: "uz", flag: "🇺🇿", name: "O'zbekcha" },
@@ -173,7 +182,8 @@ const I18N = {
     topSites: "Ko'p ishlatilgan", accountTitle: "Hisob",
     autoBest: "sifat yuqori — eng yaxshi format", configured: "sozlangan",
     onlyAudio: "Faqat audio olinadi — video sozlamasi kerak emas.",
-    onlyVideo: "Faqat video olinadi — audio sozlamasi kerak emas."
+    onlyVideo: "Faqat video olinadi — audio sozlamasi kerak emas.",
+    advanced: "Qo'shimcha", advancedHint: "Odatda kerak emas — sifat allaqachon manbadagidek saqlanadi."
   },
   ru: {
     tabProfile: "Профиль", tabPrefs: "Настройки", tabGroups: "Группы", tabLang: "Язык",
@@ -191,7 +201,8 @@ const I18N = {
     topSites: "Часто используемые", accountTitle: "Аккаунт",
     autoBest: "качество высокое — лучший формат", configured: "настроено",
     onlyAudio: "Берётся только аудио — видео настраивать не нужно.",
-    onlyVideo: "Берётся только видео — аудио настраивать не нужно."
+    onlyVideo: "Берётся только видео — аудио настраивать не нужно.",
+    advanced: "Дополнительно", advancedHint: "Обычно не нужно — качество и так сохраняется как в источнике."
   },
   en: {
     tabProfile: "Profile", tabPrefs: "Settings", tabGroups: "Groups", tabLang: "Language",
@@ -209,7 +220,8 @@ const I18N = {
     topSites: "Most used", accountTitle: "Account",
     autoBest: "quality is high — best format", configured: "configured",
     onlyAudio: "Audio only — no need to configure video.",
-    onlyVideo: "Video only — no need to configure audio."
+    onlyVideo: "Video only — no need to configure audio.",
+    advanced: "Advanced", advancedHint: "Usually not needed — quality is already kept as in the source."
   }
 };
 
@@ -281,10 +293,16 @@ function savePref(scope, groupChatId, pref) {
 }
 
 function rowsFor(pref) {
-  const rows = [{ field: "kind", label: T.rowKind, options: KIND_OPTIONS }];
+  return [
+    { field: "kind", label: T.rowKind, options: KIND_OPTIONS },
+    { field: "quality", label: T.rowQuality, options: QUALITY_OPTIONS }
+  ];
+}
+
+function advancedRowsFor(pref) {
+  const rows = [];
   if (pref.kind !== "video") rows.push({ field: "audioFormat", label: T.rowAudio, options: AUDIO_OPTIONS });
   if (pref.kind !== "audio") rows.push({ field: "videoFormat", label: T.rowVideo, options: VIDEO_OPTIONS });
-  rows.push({ field: "quality", label: T.rowQuality, options: QUALITY_OPTIONS });
   return rows;
 }
 
@@ -302,6 +320,7 @@ function board(scope, chatId, platforms, title, subtitle) {
     card.appendChild(head);
   }
 
+  let advOpen = false;
   const chips = el("div", "chips");
   const panel = el("div", "panel");
   card.appendChild(chips);
@@ -337,7 +356,7 @@ function board(scope, chatId, platforms, title, subtitle) {
     if (pref.kind === "audio") panel.appendChild(el("div", "hint", T.onlyAudio));
     if (pref.kind === "video") panel.appendChild(el("div", "hint", T.onlyVideo));
 
-    rowsFor(pref).forEach(r => {
+    const render = r => {
       const row = el("div", "row");
       const label = el("div", "row-label");
       label.appendChild(el("span", null, r.label));
@@ -361,8 +380,26 @@ function board(scope, chatId, platforms, title, subtitle) {
         pills.appendChild(pill);
       });
       row.appendChild(pills);
-      panel.appendChild(row);
-    });
+      return row;
+    };
+
+    rowsFor(pref).forEach(r => panel.appendChild(render(r)));
+
+    const advanced = advancedRowsFor(pref);
+    if (advanced.length) {
+      const toggle = el("button", "adv-toggle" + (advOpen ? " open" : ""), T.advanced);
+      const box = el("div", "adv-box");
+      if (!advOpen) box.style.display = "none";
+      box.appendChild(el("div", "hint", T.advancedHint));
+      advanced.forEach(r => box.appendChild(render(r)));
+      toggle.onclick = () => {
+        advOpen = !advOpen;
+        haptic("selection");
+        paintPanel();
+      };
+      panel.appendChild(toggle);
+      panel.appendChild(box);
+    }
   }
 
   PLATFORMS.forEach(p => {
