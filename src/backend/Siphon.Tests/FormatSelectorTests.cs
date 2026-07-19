@@ -18,9 +18,17 @@ public class FormatSelectorTests
 
     [Fact]
     public void Audio_without_choice() =>
-        Assert.Equal("bestaudio/best", FormatSelector.Audio(null));
+        Assert.Equal("bestaudio/best", FormatSelector.Audio(null, "mp3"));
 
     [Fact]
     public void Audio_with_choice() =>
-        Assert.Equal("251/bestaudio/best", FormatSelector.Audio("251"));
+        Assert.Equal("251/bestaudio/best", FormatSelector.Audio("251", "mp3"));
+
+    [Fact]
+    public void Audio_m4a_prefers_aac_source_so_it_is_copied() =>
+        Assert.Equal("bestaudio[acodec^=mp4a]/bestaudio/best", FormatSelector.Audio(null, "m4a"));
+
+    [Fact]
+    public void Audio_opus_prefers_opus_source_so_it_is_copied() =>
+        Assert.Equal("bestaudio[acodec=opus]/bestaudio/best", FormatSelector.Audio(null, "opus"));
 }

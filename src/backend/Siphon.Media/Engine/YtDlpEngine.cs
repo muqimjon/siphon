@@ -18,6 +18,20 @@ public sealed class YtDlpEngine(IOptions<SiphonOptions> options, SelfUpdater upd
 
     public async Task<string> ProbeJsonAsync(string url, string? cookiesPath, CancellationToken ct)
     {
+        try
+        {
+            return await ProbeOnceAsync(url, cookiesPath, ct);
+        }
+        catch (MediaEngineException ex) when (ex.Code == ErrorCodes.ExtractorBroken)
+        {
+            logger.LogWarning("probe failed for {Url}, retrying once: {Message}", url, ex.Message);
+            await Task.Delay(TimeSpan.FromSeconds(1), ct);
+            return await ProbeOnceAsync(url, cookiesPath, ct);
+        }
+    }
+
+    private async Task<string> ProbeOnceAsync(string url, string? cookiesPath, CancellationToken ct)
+    {
         var stdout = new StringBuilder();
         var stderr = new StringBuilder();
         var args = new List<string> { "-J", "--no-playlist", "--no-warnings", "--socket-timeout", "15", url };
@@ -40,8 +54,9 @@ public sealed class YtDlpEngine(IOptions<SiphonOptions> options, SelfUpdater upd
             throw new MediaEngineException(ErrorCodes.ExtractorBroken, "Probe timed out.");
         }
 
-        if (result.ExitCode != 0) throw Classified(stderr.ToString());
-        return stdout.ToString();
+        if (result.ExitCode == 0) return stdout.ToString();
+        logger.LogWarning("yt-dlp probe exit {Code} for {Url}: {Stderr}", result.ExitCode, url, stderr.ToString().Trim());
+        throw Classified(stderr.ToString());
     }
 
     public async Task<DownloadOutcome> DownloadAsync(Job job, Action<double, int?, string> onProgress, CancellationToken ct)
@@ -120,7 +135,7 @@ public sealed class YtDlpEngine(IOptions<SiphonOptions> options, SelfUpdater upd
         var format = job.Request.Format;
         if (audio)
         {
-            args.AddRange(["-f", FormatSelector.Audio(job.Request.FormatId), "-x", "--audio-format", format]);
+            args.AddRange(["-f", FormatSelector.Audio(job.Request.FormatId, format), "-x", "--audio-format", format]);
             if (format == "mp3")
             {
                 var abr = job.Request.FormatId is { } id

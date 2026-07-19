@@ -11,7 +11,15 @@ public static class FormatSelector
             : $"{v}+bestaudio[acodec^=mp4a]/{v}+bestaudio/{tail}";
     }
 
-    public static string Audio(string? formatId) => formatId is null
-        ? "bestaudio/best"
-        : $"{formatId}/bestaudio/best";
+    public static string Audio(string? formatId, string format)
+    {
+        var head = formatId is null ? "" : $"{formatId}/";
+        var preferred = format switch
+        {
+            "m4a" => "bestaudio[acodec^=mp4a]/",
+            "opus" => "bestaudio[acodec=opus]/",
+            _ => ""
+        };
+        return $"{head}{preferred}bestaudio/best";
+    }
 }
