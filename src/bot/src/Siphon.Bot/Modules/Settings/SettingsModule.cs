@@ -12,7 +12,7 @@ namespace Siphon.Bot.Modules.Settings;
 public sealed class SettingsModule(BotDb db) : IFeatureModule
 {
     static readonly string[] Kinds = ["ask", "audio", "video"];
-    static readonly string[] AudioFormats = ["ask", "mp3", "m4a", "opus"];
+    static readonly string[] AudioFormats = ["ask", "best", "mp3", "m4a", "opus"];
     static readonly string[] VideoFormats = ["ask", "mp4", "webm"];
     static readonly string[] Qualities = ["ask", "high", "medium", "low"];
 

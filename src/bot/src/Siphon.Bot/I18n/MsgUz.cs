@@ -13,6 +13,7 @@ public sealed class MsgUz : Msg
     public override string TypeVideo => "Video";
     public override string Back => "⬅️ Orqaga";
     public override string Original => "asl";
+    public override string FormatBest => "⭐ Eng yaxshi (asl sifat)";
     public override string Queued => "⏳ Navbatda…";
     public override string Downloading => "⬇️ Yuklab olyapman…";
     public override string Converting => "🎛 Tayyorlayapman…";

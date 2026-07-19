@@ -13,6 +13,7 @@ public sealed class MsgEn : Msg
     public override string TypeVideo => "Video";
     public override string Back => "⬅️ Back";
     public override string Original => "original";
+    public override string FormatBest => "⭐ Best (source quality)";
     public override string Queued => "⏳ In the queue…";
     public override string Downloading => "⬇️ Downloading…";
     public override string Converting => "🎛 Processing…";

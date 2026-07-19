@@ -51,6 +51,8 @@ public static class VariantKeyboard
     public static (InlineKeyboardMarkup? Markup, int? AutoRunIndex) BuildQuality(ProbeResult probe, string token, string kind, string format, int page, int maxUploadMb, Msg l, bool formatLocked = false)
     {
         var rows = kind == "v" ? VideoRows(probe, maxUploadMb) : AudioRows(probe, maxUploadMb, format);
+        if (format == "best" && rows.Where(r => !r.Blocked).Select(r => (int?)r.Index).FirstOrDefault() is int best)
+            return (null, best);
         if (rows.Count == 1 && !rows[0].Blocked)
             return (null, rows[0].Index);
 
@@ -119,6 +121,7 @@ public static class VariantKeyboard
 
     static string FormatLabel(string format, Msg l) => format switch
     {
+        "best" => l.FormatBest,
         "mp3" => "MP3",
         "m4a" => "M4A",
         "mp4" => "MP4",

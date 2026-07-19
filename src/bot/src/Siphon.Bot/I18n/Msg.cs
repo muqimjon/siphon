@@ -48,6 +48,7 @@ public abstract class Msg
 
     public string AudioFormatLabel(string value) => value switch
     {
+        "best" => FormatBest,
         "mp3" => "MP3",
         "m4a" => "M4A",
         "opus" => "OPUS",
@@ -82,6 +83,7 @@ public abstract class Msg
     public abstract string TypeVideo { get; }
     public abstract string Back { get; }
     public abstract string Original { get; }
+    public abstract string FormatBest { get; }
     public abstract string Queued { get; }
     public abstract string Downloading { get; }
     public abstract string Converting { get; }

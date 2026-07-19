@@ -13,6 +13,7 @@ public sealed class MsgRu : Msg
     public override string TypeVideo => "Видео";
     public override string Back => "⬅️ Назад";
     public override string Original => "оригинал";
+    public override string FormatBest => "⭐ Лучшее (исходное качество)";
     public override string Queued => "⏳ В очереди…";
     public override string Downloading => "⬇️ Скачиваю…";
     public override string Converting => "🎛 Обрабатываю…";
