@@ -31,11 +31,20 @@ public sealed class UserPref
     public string Quality { get; set; } = "ask";
 }
 
+public sealed class GroupInfo
+{
+    public long ChatId { get; set; }
+    public string Title { get; set; } = "";
+    public long OwnerUserId { get; set; }
+    public DateTime AddedUtc { get; set; }
+}
+
 public sealed class BotDb(DbContextOptions<BotDb> options) : DbContext(options)
 {
     public DbSet<ChatState> Chats => Set<ChatState>();
     public DbSet<UsageEvent> Events => Set<UsageEvent>();
     public DbSet<UserPref> Prefs => Set<UserPref>();
+    public DbSet<GroupInfo> Groups => Set<GroupInfo>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -46,6 +55,11 @@ public sealed class BotDb(DbContextOptions<BotDb> options) : DbContext(options)
         });
         builder.Entity<UsageEvent>().HasIndex(x => x.Utc);
         builder.Entity<UserPref>().HasKey(x => new { x.ChatId, x.Platform });
+        builder.Entity<GroupInfo>(e =>
+        {
+            e.HasKey(x => x.ChatId);
+            e.Property(x => x.ChatId).ValueGeneratedNever();
+        });
     }
 }
 

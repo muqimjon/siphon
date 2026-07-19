@@ -46,6 +46,9 @@ public sealed class MsgRu : Msg
     public override string QualMedium => "Среднее";
     public override string QualLow => "Низкое";
     public override string OtherPlatform => "Другое";
+    public override string GroupAdded => "Привет! 👋 Теперь кидайте в эту группу ссылку на видео, музыку или картинку — скачаю автоматически.\n\nЧтобы изменить настройки по умолчанию — /settings.";
+    public override string GroupSettingsHint => "🔧 Эти настройки применяются по умолчанию для этой группы.";
+    public override string GroupSettingsDenied => "Менять настройки может только тот, кто добавил бота, или администратор группы.";
     public override string ErrorFor(string code) => code switch
     {
         "invalid-url" => "Это не похоже на ссылку 🤔 Пришлите правильную ссылку.",

@@ -46,6 +46,9 @@ public sealed class MsgEn : Msg
     public override string QualMedium => "Medium";
     public override string QualLow => "Low";
     public override string OtherPlatform => "Other";
+    public override string GroupAdded => "Hi! 👋 Now just drop a video, music or picture link in this group — I'll download it automatically.\n\nTo change the defaults, use /settings.";
+    public override string GroupSettingsHint => "🔧 These settings are the defaults for this group.";
+    public override string GroupSettingsDenied => "Only the person who added the bot or a group admin can change these settings.";
     public override string ErrorFor(string code) => code switch
     {
         "invalid-url" => "That doesn't look like a link 🤔 Please send a valid one.",

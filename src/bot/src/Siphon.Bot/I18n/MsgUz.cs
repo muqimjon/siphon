@@ -46,6 +46,9 @@ public sealed class MsgUz : Msg
     public override string QualMedium => "O'rta";
     public override string QualLow => "Past";
     public override string OtherPlatform => "Boshqa";
+    public override string GroupAdded => "Salom! 👋 Endi bu guruhga video, musiqa yoki rasm havolasini tashlang — o'zim avtomatik yuklab beraman.\n\nStandart sozlamalarni o'zgartirish uchun /settings.";
+    public override string GroupSettingsHint => "🔧 Bu sozlamalar shu guruh uchun standart hisoblanadi.";
+    public override string GroupSettingsDenied => "Faqat guruh sozlamalarini qo'shgan odam yoki admin o'zgartira oladi.";
     public override string ErrorFor(string code) => code switch
     {
         "invalid-url" => "Bu havolaga o'xshamadi 🤔 To'g'ri havola yuborib ko'ring.",

@@ -4,6 +4,7 @@ using Siphon.Bot.I18n;
 using Telegram.Bot;
 using Telegram.Bot.Exceptions;
 using Telegram.Bot.Types;
+using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
 
 namespace Siphon.Bot.Modules.Settings;
@@ -25,13 +26,39 @@ public sealed class SettingsModule(BotDb db) : IFeatureModule
 
     public async Task HandleAsync(UpdateContext ctx, CancellationToken ct)
     {
+        if (ctx.IsGroup && !await IsAllowedAsync(ctx, ct))
+        {
+            if (ctx.Callback is { } denied)
+                await ctx.Bot.AnswerCallbackQuery(denied.Id, ctx.L.GroupSettingsDenied, showAlert: true, cancellationToken: ct);
+            else
+                await ctx.Bot.SendMessage(ctx.ChatId, ctx.L.GroupSettingsDenied, cancellationToken: ct);
+            return;
+        }
         if (ctx.Callback is { } cb)
         {
             await HandleCallbackAsync(ctx, cb, ct);
             return;
         }
-        await ctx.Bot.SendMessage(ctx.ChatId, ctx.L.SettingsIntro, replyMarkup: PlatformKeyboard(ctx.L), cancellationToken: ct);
+        await ctx.Bot.SendMessage(ctx.ChatId, Intro(ctx), replyMarkup: PlatformKeyboard(ctx.L), cancellationToken: ct);
     }
+
+    async Task<bool> IsAllowedAsync(UpdateContext ctx, CancellationToken ct)
+    {
+        var info = await db.Groups.FindAsync([ctx.ChatId], ct);
+        if (info?.OwnerUserId == ctx.UserId) return true;
+        try
+        {
+            var member = await ctx.Bot.GetChatMember(ctx.ChatId, ctx.UserId, ct);
+            return member.Status is ChatMemberStatus.Creator or ChatMemberStatus.Administrator;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    static string Intro(UpdateContext ctx) =>
+        ctx.IsGroup ? $"{ctx.L.GroupSettingsHint}\n\n{ctx.L.SettingsIntro}" : ctx.L.SettingsIntro;
 
     async Task HandleCallbackAsync(UpdateContext ctx, CallbackQuery cb, CancellationToken ct)
     {
@@ -40,7 +67,7 @@ public sealed class SettingsModule(BotDb db) : IFeatureModule
         await ctx.Bot.AnswerCallbackQuery(cb.Id, cancellationToken: ct);
         if (action == "back")
         {
-            await EditAsync(ctx, cb, ctx.L.SettingsIntro, PlatformKeyboard(ctx.L), ct);
+            await EditAsync(ctx, cb, Intro(ctx), PlatformKeyboard(ctx.L), ct);
             return;
         }
         if (parts.Length < 3 || !Platforms.All.Contains(parts[2]))

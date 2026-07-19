@@ -27,7 +27,11 @@ public sealed class CoreModule(SubscriptionGateMiddleware gate) : IFeatureModule
     ];
 
     public bool CanHandle(UpdateContext ctx) =>
-        ctx.Message is not null || ctx.Callback?.Data?.StartsWith("c:") == true;
+        ctx.Callback?.Data?.StartsWith("c:") == true
+        || (ctx.Message is not null && (!ctx.IsGroup || IsCommand(ctx.Message.Text)));
+
+    static bool IsCommand(string? text) =>
+        text is not null && (text.StartsWith("/start") || text.StartsWith("/lang"));
 
     public async Task HandleAsync(UpdateContext ctx, CancellationToken ct)
     {

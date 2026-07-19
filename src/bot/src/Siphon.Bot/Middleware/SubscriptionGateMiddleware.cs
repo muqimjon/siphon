@@ -58,6 +58,7 @@ public sealed class SubscriptionGateMiddleware(IOptions<GateOptions> options, IM
 
     static bool IsBypassed(UpdateContext ctx)
     {
+        if (ctx.Update.MyChatMember is not null) return true;
         var text = ctx.Message?.Text;
         if (text is not null && (text.StartsWith("/start") || text.StartsWith("/lang"))) return true;
         var data = ctx.Callback?.Data;

@@ -12,7 +12,7 @@ public sealed class PollingService(ITelegramBotClient bot, IServiceProvider serv
         await RegisterCommandsAsync(stoppingToken);
         var receiverOptions = new ReceiverOptions
         {
-            AllowedUpdates = [UpdateType.Message, UpdateType.CallbackQuery],
+            AllowedUpdates = [UpdateType.Message, UpdateType.CallbackQuery, UpdateType.MyChatMember],
             DropPendingUpdates = true
         };
         while (!stoppingToken.IsCancellationRequested)
@@ -54,8 +54,8 @@ public sealed class PollingService(ITelegramBotClient bot, IServiceProvider serv
 
     async Task DispatchAsync(Update update, CancellationToken ct)
     {
-        var chat = update.Message?.Chat ?? update.CallbackQuery?.Message?.Chat;
-        var user = update.Message?.From ?? update.CallbackQuery?.From;
+        var chat = update.Message?.Chat ?? update.CallbackQuery?.Message?.Chat ?? update.MyChatMember?.Chat;
+        var user = update.Message?.From ?? update.CallbackQuery?.From ?? update.MyChatMember?.From;
         if (chat is null || user is null) return;
         try
         {
@@ -66,7 +66,8 @@ public sealed class PollingService(ITelegramBotClient bot, IServiceProvider serv
                 Bot = bot,
                 Services = scope.ServiceProvider,
                 ChatId = chat.Id,
-                UserId = user.Id
+                UserId = user.Id,
+                ChatType = chat.Type
             };
             await scope.ServiceProvider.GetRequiredService<UpdatePipeline>().RunAsync(ctx, ct);
         }

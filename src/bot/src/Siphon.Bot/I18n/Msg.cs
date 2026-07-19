@@ -116,4 +116,7 @@ public abstract class Msg
     public abstract string QualMedium { get; }
     public abstract string QualLow { get; }
     public abstract string OtherPlatform { get; }
+    public abstract string GroupAdded { get; }
+    public abstract string GroupSettingsHint { get; }
+    public abstract string GroupSettingsDenied { get; }
 }

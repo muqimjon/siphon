@@ -56,6 +56,12 @@ public sealed class DownloadModule(SiphonApi api, ProbeCache probes, JobRunner r
         if (Uri.TryCreate(url, UriKind.Absolute, out var uri))
             db.Events.Add(new UsageEvent { ChatId = ctx.ChatId, Kind = "probe", Site = uri.Host, Utc = DateTime.UtcNow });
 
+        if (ctx.IsGroup)
+        {
+            await RunGroupAsync(ctx, entry, probe, pref, mb, placeholder.MessageId, ct);
+            return;
+        }
+
         var plan = PrefResolver.Resolve(probe, pref, mb);
         if (plan.Step == PrefStep.Run)
         {
@@ -96,6 +102,33 @@ public sealed class DownloadModule(SiphonApi api, ProbeCache probes, JobRunner r
 
     static Task EditPlaceholderAsync(UpdateContext ctx, int messageId, string text, CancellationToken ct) =>
         ctx.Bot.EditMessageText(ctx.ChatId, messageId, text, cancellationToken: ct);
+
+    async Task RunGroupAsync(UpdateContext ctx, CachedProbe entry, ProbeResult probe, UserPref pref, int mb, int messageId, CancellationToken ct)
+    {
+        var plan = PrefResolver.ResolveGroup(probe, pref, mb);
+        switch (plan.Step)
+        {
+            case PrefStep.Run:
+                await RunVariantAsync(ctx, entry, plan.Kind, plan.Format, plan.Index, messageId, null, ct);
+                return;
+            case PrefStep.TooLarge:
+                await EditPlaceholderAsync(ctx, messageId, ctx.L.AllTooLarge(mb), ct);
+                return;
+            default:
+                if (probe.Images.Count == 0)
+                {
+                    await EditPlaceholderAsync(ctx, messageId, ctx.L.ErrorFor("unsupported-site"), ct);
+                    return;
+                }
+                if (ctx.State.DownloadsToday >= limits.Value.DailyDownloadsPerChat)
+                {
+                    await EditPlaceholderAsync(ctx, messageId, ctx.L.DailyLimit(limits.Value.DailyDownloadsPerChat), ct);
+                    return;
+                }
+                await runner.RunAsync(ctx, entry, "gallery", "", null, messageId, ct);
+                return;
+        }
+    }
 
     async Task HandleCallbackAsync(UpdateContext ctx, CancellationToken ct)
     {
