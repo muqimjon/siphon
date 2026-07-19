@@ -27,6 +27,12 @@ public class YtDlpJsonParserTests
         Assert.All(probe.VideoVariants.Where(v => v.Codec is "h264" or "vp9" or "av1"), v => Assert.Equal("remux", v.Delivery));
         Assert.Contains(probe.VideoVariants, v => v.Codec == "h264" && v.Height == 1080);
         Assert.Contains(probe.VideoVariants, v => v.NeedsMerge);
+
+        Assert.Contains("mp3", probe.AudioFormats);
+        Assert.Contains("m4a", probe.AudioFormats);
+        Assert.Contains("opus", probe.AudioFormats);
+        Assert.Contains("mp4", probe.VideoFormats);
+        Assert.Contains("webm", probe.VideoFormats);
     }
 
     [Fact]

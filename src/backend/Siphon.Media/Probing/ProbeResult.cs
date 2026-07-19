@@ -13,6 +13,8 @@ public sealed record ProbeResult(
     IReadOnlyList<ImageEntry> Images)
 {
     public string? Extractor { get; init; }
+    public IReadOnlyList<string> AudioFormats { get; init; } = [];
+    public IReadOnlyList<string> VideoFormats { get; init; } = [];
 }
 
 public sealed record VideoVariant(

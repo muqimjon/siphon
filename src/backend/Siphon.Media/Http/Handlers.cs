@@ -3,6 +3,7 @@ using Microsoft.Extensions.Options;
 using Siphon.Media.Delivery;
 using Siphon.Media.Engine;
 using Siphon.Media.Jobs;
+using Siphon.Media.Policy;
 using Siphon.Media.Probing;
 
 namespace Siphon.Media.Http;
@@ -86,9 +87,13 @@ public sealed class JobHandlers(JobEngine engine, JobStore store, GalleryDlEngin
         if (request.Output == "gallery" && !galleryDl.Enabled)
             return Problems.Create(ErrorCodes.UnsupportedSite, "Image galleries are disabled on this server.");
 
+        var format = request.Output == "gallery" ? "" : request.Format ?? OutputFormat.Default(request.Output);
+        if (request.Output != "gallery" && !OutputFormat.IsValid(request.Output, format))
+            return Problems.Create(ErrorCodes.InvalidUrl, "Unsupported format for this output.");
+
         try
         {
-            var job = engine.Create(new JobRequest(request.Url, request.Output, request.FormatId, request.Cookies));
+            var job = engine.Create(new JobRequest(request.Url, request.Output, format, request.FormatId, request.Cookies));
             return Results.Accepted($"/api/v1/jobs/{job.Id}", new CreateJobResponse(job.Id, $"/api/v1/jobs/{job.Id}"));
         }
         catch (MediaEngineException ex)

@@ -2,7 +2,7 @@ namespace Siphon.Media.Jobs;
 
 public enum JobState { Queued, Running, Completed, Failed, Canceled, Expired }
 
-public sealed record JobRequest(string Url, string Output, string? FormatId, string? Cookies);
+public sealed record JobRequest(string Url, string Output, string Format, string? FormatId, string? Cookies);
 
 public sealed record JobError(string Code, string Message);
 

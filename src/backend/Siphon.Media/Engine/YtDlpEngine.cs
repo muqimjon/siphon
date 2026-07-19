@@ -64,7 +64,7 @@ public sealed class YtDlpEngine(IOptions<SiphonOptions> options, SelfUpdater upd
         }
         if (exit.Code != 0) throw Classified(exit.Stderr);
 
-        var ext = audio ? ".mp3" : ".mp4";
+        var ext = OutputFormat.Extension(job.Request.Format);
         var produced = Directory.EnumerateFiles(job.Dir)
             .Where(f => f.EndsWith(ext, StringComparison.OrdinalIgnoreCase))
             .OrderByDescending(File.GetLastWriteTimeUtc)
@@ -79,7 +79,7 @@ public sealed class YtDlpEngine(IOptions<SiphonOptions> options, SelfUpdater upd
         }
 
         var name = FileNameSanitizer.Sanitize(probe.Title) + ext;
-        return new DownloadOutcome(produced, name, audio ? "audio/mpeg" : "video/mp4");
+        return new DownloadOutcome(produced, name, OutputFormat.ContentType(job.Request.Format));
     }
 
     public async Task RunSelfUpdateAsync(CancellationToken ct)
@@ -117,18 +117,22 @@ public sealed class YtDlpEngine(IOptions<SiphonOptions> options, SelfUpdater upd
             "-o", Path.Combine(job.Dir, "%(title).120B [%(id)s].%(ext)s"),
         };
 
+        var format = job.Request.Format;
         if (audio)
         {
-            var abr = job.Request.FormatId is { } id
-                ? probe.AudioVariants.FirstOrDefault(a => a.FormatId == id)?.AbrKbps
-                : probe.AudioVariants.Select(a => a.AbrKbps).Max();
-            args.AddRange(["-f", FormatSelector.Audio(job.Request.FormatId),
-                "-x", "--audio-format", "mp3", "--audio-quality", Mp3QualityMapper.Map(abr).Qscale.ToString()]);
+            args.AddRange(["-f", FormatSelector.Audio(job.Request.FormatId), "-x", "--audio-format", format]);
+            if (format == "mp3")
+            {
+                var abr = job.Request.FormatId is { } id
+                    ? probe.AudioVariants.FirstOrDefault(a => a.FormatId == id)?.AbrKbps
+                    : probe.AudioVariants.Select(a => a.AbrKbps).Max();
+                args.AddRange(["--audio-quality", Mp3QualityMapper.Map(abr).Qscale.ToString()]);
+            }
         }
         else
         {
-            args.AddRange(["-f", FormatSelector.Video(job.Request.FormatId), "--merge-output-format", "mp4"]);
-            args.AddRange(recode ? ["--recode-video", "mp4"] : ["--remux-video", "mp4"]);
+            args.AddRange(["-f", FormatSelector.Video(job.Request.FormatId, format), "--merge-output-format", format]);
+            args.AddRange(recode ? ["--recode-video", format] : ["--remux-video", format]);
         }
 
         AddCommon(args, job.CookiesPath);

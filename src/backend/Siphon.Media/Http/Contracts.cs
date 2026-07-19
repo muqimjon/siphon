@@ -5,7 +5,7 @@ namespace Siphon.Media.Http;
 
 public sealed record ProbeRequest(string Url, string? Cookies);
 
-public sealed record CreateJobRequest(string Url, string Output, string? FormatId, string? Cookies);
+public sealed record CreateJobRequest(string Url, string Output, string? Format, string? FormatId, string? Cookies);
 
 public sealed record CreateJobResponse(string JobId, string StatusUrl);
 

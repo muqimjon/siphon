@@ -69,7 +69,11 @@ public static class YtDlpJsonParser
             throw new MediaEngineException(ErrorCodes.Unavailable, "No downloadable formats found.");
 
         return new ProbeResult(url, kind, title, uploader, thumbnail, duration, isLive, video, audio, images)
-        { Extractor = extractor };
+        {
+            Extractor = extractor,
+            AudioFormats = audio.Count > 0 ? OutputFormat.AvailableAudio(audio.Select(a => a.Codec)) : [],
+            VideoFormats = video.Count > 0 ? OutputFormat.AvailableVideo(video.Select(v => v.Codec)) : [],
+        };
     }
 
     private static ProbeResult ParsePlaylist(string url, JsonElement root)
