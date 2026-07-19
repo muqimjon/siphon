@@ -23,13 +23,14 @@ sp-root { display: flex; flex-direction: column; flex: 1; }
 }
 
 .site-nav { display: flex; align-items: center; gap: var(--sp-1); margin-right: auto; }
-.site-nav a {
-  font-size: var(--sp-fs-sm); font-weight: 600; color: var(--sp-text-dim);
-  text-decoration: none; padding: var(--sp-1) var(--sp-3); border-radius: var(--sp-r-pill);
+.site-nav a, .site-nav button {
+  font-family: inherit; font-size: var(--sp-fs-sm); font-weight: 600; color: var(--sp-text-dim);
+  text-decoration: none; padding: var(--sp-1) var(--sp-3); border: 0; border-radius: var(--sp-r-pill);
+  background: none; cursor: pointer;
   transition: background var(--sp-t-fast) var(--sp-ease), color var(--sp-t-fast) var(--sp-ease);
 }
-.site-nav a:hover, .site-nav a.active { color: var(--sp-text); background: var(--sp-surface-2); }
-.site-nav a:focus-visible { outline: 2px solid var(--sp-accent); outline-offset: 2px; }
+.site-nav a:hover, .site-nav a.active, .site-nav button:hover { color: var(--sp-text); background: var(--sp-surface-2); }
+.site-nav a:focus-visible, .site-nav button:focus-visible { outline: 2px solid var(--sp-accent); outline-offset: 2px; }
 
 .header-actions { display: flex; align-items: center; gap: var(--sp-3); }
 

@@ -16,6 +16,15 @@
     <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="menuOpen.set(false)">{{ i18n.t('nav.home') }}</a>
     <a routerLink="/docs" routerLinkActive="active" (click)="menuOpen.set(false)">{{ i18n.t('nav.api') }}</a>
     <a routerLink="/bot" routerLinkActive="active" (click)="menuOpen.set(false)">{{ i18n.t('nav.bot') }}</a>
+    @if (auth.token()) {
+      <a routerLink="/dashboard" routerLinkActive="active" (click)="menuOpen.set(false)">{{ i18n.t('nav.dashboard') }}</a>
+      @if (auth.isAdmin()) {
+        <a routerLink="/admin" routerLinkActive="active" (click)="menuOpen.set(false)">{{ i18n.t('nav.admin') }}</a>
+      }
+      <button type="button" (click)="logout()">{{ i18n.t('nav.logout') }}</button>
+    } @else {
+      <a routerLink="/login" routerLinkActive="active" (click)="menuOpen.set(false)">{{ i18n.t('nav.login') }}</a>
+    }
   </nav>
 
   <div class="header-actions">

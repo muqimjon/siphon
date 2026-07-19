@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
-import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { Api } from './services/api';
+import { Auth } from './services/auth';
 import { I18n } from './services/i18n';
 import { Theme } from './services/theme';
 
@@ -12,8 +13,10 @@ import { Theme } from './services/theme';
 })
 export class App {
   private readonly api = inject(Api);
+  private readonly router = inject(Router);
   readonly i18n = inject(I18n);
   readonly theme = inject(Theme);
+  readonly auth = inject(Auth);
 
   readonly health = signal<{ ok: boolean; version: string } | null>(null);
   readonly menuOpen = signal(false);
@@ -29,5 +32,11 @@ export class App {
       .health()
       .then((h) => this.health.set({ ok: h.ok, version: h.version }))
       .catch(() => this.health.set({ ok: false, version: '' }));
+  }
+
+  logout(): void {
+    this.auth.logout();
+    this.menuOpen.set(false);
+    this.router.navigateByUrl('/');
   }
 }

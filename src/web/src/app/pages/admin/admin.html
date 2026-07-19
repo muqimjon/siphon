@@ -1,0 +1,50 @@
+<header class="admin-head">
+  <h1>{{ i18n.t('admin.title') }}</h1>
+</header>
+
+<section class="admin-card">
+  <div class="admin-card-head">
+    <h2>{{ i18n.t('admin.usageTitle') }}</h2>
+    <span class="admin-total">{{ i18n.t('admin.total', { count: total() }) }}</span>
+  </div>
+  <div class="chart">
+    @for (b of bars(); track b.date) {
+      <div class="bar-col" [attr.title]="b.count">
+        <div class="bar-track">
+          <div class="bar" [style.height.%]="b.pct"></div>
+        </div>
+        <span class="bar-label">{{ b.label }}</span>
+      </div>
+    }
+  </div>
+</section>
+
+<section class="admin-card">
+  <h2>{{ i18n.t('admin.usersTitle') }}</h2>
+  <div class="admin-table-wrap">
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>{{ i18n.t('admin.colEmail') }}</th>
+          <th>{{ i18n.t('admin.colRole') }}</th>
+          <th>{{ i18n.t('admin.colPlan') }}</th>
+          <th>{{ i18n.t('admin.colJoined') }}</th>
+          <th class="num">{{ i18n.t('admin.colUsage') }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (u of users(); track u.id) {
+          <tr>
+            <td>{{ u.email }}</td>
+            <td><span class="sp-badge">{{ u.role }}</span></td>
+            <td>{{ u.plan }}</td>
+            <td>{{ fmtDate(u.createdAt) }}</td>
+            <td class="num">{{ u.totalUsage }}</td>
+          </tr>
+        } @empty {
+          <tr><td colspan="5" class="admin-empty">{{ i18n.t('admin.empty') }}</td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</section>

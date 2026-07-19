@@ -1,0 +1,56 @@
+<div class="auth-card">
+  <header class="auth-head">
+    <h1>{{ i18n.t('auth.loginTitle') }}</h1>
+    <p>{{ i18n.t('auth.loginSubtitle') }}</p>
+  </header>
+
+  <sp-providers/>
+
+  <div class="auth-divider"><span>{{ i18n.t('auth.or') }}</span></div>
+
+  @if (!otpSent()) {
+    <form class="auth-form" (submit)="sendCode($event)">
+      <label class="auth-field">
+        <span>{{ i18n.t('auth.emailLabel') }}</span>
+        <input #emailInput type="email" required autocomplete="email"
+               [placeholder]="i18n.t('auth.emailPlaceholder')" [value]="email()" (input)="email.set(emailInput.value)">
+      </label>
+      <button type="submit" class="sp-btn sp-btn-primary auth-submit" [disabled]="busy()">{{ i18n.t('auth.sendCode') }}</button>
+    </form>
+  } @else {
+    <form class="auth-form" (submit)="verifyCode($event)">
+      <p class="auth-hint">{{ i18n.t('auth.codeSent') }}</p>
+      <label class="auth-field">
+        <span>{{ i18n.t('auth.codeLabel') }}</span>
+        <input #codeInput type="text" inputmode="numeric" required autocomplete="one-time-code"
+               [placeholder]="i18n.t('auth.codePlaceholder')" [value]="code()" (input)="code.set(codeInput.value)">
+      </label>
+      <button type="submit" class="sp-btn sp-btn-primary auth-submit" [disabled]="busy()">{{ i18n.t('auth.verify') }}</button>
+    </form>
+  }
+
+  <button type="button" class="sp-section-head" [class.open]="showPassword()" (click)="showPassword.update((v) => !v)">
+    {{ i18n.t('auth.passwordToggle') }}
+  </button>
+  <div class="sp-collapse" [class.open]="showPassword()">
+    <div>
+      <form class="auth-form" (submit)="passwordLogin($event)">
+        <label class="auth-field">
+          <span>{{ i18n.t('auth.emailLabel') }}</span>
+          <input #pwEmail type="email" required autocomplete="email" [value]="email()" (input)="email.set(pwEmail.value)">
+        </label>
+        <label class="auth-field">
+          <span>{{ i18n.t('auth.passwordLabel') }}</span>
+          <input #pwInput type="password" required autocomplete="current-password" [value]="password()" (input)="password.set(pwInput.value)">
+        </label>
+        <button type="submit" class="sp-btn sp-btn-secondary auth-submit" [disabled]="busy()">{{ i18n.t('auth.login') }}</button>
+      </form>
+    </div>
+  </div>
+
+  @if (error()) {
+    <div class="sp-error-card"><strong>{{ i18n.t('auth.error') }}</strong></div>
+  }
+
+  <p class="auth-alt">{{ i18n.t('auth.noAccountQ') }} <a routerLink="/register">{{ i18n.t('auth.registerLink') }}</a></p>
+</div>

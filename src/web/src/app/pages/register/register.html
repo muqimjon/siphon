@@ -1,0 +1,30 @@
+<div class="auth-card">
+  <header class="auth-head">
+    <h1>{{ i18n.t('auth.registerTitle') }}</h1>
+    <p>{{ i18n.t('auth.registerSubtitle') }}</p>
+  </header>
+
+  <form class="auth-form" (submit)="submit($event)">
+    <label class="auth-field">
+      <span>{{ i18n.t('auth.emailLabel') }}</span>
+      <input #emailInput type="email" required autocomplete="email"
+             [placeholder]="i18n.t('auth.emailPlaceholder')" [value]="email()" (input)="email.set(emailInput.value)">
+    </label>
+    <label class="auth-field">
+      <span>{{ i18n.t('auth.passwordLabel') }}</span>
+      <input #pwInput type="password" required minlength="8" autocomplete="new-password"
+             [placeholder]="i18n.t('auth.passwordPlaceholder')" [value]="password()" (input)="password.set(pwInput.value)">
+    </label>
+    <button type="submit" class="sp-btn sp-btn-primary auth-submit" [disabled]="busy()">{{ i18n.t('auth.register') }}</button>
+  </form>
+
+  @if (error()) {
+    <div class="sp-error-card"><strong>{{ i18n.t('auth.error') }}</strong></div>
+  }
+
+  <div class="auth-divider"><span>{{ i18n.t('auth.or') }}</span></div>
+
+  <sp-providers/>
+
+  <p class="auth-alt">{{ i18n.t('auth.haveAccountQ') }} <a routerLink="/login">{{ i18n.t('auth.loginLink') }}</a></p>
+</div>

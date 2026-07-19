@@ -1,0 +1,114 @@
+<header class="dash-head">
+  <h1>{{ i18n.t('dash.title') }}</h1>
+</header>
+
+<section class="dash-card">
+  <h2>{{ i18n.t('dash.account') }}</h2>
+  <dl class="dash-facts">
+    <dt>{{ i18n.t('dash.email') }}</dt>
+    <dd>{{ auth.user()?.email }}</dd>
+    <dt>{{ i18n.t('dash.plan') }}</dt>
+    <dd><span class="sp-badge">{{ auth.user()?.plan?.name }}</span></dd>
+    @if ((auth.user()?.providers ?? []).length) {
+      <dt>{{ i18n.t('dash.providers') }}</dt>
+      <dd class="dash-providers">
+        @for (p of auth.user()?.providers ?? []; track p) {
+          <span class="sp-badge">{{ p }}</span>
+        }
+      </dd>
+    }
+  </dl>
+</section>
+
+<section class="dash-card">
+  <div class="dash-card-head">
+    <h2>{{ i18n.t('dash.tokensTitle') }}</h2>
+    @if (!showNew()) {
+      <button type="button" class="sp-btn sp-btn-primary" (click)="showNew.set(true)">{{ i18n.t('dash.newToken') }}</button>
+    }
+  </div>
+  <p class="dash-lead">{{ i18n.t('dash.tokensDesc') }}</p>
+
+  @if (showNew()) {
+    <form class="dash-new" (submit)="create($event)">
+      <input #nameInput type="text" required [placeholder]="i18n.t('dash.tokenNamePlaceholder')"
+             [value]="name()" (input)="name.set(nameInput.value)">
+      <button type="submit" class="sp-btn sp-btn-primary" [disabled]="busy()">{{ i18n.t('dash.create') }}</button>
+      <button type="button" class="sp-btn sp-btn-secondary" (click)="showNew.set(false)">{{ i18n.t('dash.cancel') }}</button>
+    </form>
+  }
+
+  @if (created(); as token) {
+    <div class="sp-warn-card token-secret">
+      <strong>{{ i18n.t('dash.tokenReady') }}</strong>
+      <p>{{ i18n.t('dash.tokenOnce') }}</p>
+      <div class="secret-row">
+        <code>{{ token.secret }}</code>
+        <button type="button" class="sp-btn sp-btn-secondary" (click)="copy(token.secret)">
+          {{ copied() ? i18n.t('dash.copied') : i18n.t('dash.copy') }}
+        </button>
+      </div>
+      <button type="button" class="sp-btn sp-btn-secondary token-dismiss" (click)="dismiss()">{{ i18n.t('dash.done') }}</button>
+    </div>
+  }
+
+  @if (error()) {
+    <div class="sp-error-card"><strong>{{ i18n.t('auth.error') }}</strong></div>
+  }
+
+  @if (tokens().length) {
+    <div class="dash-table-wrap">
+      <table class="dash-table">
+        <thead>
+          <tr>
+            <th>{{ i18n.t('dash.colName') }}</th>
+            <th>{{ i18n.t('dash.colToken') }}</th>
+            <th>{{ i18n.t('dash.colCreated') }}</th>
+            <th>{{ i18n.t('dash.colLastUsed') }}</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (t of tokens(); track t.id) {
+            <tr [class.revoked]="t.revoked">
+              <td>{{ t.name }}</td>
+              <td><code>{{ t.prefix }}…</code></td>
+              <td>{{ fmtDate(t.createdAt) }}</td>
+              <td>{{ fmtDate(t.lastUsedAt) }}</td>
+              <td class="dash-cell-action">
+                @if (t.revoked) {
+                  <span class="sp-badge sp-badge-warn">{{ i18n.t('dash.revoked') }}</span>
+                } @else {
+                  <button type="button" class="sp-btn sp-btn-secondary sp-btn-sm" (click)="revoke(t.id)">{{ i18n.t('dash.revoke') }}</button>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  } @else {
+    <p class="dash-empty">{{ i18n.t('dash.noTokens') }}</p>
+  }
+
+  <a class="dash-docs" routerLink="/docs">{{ i18n.t('dash.docsLink') }}</a>
+</section>
+
+<section class="dash-card">
+  <h2>{{ i18n.t('dash.usageTitle') }}</h2>
+  <div class="usage-grid">
+    <div class="usage-stat">
+      <span class="usage-value">{{ auth.user()?.plan?.dailyRequests }}</span>
+      <span class="usage-label">{{ i18n.t('dash.usageDaily') }}</span>
+    </div>
+    <div class="usage-stat">
+      <span class="usage-value">{{ auth.user()?.plan?.maxConcurrent }}</span>
+      <span class="usage-label">{{ i18n.t('dash.usageConcurrent') }}</span>
+    </div>
+    <div class="usage-stat">
+      <span class="usage-value">{{ i18n.t('dash.mb', { size: auth.user()?.plan?.maxFileSizeMb ?? 0 }) }}</span>
+      <span class="usage-label">{{ i18n.t('dash.usageFileSize') }}</span>
+    </div>
+  </div>
+  <p class="dash-lead">{{ i18n.t('dash.usageNote') }}</p>
+</section>

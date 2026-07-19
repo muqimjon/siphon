@@ -1,0 +1,187 @@
+import { computed, inject, Injectable, signal } from '@angular/core';
+import { ApiError } from '@shared/models';
+
+const BASE = '/api/v1';
+const JWT_KEY = 'siphon.jwt';
+
+export interface Plan {
+  name: string;
+  dailyRequests: number;
+  maxConcurrent: number;
+  maxFileSizeMb: number;
+}
+
+export interface Me {
+  email: string;
+  role: string;
+  plan: Plan;
+  providers: string[];
+}
+
+export interface TokenView {
+  id: string;
+  name: string;
+  prefix: string;
+  createdAt: string;
+  lastUsedAt: string | null;
+  revoked: boolean;
+}
+
+export interface CreatedToken {
+  id: string;
+  name: string;
+  prefix: string;
+  secret: string;
+}
+
+export interface UsageRow {
+  userId: string;
+  dateUtc: string;
+  count: number;
+}
+
+export interface AdminUser {
+  id: string;
+  email: string | null;
+  role: string;
+  plan: string;
+  createdAt: string;
+  totalUsage: number;
+}
+
+export interface TelegramAuth {
+  id: number;
+  first_name?: string;
+  last_name?: string;
+  username?: string;
+  photo_url?: string;
+  auth_date: number;
+  hash: string;
+}
+
+@Injectable({ providedIn: 'root' })
+export class Auth {
+  readonly token = signal<string | null>(localStorage.getItem(JWT_KEY));
+  readonly user = signal<Me | null>(null);
+  readonly isAdmin = computed(() => this.user()?.role === 'admin');
+
+  constructor() {
+    const match = location.hash.match(/token=([^&]+)/);
+    if (match?.[1]) {
+      this.store(decodeURIComponent(match[1]));
+      history.replaceState(null, '', location.pathname + location.search);
+    }
+    if (this.token()) this.loadMe();
+  }
+
+  register(email: string, password: string): Promise<void> {
+    return this.authenticate('/auth/register', { email, password });
+  }
+
+  login(email: string, password: string): Promise<void> {
+    return this.authenticate('/auth/login', { email, password });
+  }
+
+  emailStart(email: string): Promise<void> {
+    return this.request<void>('POST', '/auth/email/start', { email });
+  }
+
+  emailVerify(email: string, code: string): Promise<void> {
+    return this.authenticate('/auth/email/verify', { email, code });
+  }
+
+  telegram(payload: TelegramAuth): Promise<void> {
+    return this.authenticate('/auth/telegram', payload);
+  }
+
+  logout(): void {
+    localStorage.removeItem(JWT_KEY);
+    this.token.set(null);
+    this.user.set(null);
+  }
+
+  authHeader(): Record<string, string> {
+    const token = this.token();
+    return token ? { Authorization: 'Bearer ' + token } : {};
+  }
+
+  ensureUser(): Promise<Me | null> {
+    if (this.user()) return Promise.resolve(this.user());
+    if (!this.token()) return Promise.resolve(null);
+    return this.loadMe();
+  }
+
+  tokens(): Promise<TokenView[]> {
+    return this.request<TokenView[]>('GET', '/tokens');
+  }
+
+  createToken(name: string): Promise<CreatedToken> {
+    return this.request<CreatedToken>('POST', '/tokens', { name });
+  }
+
+  deleteToken(id: string): Promise<void> {
+    return this.request<void>('DELETE', `/tokens/${id}`);
+  }
+
+  adminUsage(): Promise<UsageRow[]> {
+    return this.request<UsageRow[]>('GET', '/admin/usage');
+  }
+
+  adminUsers(): Promise<AdminUser[]> {
+    return this.request<AdminUser[]>('GET', '/admin/users');
+  }
+
+  async request<T>(method: string, path: string, body?: unknown): Promise<T> {
+    let res: Response;
+    try {
+      res = await fetch(BASE + path, {
+        method,
+        headers: {
+          ...(body ? { 'Content-Type': 'application/json' } : {}),
+          ...this.authHeader(),
+        },
+        body: body ? JSON.stringify(body) : undefined,
+      });
+    } catch {
+      throw { code: 'network', message: '' } satisfies ApiError;
+    }
+    if (res.status === 401) this.logout();
+    if (res.ok) {
+      const text = await res.text();
+      return (text ? JSON.parse(text) : null) as T;
+    }
+
+    let data: { code?: string; detail?: string; message?: string } | null = null;
+    try {
+      data = await res.json();
+    } catch {
+      data = null;
+    }
+    throw {
+      code: data?.code ?? (res.status === 401 ? 'unauthorized' : 'unknown'),
+      message: data?.detail ?? data?.message ?? '',
+    } satisfies ApiError;
+  }
+
+  private async authenticate(path: string, body: unknown): Promise<void> {
+    const res = await this.request<{ token: string }>('POST', path, body);
+    this.store(res.token);
+    await this.loadMe();
+  }
+
+  private store(token: string): void {
+    localStorage.setItem(JWT_KEY, token);
+    this.token.set(token);
+  }
+
+  private async loadMe(): Promise<Me | null> {
+    try {
+      const me = await this.request<Me>('GET', '/me');
+      this.user.set(me);
+      return me;
+    } catch {
+      this.user.set(null);
+      return null;
+    }
+  }
+}
