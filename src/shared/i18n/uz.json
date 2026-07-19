@@ -104,7 +104,7 @@
   "docs.errQuota": "Kunlik limit tugadi — biroz kuting yoki tarifni oshiring.",
   "docs.quotaNote": "Limit oshib ketsa, API 429 va quota-exceeded kodini qaytaradi. Bir ozdan so'ng qayta urinib ko'ring.",
   "docs.scalarTitle": "Interaktiv ma'lumotnoma",
-  "docs.scalarDesc": "To'liq, sinab ko'rish mumkin bo'lgan ma'lumotnoma API server manzilidagi /docs sahifasida (Scalar) mavjud.",
+  "docs.scalarDesc": "To'liq, sinab ko'rish mumkin bo'lgan ma'lumotnoma API server manzilidagi /reference sahifasida (Scalar) mavjud.",
   "docs.scalarLink": "Ma'lumotnomani ochish",
   "docs.copy": "Nusxa olish",
   "docs.copied": "Nusxa olindi",

@@ -104,7 +104,7 @@
   "docs.errQuota": "Daily limit reached — wait a bit or upgrade your plan.",
   "docs.quotaNote": "When you go over the limit, the API returns 429 with the quota-exceeded code. Try again a little later.",
   "docs.scalarTitle": "Interactive reference",
-  "docs.scalarDesc": "A full, try-it-out reference (Scalar) is available at /docs on the API server host.",
+  "docs.scalarDesc": "A full, try-it-out reference (Scalar) is available at /reference on the API server host.",
   "docs.scalarLink": "Open the reference",
   "docs.copy": "Copy",
   "docs.copied": "Copied",
