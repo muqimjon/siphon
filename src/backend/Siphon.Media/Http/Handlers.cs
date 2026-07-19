@@ -74,11 +74,11 @@ public sealed class ProbeHandler(YtDlpEngine ytDlp, GalleryDlEngine galleryDl, I
     }
 }
 
-public sealed class JobHandlers(JobEngine engine, JobStore store, GalleryDlEngine galleryDl, FileTokenService tokens, IHttpContextAccessor http, IOptions<SiphonOptions> options)
+public sealed class JobHandlers(JobEngine engine, JobStore store, GalleryDlEngine galleryDl, FileTokenService tokens, IHttpContextAccessor http, IOptions<SiphonOptions> options, IUsageSink usage)
 {
     private static readonly HashSet<string> Outputs = ["audio", "video", "gallery"];
 
-    public IResult Create(CreateJobRequest request)
+    public async Task<IResult> Create(CreateJobRequest request)
     {
         if (!ProbeHandler.IsHttpUrl(request.Url, out _))
             return Problems.Create(ErrorCodes.InvalidUrl, "Provide a valid http(s) URL.");
@@ -91,7 +91,11 @@ public sealed class JobHandlers(JobEngine engine, JobStore store, GalleryDlEngin
         if (request.Output != "gallery" && !OutputFormat.IsValid(request.Output, format))
             return Problems.Create(ErrorCodes.InvalidUrl, "Unsupported format for this output.");
 
-        var maxFileSizeMb = (http.HttpContext?.Items["caller"] as ApiCaller)?.Limits.MaxFileSizeMb ?? options.Value.MaxFileSizeMb;
+        var caller = http.HttpContext?.Items["caller"] as ApiCaller;
+        if (caller is not null && !await usage.TryConsumeAsync(caller, "download"))
+            return Problems.Create(ErrorCodes.QuotaExceeded, "Daily download quota exceeded.");
+
+        var maxFileSizeMb = caller?.Limits.MaxFileSizeMb ?? options.Value.MaxFileSizeMb;
 
         try
         {

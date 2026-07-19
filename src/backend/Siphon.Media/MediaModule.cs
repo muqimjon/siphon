@@ -42,7 +42,7 @@ public static class MediaModule
         services.AddSingleton<YtDlpEngine>();
         services.AddSingleton<GalleryDlEngine>();
         services.AddSingleton<ProbeHandler>();
-        services.AddSingleton<JobHandlers>();
+        services.AddScoped<JobHandlers>();
         services.AddSingleton<FileHandler>();
         services.AddSingleton<HealthHandler>();
         services.AddHttpContextAccessor();

@@ -21,6 +21,8 @@ public sealed class AuthHandlers(
     {
         if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Password))
             return Problems.Create(ErrorCodes.InvalidUrl, "Email and password are required.");
+        if (users.RoleFor(request.Email) == "admin")
+            return Problems.Create(ErrorCodes.InvalidUrl, "This email must sign in with a provider or an email sign-in code.");
         if (await users.Users.FindByEmailAsync(request.Email) is not null)
             return Problems.Create(ErrorCodes.InvalidUrl, "An account with this email already exists.");
 
@@ -29,7 +31,7 @@ public sealed class AuthHandlers(
             UserName = request.Email,
             Email = request.Email,
             PlanId = Plan.FreeId,
-            Role = users.RoleFor(request.Email),
+            Role = "user",
         };
         var result = await users.Users.CreateAsync(user, request.Password);
         if (!result.Succeeded)
@@ -43,7 +45,6 @@ public sealed class AuthHandlers(
         var user = await users.Users.FindByEmailAsync(request.Email);
         if (user is null || !await users.Users.CheckPasswordAsync(user, request.Password))
             return Problems.Create(ErrorCodes.Unauthorized, "Invalid email or password.");
-        await users.PromoteIfAdminAsync(user);
         return Results.Ok(new TokenResponse(jwt.Issue(user)));
     }
 

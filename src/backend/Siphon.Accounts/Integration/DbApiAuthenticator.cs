@@ -48,14 +48,10 @@ public sealed class DbApiAuthenticator(StaticKeyAuthenticator staticKey, Account
         if (user?.Plan is null)
             return AuthOutcome.Unauthorized;
 
-        var today = DateOnly.FromDateTime(DateTime.UtcNow);
-        var used = await db.Usage.Where(u => u.UserId == userId && u.DateUtc == today).SumAsync(u => (int?)u.Count) ?? 0;
-        if (used >= user.EffectiveDailyRequests())
-            return AuthOutcome.Fail(Siphon.Media.ErrorCodes.QuotaExceeded);
-
         if (tokenId is not null)
             context.Items[TokenIdItem] = tokenId;
-        return AuthOutcome.Ok(new ApiCaller("user", userId, new CallerLimits(user.EffectiveMaxFileSizeMb())));
+        return AuthOutcome.Ok(new ApiCaller("user", userId,
+            new CallerLimits(user.EffectiveMaxFileSizeMb(), user.EffectiveDailyRequests())));
     }
 
     private static string? Extract(HttpContext context)

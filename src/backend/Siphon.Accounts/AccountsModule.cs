@@ -1,9 +1,11 @@
 using System.Security.Claims;
+using System.Threading.RateLimiting;
 using AspNet.Security.OAuth.GitHub;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -84,6 +86,11 @@ public static class AccountsModule
             });
 
         services.AddAuthorization();
+
+        services.AddRateLimiter(o => o.AddPolicy("auth", context => RateLimitPartition.GetFixedWindowLimiter(
+            context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            _ => new FixedWindowRateLimiterOptions { Window = TimeSpan.FromMinutes(1), PermitLimit = 10, QueueLimit = 0 })));
+
         return services;
     }
 
@@ -91,7 +98,7 @@ public static class AccountsModule
     {
         var options = app.ServiceProvider.GetRequiredService<IOptions<AccountsOptions>>().Value;
 
-        var auth = app.MapGroup("/api/v1/auth").WithTags("Auth");
+        var auth = app.MapGroup("/api/v1/auth").WithTags("Auth").RequireRateLimiting("auth");
         auth.MapPost("/register", (RegisterRequest r, AuthHandlers h) => h.Register(r))
             .WithSummary("Create an account with email and password");
         auth.MapPost("/login", (LoginRequest r, AuthHandlers h) => h.Login(r))
