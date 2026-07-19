@@ -11,11 +11,11 @@
     --text: #f2f4f8;
     --hint: #8a93a6;
     --card: #1d212b;
-    --btn: #22d3ee;
     --btn-text: #06222a;
     --accent: #22d3ee;
     --accent-2: #38f0c8;
     --line: rgba(255,255,255,.08);
+    --soft: rgba(255,255,255,.03);
   }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   body {
@@ -23,110 +23,105 @@
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     background: var(--bg);
     color: var(--text);
-    padding: 16px 14px 40px;
+    padding: 14px 14px 40px;
     line-height: 1.4;
+    max-width: 620px;
+    margin: 0 auto;
   }
-  header {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 18px;
+  .tabs {
+    display: flex; gap: 4px; padding: 4px; margin-bottom: 18px;
+    background: var(--soft); border: 1px solid var(--line); border-radius: 14px;
   }
-  .logo {
-    width: 40px; height: 40px;
-    border-radius: 12px;
-    background: linear-gradient(135deg, var(--accent), var(--accent-2));
-    display: grid; place-items: center;
-    font-size: 22px;
-    box-shadow: 0 6px 18px rgba(34,211,238,.35);
+  .tab {
+    flex: 1; border: 0; background: none; color: var(--hint); cursor: pointer;
+    font-family: inherit; font-size: 12.5px; font-weight: 700;
+    padding: 9px 4px; border-radius: 10px;
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    transition: background .15s, color .15s;
   }
-  header h1 { font-size: 19px; margin: 0; font-weight: 700; }
-  header p { margin: 2px 0 0; font-size: 12px; color: var(--hint); }
+  .tab .ico { font-size: 15px; }
+  .tab.on { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: var(--btn-text); }
+  .tab:active { transform: scale(.97); }
+
   .section-title {
-    font-size: 13px;
-    text-transform: uppercase;
-    letter-spacing: .06em;
-    color: var(--hint);
-    margin: 22px 4px 10px;
-    font-weight: 700;
+    font-size: 12.5px; text-transform: uppercase; letter-spacing: .06em;
+    color: var(--hint); margin: 20px 4px 10px; font-weight: 700;
   }
   .hint { font-size: 12px; color: var(--hint); margin: 0 4px 12px; }
   .card {
-    background: var(--card);
-    border: 1px solid var(--line);
-    border-radius: 18px;
-    padding: 14px;
-    margin-bottom: 14px;
+    background: var(--card); border: 1px solid var(--line);
+    border-radius: 18px; padding: 14px; margin-bottom: 14px;
   }
   .card-head { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; font-weight: 700; font-size: 15px; }
-  .card-head .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
-  .chips {
-    display: flex;
-    gap: 8px;
-    overflow-x: auto;
-    padding-bottom: 6px;
-    margin: 0 -2px 14px;
-    scrollbar-width: none;
+  .card-head .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); flex: 0 0 auto; }
+  .card-head .sub { margin-left: auto; font-size: 11.5px; color: var(--hint); font-weight: 600; }
+
+  .profile { display: flex; align-items: center; gap: 14px; }
+  .avatar {
+    width: 62px; height: 62px; border-radius: 20px; flex: 0 0 auto; object-fit: cover;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    display: grid; place-items: center; color: var(--btn-text);
+    font-size: 25px; font-weight: 800;
+    box-shadow: 0 6px 18px rgba(34,211,238,.3);
   }
+  .profile h2 { margin: 0; font-size: 18px; font-weight: 700; }
+  .profile .at { margin: 3px 0 0; font-size: 13px; color: var(--accent); font-weight: 600; }
+  .profile .uid { margin: 2px 0 0; font-size: 11.5px; color: var(--hint); }
+
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 14px; }
+  .stat { background: var(--soft); border: 1px solid var(--line); border-radius: 14px; padding: 11px 8px; text-align: center; }
+  .stat b { display: block; font-size: 19px; font-weight: 800; }
+  .stat span { font-size: 10.5px; color: var(--hint); font-weight: 600; }
+
+  .meter { height: 6px; border-radius: 999px; background: var(--soft); overflow: hidden; margin-top: 12px; }
+  .meter i { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--accent), var(--accent-2)); }
+  .meter-label { display: flex; justify-content: space-between; font-size: 11.5px; color: var(--hint); margin-top: 7px; font-weight: 600; }
+
+  .list-row { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-top: 1px solid var(--line); font-size: 13.5px; }
+  .list-row:first-of-type { border-top: 0; }
+  .list-row .val { margin-left: auto; color: var(--hint); font-weight: 600; font-size: 12.5px; }
+
+  .chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px; margin: 0 -2px 14px; scrollbar-width: none; }
   .chips::-webkit-scrollbar { display: none; }
   .chip {
-    flex: 0 0 auto;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    border: 1px solid var(--line);
-    background: transparent;
-    color: var(--text);
-    padding: 8px 12px;
-    border-radius: 12px;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
+    flex: 0 0 auto; display: inline-flex; align-items: center; gap: 6px;
+    border: 1px solid var(--line); background: transparent; color: var(--text);
+    padding: 8px 12px; border-radius: 12px; font-size: 13px; font-weight: 600; cursor: pointer;
     transition: transform .12s, background .15s, border-color .15s;
   }
-  .chip.on {
-    background: linear-gradient(135deg, var(--accent), var(--accent-2));
-    color: var(--btn-text);
-    border-color: transparent;
-  }
+  .chip.on { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: var(--btn-text); border-color: transparent; }
+  .chip.set::after { content: ""; width: 5px; height: 5px; border-radius: 50%; background: var(--accent); }
+  .chip.on.set::after { background: var(--btn-text); }
   .chip:active { transform: scale(.95); }
+
   .row { margin-bottom: 14px; }
   .row:last-child { margin-bottom: 2px; }
-  .row-label { font-size: 12px; color: var(--hint); margin-bottom: 7px; font-weight: 600; }
+  .row-label { font-size: 12px; color: var(--hint); margin-bottom: 7px; font-weight: 600; display: flex; align-items: center; gap: 6px; }
+  .row-label .auto { color: var(--accent); font-size: 11px; }
   .pills { display: flex; flex-wrap: wrap; gap: 8px; }
   .pill {
-    border: 1px solid var(--line);
-    background: rgba(255,255,255,.03);
-    color: var(--text);
-    padding: 9px 14px;
-    border-radius: 999px;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
+    border: 1px solid var(--line); background: var(--soft); color: var(--text);
+    padding: 9px 14px; border-radius: 999px; font-size: 13px; font-weight: 600; cursor: pointer;
     transition: transform .1s, background .15s, color .15s, border-color .15s;
   }
   .pill.on {
     background: linear-gradient(135deg, var(--accent), var(--accent-2));
-    color: var(--btn-text);
-    border-color: transparent;
+    color: var(--btn-text); border-color: transparent;
     box-shadow: 0 4px 12px rgba(34,211,238,.3);
   }
   .pill:active { transform: scale(.93); }
-  .empty { color: var(--hint); font-size: 14px; text-align: center; padding: 22px 10px; }
+
+  .empty { color: var(--hint); font-size: 14px; text-align: center; padding: 26px 10px; }
+  .empty .big { font-size: 30px; display: block; margin-bottom: 8px; }
+
+  .skeleton { height: 92px; border-radius: 18px; background: var(--card); margin-bottom: 14px; animation: pulse 1.3s ease-in-out infinite; }
+  @keyframes pulse { 0%,100% { opacity: .55; } 50% { opacity: .9; } }
+
   .toast {
-    position: fixed;
-    left: 50%;
-    bottom: 22px;
-    transform: translate(-50%, 24px);
-    background: linear-gradient(135deg, var(--accent), var(--accent-2));
-    color: var(--btn-text);
-    padding: 9px 18px;
-    border-radius: 999px;
-    font-size: 13px;
-    font-weight: 700;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity .2s, transform .2s;
+    position: fixed; left: 50%; bottom: 22px; transform: translate(-50%, 24px);
+    background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: var(--btn-text);
+    padding: 9px 18px; border-radius: 999px; font-size: 13px; font-weight: 700;
+    opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s;
     box-shadow: 0 8px 24px rgba(0,0,0,.3);
   }
   .toast.show { opacity: 1; transform: translate(-50%, 0); }
@@ -134,13 +129,7 @@
 </style>
 </head>
 <body>
-<header>
-  <div class="logo">⚡</div>
-  <div>
-    <h1 id="title">Sozlamalar</h1>
-    <p id="subtitle">Siphon</p>
-  </div>
-</header>
+<div class="tabs" id="tabs"></div>
 <div id="app"></div>
 <div class="toast" id="toast"></div>
 
@@ -157,65 +146,76 @@ const PLATFORMS = [
   { id: "other", icon: "🌐" }
 ];
 
-const ROWS = [
-  { field: "kind", label: "rowKind", options: ["ask", "audio", "video"] },
-  { field: "audioFormat", label: "rowAudio", options: ["ask", "mp3", "m4a", "opus"] },
-  { field: "videoFormat", label: "rowVideo", options: ["ask", "mp4", "webm"] },
-  { field: "quality", label: "rowQuality", options: ["ask", "high", "medium", "low"] }
+const KIND_OPTIONS = ["ask", "audio", "video"];
+const AUDIO_OPTIONS = ["ask", "best", "mp3", "m4a", "opus"];
+const VIDEO_OPTIONS = ["ask", "best", "mp4", "webm"];
+const QUALITY_OPTIONS = ["ask", "high", "medium", "low"];
+const LANGS = [
+  { id: "uz", flag: "🇺🇿", name: "O'zbekcha" },
+  { id: "ru", flag: "🇷🇺", name: "Русский" },
+  { id: "en", flag: "🇬🇧", name: "English" }
 ];
 
 const I18N = {
   uz: {
-    title: "Sozlamalar", mine: "Mening sozlamalarim", groups: "Guruhlarim",
-    hint: "Havola kelganda shu sozlamalar avtomatik qo'llanadi.",
-    noGroups: "Sizda hali guruh yo'q.",
+    tabProfile: "Profil", tabPrefs: "Sozlamalar", tabGroups: "Guruhlar", tabLang: "Til",
+    mine: "Yuklab olish sozlamalari", groups: "Guruhlarim",
+    hint: "Havola kelganda shu sozlamalar avtomatik qo'llanadi. Har bir sayt uchun alohida.",
+    groupHint: "Bot admin bo'lgan guruhlar. Sozlamalar guruhdagi hamma uchun ishlaydi.",
+    noGroups: "Sizda hali guruh yo'q.", noGroupsHint: "Botni guruhga admin qilib qo'shing.",
     rowKind: "Tur", rowAudio: "Audio format", rowVideo: "Video format", rowQuality: "Sifat",
     kind_ask: "Har safar so'ra", kind_audio: "Audio", kind_video: "Video",
-    ask: "So'ra", high: "Yuqori", medium: "O'rta", low: "Past",
-    other: "Boshqa", saved: "Saqlandi ✓", error: "Xatolik", authFail: "Ochib bo'lmadi"
+    ask: "So'ra", best: "⭐ Eng yaxshi", high: "Yuqori", medium: "O'rta", low: "Past",
+    other: "Boshqa", saved: "Saqlandi ✓", error: "Xatolik", authFail: "Ochib bo'lmadi",
+    statToday: "Bugun", statTotal: "Jami", statLimit: "Fayl", langTitle: "Bot tili",
+    langHint: "Bot siz bilan shu tilda gaplashadi.",
+    dailyUse: "Bugungi limit", left: "{n} ta qoldi",
+    topSites: "Ko'p ishlatilgan", accountTitle: "Hisob",
+    autoBest: "sifat yuqori — eng yaxshi format", configured: "sozlangan",
+    onlyAudio: "Faqat audio olinadi — video sozlamasi kerak emas.",
+    onlyVideo: "Faqat video olinadi — audio sozlamasi kerak emas."
   },
   ru: {
-    title: "Настройки", mine: "Мои настройки", groups: "Мои группы",
-    hint: "Эти настройки применяются автоматически, когда приходит ссылка.",
-    noGroups: "У вас пока нет групп.",
+    tabProfile: "Профиль", tabPrefs: "Настройки", tabGroups: "Группы", tabLang: "Язык",
+    mine: "Настройки загрузки", groups: "Мои группы",
+    hint: "Применяются автоматически, когда приходит ссылка. Отдельно для каждого сайта.",
+    groupHint: "Группы, где бот админ. Настройки действуют для всех участников.",
+    noGroups: "У вас пока нет групп.", noGroupsHint: "Добавьте бота в группу как админа.",
     rowKind: "Тип", rowAudio: "Аудио формат", rowVideo: "Видео формат", rowQuality: "Качество",
     kind_ask: "Спрашивать", kind_audio: "Аудио", kind_video: "Видео",
-    ask: "Спросить", high: "Высокое", medium: "Среднее", low: "Низкое",
-    other: "Другое", saved: "Сохранено ✓", error: "Ошибка", authFail: "Не удалось открыть"
+    ask: "Спросить", best: "⭐ Лучшее", high: "Высокое", medium: "Среднее", low: "Низкое",
+    other: "Другое", saved: "Сохранено ✓", error: "Ошибка", authFail: "Не удалось открыть",
+    statToday: "Сегодня", statTotal: "Всего", statLimit: "Файл", langTitle: "Язык бота",
+    langHint: "На этом языке бот будет с вами общаться.",
+    dailyUse: "Дневной лимит", left: "осталось {n}",
+    topSites: "Часто используемые", accountTitle: "Аккаунт",
+    autoBest: "качество высокое — лучший формат", configured: "настроено",
+    onlyAudio: "Берётся только аудио — видео настраивать не нужно.",
+    onlyVideo: "Берётся только видео — аудио настраивать не нужно."
   },
   en: {
-    title: "Settings", mine: "My settings", groups: "My groups",
-    hint: "These are applied automatically when a link arrives.",
-    noGroups: "You have no groups yet.",
+    tabProfile: "Profile", tabPrefs: "Settings", tabGroups: "Groups", tabLang: "Language",
+    mine: "Download settings", groups: "My groups",
+    hint: "Applied automatically when a link arrives. Separate for each site.",
+    groupHint: "Groups where the bot is an admin. Settings apply to everyone there.",
+    noGroups: "You have no groups yet.", noGroupsHint: "Add the bot to a group as an admin.",
     rowKind: "Type", rowAudio: "Audio format", rowVideo: "Video format", rowQuality: "Quality",
     kind_ask: "Ask each time", kind_audio: "Audio", kind_video: "Video",
-    ask: "Ask", high: "High", medium: "Medium", low: "Low",
-    other: "Other", saved: "Saved ✓", error: "Error", authFail: "Couldn't open"
+    ask: "Ask", best: "⭐ Best", high: "High", medium: "Medium", low: "Low",
+    other: "Other", saved: "Saved ✓", error: "Error", authFail: "Couldn't open",
+    statToday: "Today", statTotal: "Total", statLimit: "File", langTitle: "Bot language",
+    langHint: "The bot will talk to you in this language.",
+    dailyUse: "Daily limit", left: "{n} left",
+    topSites: "Most used", accountTitle: "Account",
+    autoBest: "quality is high — best format", configured: "configured",
+    onlyAudio: "Audio only — no need to configure video.",
+    onlyVideo: "Video only — no need to configure audio."
   }
 };
 
-function lang() {
-  const code = tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.language_code;
-  const n = (code || "uz").split("-")[0].toLowerCase();
-  return n === "ru" ? "ru" : n === "uz" ? "uz" : n === "en" ? "en" : "uz";
-}
-const T = I18N[lang()];
-
-function platformName(id) {
-  return id === "youtube" ? "YouTube"
-    : id === "instagram" ? "Instagram"
-    : id === "tiktok" ? "TikTok"
-    : id === "x" ? "X"
-    : id === "facebook" ? "Facebook"
-    : T.other;
-}
-
-function optionLabel(field, value) {
-  if (value === "ask") return field === "kind" ? T.kind_ask : T.ask;
-  if (field === "kind") return T["kind_" + value];
-  if (field === "quality") return T[value];
-  return value.toUpperCase();
-}
+let T = I18N.uz;
+let data = null;
+let tab = "profile";
 
 function el(tag, cls, text) {
   const n = document.createElement(tag);
@@ -237,8 +237,39 @@ function toast(msg, isErr) {
   toastTimer = setTimeout(() => { t.className = "toast"; }, 1400);
 }
 
-async function save(scope, groupChatId, pref) {
-  const body = {
+function platformName(id) {
+  return id === "youtube" ? "YouTube"
+    : id === "instagram" ? "Instagram"
+    : id === "tiktok" ? "TikTok"
+    : id === "x" ? "X"
+    : id === "facebook" ? "Facebook"
+    : T.other;
+}
+
+function optionLabel(field, value) {
+  if (value === "ask") return field === "kind" ? T.kind_ask : T.ask;
+  if (value === "best") return T.best;
+  if (field === "kind") return T["kind_" + value];
+  if (field === "quality") return T[value];
+  return value.toUpperCase();
+}
+
+function isConfigured(pref) {
+  return pref.kind !== "ask" || pref.audioFormat !== "ask" || pref.videoFormat !== "ask" || pref.quality !== "ask";
+}
+
+async function api(method, path, body) {
+  const res = await fetch("/miniapp" + path, {
+    method: method,
+    headers: { "Content-Type": "application/json", "Authorization": "tma " + initData },
+    body: body ? JSON.stringify(body) : undefined
+  });
+  if (!res.ok) throw new Error(String(res.status));
+  return res.json();
+}
+
+function savePref(scope, groupChatId, pref) {
+  return api("PUT", "/prefs", {
     scope: scope,
     groupChatId: groupChatId,
     platform: pref.platform,
@@ -246,16 +277,18 @@ async function save(scope, groupChatId, pref) {
     audioFormat: pref.audioFormat,
     videoFormat: pref.videoFormat,
     quality: pref.quality
-  };
-  const res = await fetch("/miniapp/prefs", {
-    method: "PUT",
-    headers: { "Content-Type": "application/json", "Authorization": "tma " + initData },
-    body: JSON.stringify(body)
   });
-  if (!res.ok) throw new Error("save");
 }
 
-function board(scope, chatId, platforms, title) {
+function rowsFor(pref) {
+  const rows = [{ field: "kind", label: T.rowKind, options: KIND_OPTIONS }];
+  if (pref.kind !== "video") rows.push({ field: "audioFormat", label: T.rowAudio, options: AUDIO_OPTIONS });
+  if (pref.kind !== "audio") rows.push({ field: "videoFormat", label: T.rowVideo, options: VIDEO_OPTIONS });
+  rows.push({ field: "quality", label: T.rowQuality, options: QUALITY_OPTIONS });
+  return rows;
+}
+
+function board(scope, chatId, platforms, title, subtitle) {
   const byId = {};
   platforms.forEach(p => byId[p.platform] = p);
   let selected = "youtube";
@@ -265,6 +298,7 @@ function board(scope, chatId, platforms, title) {
     const head = el("div", "card-head");
     head.appendChild(el("span", "dot"));
     head.appendChild(el("span", null, title));
+    if (subtitle) head.appendChild(el("span", "sub", subtitle));
     card.appendChild(head);
   }
 
@@ -274,27 +308,55 @@ function board(scope, chatId, platforms, title) {
   card.appendChild(panel);
 
   function paintChips() {
-    Array.from(chips.children).forEach(c => c.classList.toggle("on", c.dataset.pid === selected));
+    Array.from(chips.children).forEach(c => {
+      c.classList.toggle("on", c.dataset.pid === selected);
+      c.classList.toggle("set", isConfigured(byId[c.dataset.pid]));
+    });
+  }
+
+  async function apply(pref, changes) {
+    const prev = { kind: pref.kind, audioFormat: pref.audioFormat, videoFormat: pref.videoFormat, quality: pref.quality };
+    Object.assign(pref, changes);
+    paintChips();
+    paintPanel();
+    haptic("light");
+    try {
+      await savePref(scope, chatId, pref);
+      toast(T.saved);
+    } catch (e) {
+      Object.assign(pref, prev);
+      paintPanel();
+      paintChips();
+      toast(T.error, true);
+    }
   }
 
   function paintPanel() {
     panel.innerHTML = "";
     const pref = byId[selected];
-    ROWS.forEach(r => {
+    if (pref.kind === "audio") panel.appendChild(el("div", "hint", T.onlyAudio));
+    if (pref.kind === "video") panel.appendChild(el("div", "hint", T.onlyVideo));
+
+    rowsFor(pref).forEach(r => {
       const row = el("div", "row");
-      row.appendChild(el("div", "row-label", T[r.label]));
+      const label = el("div", "row-label");
+      label.appendChild(el("span", null, r.label));
+      if (pref.quality === "high" && (r.field === "audioFormat" || r.field === "videoFormat") && pref[r.field] === "best")
+        label.appendChild(el("span", "auto", "· " + T.autoBest));
+      row.appendChild(label);
+
       const pills = el("div", "pills");
       r.options.forEach(opt => {
         const pill = el("button", "pill" + (pref[r.field] === opt ? " on" : ""), optionLabel(r.field, opt));
-        pill.onclick = async () => {
+        pill.onclick = () => {
           if (pref[r.field] === opt) return;
-          const prev = pref[r.field];
-          pref[r.field] = opt;
-          Array.from(pills.children).forEach(p => p.classList.remove("on"));
-          pill.classList.add("on");
-          haptic("light");
-          try { await save(scope, chatId, pref); toast(T.saved); }
-          catch (e) { pref[r.field] = prev; paintPanel(); toast(T.error, true); }
+          const changes = {};
+          changes[r.field] = opt;
+          if (r.field === "quality" && opt === "high") {
+            changes.audioFormat = "best";
+            changes.videoFormat = "best";
+          }
+          apply(pref, changes);
         };
         pills.appendChild(pill);
       });
@@ -317,20 +379,147 @@ function board(scope, chatId, platforms, title) {
   return card;
 }
 
-function render(data) {
+function profileView() {
+  const frag = document.createDocumentFragment();
+  const u = data.user;
+  const s = data.stats;
+
+  const card = el("div", "card");
+  const row = el("div", "profile");
+  if (u.photoUrl) {
+    const img = document.createElement("img");
+    img.className = "avatar";
+    img.src = u.photoUrl;
+    img.alt = "";
+    row.appendChild(img);
+  } else {
+    row.appendChild(el("div", "avatar", (u.firstName || "?").charAt(0).toUpperCase()));
+  }
+  const info = el("div");
+  info.appendChild(el("h2", null, [u.firstName, u.lastName].filter(Boolean).join(" ") || "—"));
+  if (u.username) info.appendChild(el("p", "at", "@" + u.username));
+  info.appendChild(el("p", "uid", "ID " + u.id));
+  row.appendChild(info);
+  card.appendChild(row);
+
+  const stats = el("div", "stats");
+  const mk = (value, label) => {
+    const box = el("div", "stat");
+    box.appendChild(el("b", null, String(value)));
+    box.appendChild(el("span", null, label));
+    return box;
+  };
+  stats.appendChild(mk(s.downloadsToday, T.statToday));
+  stats.appendChild(mk(s.totalDownloads, T.statTotal));
+  stats.appendChild(mk(s.maxUploadMb + " MB", T.statLimit));
+  card.appendChild(stats);
+
+  const pct = s.dailyLimit > 0 ? Math.min(100, Math.round((s.downloadsToday / s.dailyLimit) * 100)) : 0;
+  const meter = el("div", "meter");
+  const fill = el("i");
+  fill.style.width = pct + "%";
+  meter.appendChild(fill);
+  card.appendChild(meter);
+  const ml = el("div", "meter-label");
+  ml.appendChild(el("span", null, T.dailyUse));
+  ml.appendChild(el("span", null, T.left.replace("{n}", Math.max(0, s.dailyLimit - s.downloadsToday))));
+  card.appendChild(ml);
+  frag.appendChild(card);
+
+  if (s.topSites && s.topSites.length) {
+    frag.appendChild(el("div", "section-title", T.topSites));
+    const sites = el("div", "card");
+    s.topSites.forEach(t => {
+      const r = el("div", "list-row");
+      r.appendChild(el("span", null, "🌐"));
+      r.appendChild(el("span", null, t.site));
+      r.appendChild(el("span", "val", String(t.count)));
+      sites.appendChild(r);
+    });
+    frag.appendChild(sites);
+  }
+  return frag;
+}
+
+function prefsView() {
+  const frag = document.createDocumentFragment();
+  frag.appendChild(el("div", "section-title", T.mine));
+  frag.appendChild(el("div", "hint", T.hint));
+  frag.appendChild(board("user", null, data.platforms, null, null));
+  return frag;
+}
+
+function groupsView() {
+  const frag = document.createDocumentFragment();
+  frag.appendChild(el("div", "section-title", T.groups));
+  frag.appendChild(el("div", "hint", T.groupHint));
+  if (!data.groups.length) {
+    const empty = el("div", "empty");
+    empty.appendChild(el("span", "big", "👥"));
+    empty.appendChild(el("div", null, T.noGroups));
+    empty.appendChild(el("div", "hint", T.noGroupsHint));
+    frag.appendChild(empty);
+  } else {
+    data.groups.forEach(g => frag.appendChild(board("group", g.chatId, g.platforms, g.title || "—", null)));
+  }
+  return frag;
+}
+
+function langView() {
+  const frag = document.createDocumentFragment();
+  frag.appendChild(el("div", "section-title", T.langTitle));
+  frag.appendChild(el("div", "hint", T.langHint));
+  const card = el("div", "card");
+  LANGS.forEach(l => {
+    const row = el("button", "pill" + (data.user.lang === l.id ? " on" : ""));
+    row.style.cssText = "display:flex;align-items:center;gap:10px;width:100%;margin-bottom:8px;padding:12px 14px;border-radius:14px;font-size:14px";
+    row.appendChild(el("span", null, l.flag));
+    row.appendChild(el("span", null, l.name));
+    row.onclick = async () => {
+      if (data.user.lang === l.id) return;
+      const prev = data.user.lang;
+      data.user.lang = l.id;
+      T = I18N[l.id];
+      haptic("light");
+      render();
+      try {
+        await api("PUT", "/lang", { lang: l.id });
+        toast(T.saved);
+      } catch (e) {
+        data.user.lang = prev;
+        T = I18N[prev];
+        render();
+        toast(T.error, true);
+      }
+    };
+    card.appendChild(row);
+  });
+  frag.appendChild(card);
+  return frag;
+}
+
+const TABS = [
+  { id: "profile", icon: "👤", label: "tabProfile", view: profileView },
+  { id: "prefs", icon: "⚙️", label: "tabPrefs", view: prefsView },
+  { id: "groups", icon: "👥", label: "tabGroups", view: groupsView },
+  { id: "lang", icon: "🌍", label: "tabLang", view: langView }
+];
+
+function render() {
+  const tabsEl = document.getElementById("tabs");
+  tabsEl.innerHTML = "";
+  TABS.forEach(t => {
+    const b = el("button", "tab" + (tab === t.id ? " on" : ""));
+    b.appendChild(el("span", "ico", t.icon));
+    b.appendChild(el("span", null, T[t.label]));
+    b.onclick = () => { tab = t.id; haptic("selection"); render(); };
+    tabsEl.appendChild(b);
+  });
+
   const app = document.getElementById("app");
   app.innerHTML = "";
-
-  app.appendChild(el("div", "section-title", T.mine));
-  app.appendChild(el("div", "hint", T.hint));
-  app.appendChild(board("user", null, data.user.platforms, null));
-
-  app.appendChild(el("div", "section-title", T.groups));
-  if (data.groups.length === 0) {
-    app.appendChild(el("div", "empty", T.noGroups));
-  } else {
-    data.groups.forEach(g => app.appendChild(board("group", g.chatId, g.platforms, g.title || "—")));
-  }
+  app.appendChild(TABS.find(t => t.id === tab).view());
+  document.documentElement.lang = data.user.lang;
 }
 
 function applyTheme() {
@@ -344,17 +533,27 @@ function applyTheme() {
   set("--btn-text", p.button_text_color);
 }
 
+function fail(msg) {
+  document.getElementById("tabs").innerHTML = "";
+  const app = document.getElementById("app");
+  app.innerHTML = "";
+  const empty = el("div", "empty");
+  empty.appendChild(el("span", "big", "🔒"));
+  empty.appendChild(el("div", null, msg));
+  app.appendChild(empty);
+}
+
 async function boot() {
-  document.getElementById("title").textContent = T.title;
-  document.documentElement.lang = lang();
   if (tg) { tg.ready(); tg.expand(); applyTheme(); tg.onEvent("themeChanged", applyTheme); }
-  if (!initData) { document.getElementById("app").appendChild(el("div", "empty", T.authFail)); return; }
+  const app = document.getElementById("app");
+  app.innerHTML = '<div class="skeleton"></div><div class="skeleton"></div>';
+  if (!initData) { fail(T.authFail); return; }
   try {
-    const res = await fetch("/miniapp/prefs", { headers: { "Authorization": "tma " + initData } });
-    if (!res.ok) { document.getElementById("app").appendChild(el("div", "empty", T.authFail)); return; }
-    render(await res.json());
+    data = await api("GET", "/profile");
+    T = I18N[data.user.lang] || I18N.uz;
+    render();
   } catch (e) {
-    document.getElementById("app").appendChild(el("div", "empty", T.error));
+    fail(e.message === "401" ? T.authFail : T.error);
   }
 }
 

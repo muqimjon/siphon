@@ -4,7 +4,7 @@ using System.Text.Json;
 
 namespace Siphon.Bot.MiniApp;
 
-public sealed record TelegramUser(long Id, string? FirstName, string? Username, string? LanguageCode)
+public sealed record TelegramUser(long Id, string? FirstName, string? LastName, string? Username, string? PhotoUrl, string? LanguageCode)
 {
     public static TelegramUser? Parse(string json)
     {
@@ -17,7 +17,9 @@ public sealed record TelegramUser(long Id, string? FirstName, string? Username, 
             return new TelegramUser(
                 id.GetInt64(),
                 root.TryGetProperty("first_name", out var f) ? f.GetString() : null,
+                root.TryGetProperty("last_name", out var ln) ? ln.GetString() : null,
                 root.TryGetProperty("username", out var u) ? u.GetString() : null,
+                root.TryGetProperty("photo_url", out var ph) ? ph.GetString() : null,
                 root.TryGetProperty("language_code", out var l) ? l.GetString() : null);
         }
         catch (JsonException)
