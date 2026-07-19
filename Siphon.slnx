@@ -8,15 +8,13 @@
   <Folder Name="/src/bot/">
     <Project Path="src/bot/src/Siphon.Bot/Siphon.Bot.csproj" />
   </Folder>
+  <Folder Name="/src/web/">
+    <Project Path="src/web/siphon-web.esproj" />
+  </Folder>
   <Folder Name="/shared/">
     <File Path="src/shared/models.ts" />
     <File Path="src/shared/format.ts" />
     <File Path="src/shared/i18n.ts" />
-  </Folder>
-  <Folder Name="/web/">
-    <File Path="src/web/package.json" />
-    <File Path="src/web/angular.json" />
-    <File Path="src/web/proxy.conf.json" />
   </Folder>
   <Folder Name="/extension/">
     <File Path="src/extension/package.json" />
