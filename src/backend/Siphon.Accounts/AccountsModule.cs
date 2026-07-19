@@ -54,6 +54,7 @@ public static class AccountsModule
         services.AddScoped<ExternalAuthHandlers>();
         services.AddScoped<TokenHandlers>();
         services.AddScoped<AdminHandlers>();
+        services.AddScoped<Siphon.Accounts.Telegram.TelegramLinkHandlers>();
         services.AddScoped<UsageHandlers>();
         services.AddScoped<IApiAuthenticator, DbApiAuthenticator>();
         services.AddScoped<IUsageSink, DbUsageSink>();
@@ -132,6 +133,18 @@ public static class AccountsModule
         tokens.MapPost("", (ClaimsPrincipal u, CreateTokenRequest r, TokenHandlers h) => h.Create(u, r))
             .WithSummary("Create an API token (secret shown once)");
         tokens.MapDelete("/{id:guid}", (ClaimsPrincipal u, Guid id, TokenHandlers h) => h.Delete(u, id)).WithSummary("Revoke an API token");
+
+        var telegram = app.MapGroup("/api/v1/telegram").WithTags("Telegram");
+        telegram.MapPost("/link-token", (ClaimsPrincipal u, Siphon.Accounts.Telegram.TelegramLinkHandlers h) => h.CreateToken(u.FindFirstValue("sub")!))
+            .RequireAuthorization().WithSummary("Create a one-time link for connecting a Telegram account");
+        telegram.MapGet("/links", (ClaimsPrincipal u, Siphon.Accounts.Telegram.TelegramLinkHandlers h) => h.List(u.FindFirstValue("sub")!))
+            .RequireAuthorization().WithSummary("Telegram accounts linked to you");
+        telegram.MapDelete("/links/{telegramUserId:long}", (ClaimsPrincipal u, long telegramUserId, Siphon.Accounts.Telegram.TelegramLinkHandlers h) => h.Unlink(u.FindFirstValue("sub")!, telegramUserId))
+            .RequireAuthorization().WithSummary("Disconnect a Telegram account");
+        telegram.MapPost("/redeem", (HttpContext c, Siphon.Accounts.Telegram.RedeemLinkRequest r, Siphon.Accounts.Telegram.TelegramLinkHandlers h) =>
+                c.Items["caller"] is ApiCaller { Kind: "client", Id: "bot" } ? h.Redeem(r) : Task.FromResult(Results.Unauthorized()))
+            .AddEndpointFilter<ApiKeyFilter>()
+            .ExcludeFromDescription();
 
         var admin = app.MapGroup("/api/v1/admin").WithTags("Admin").RequireAuthorization(p => p.RequireRole("admin"));
         admin.MapGet("/usage", (DateOnly? from, DateOnly? to, AdminHandlers h) => h.Usage(from, to))

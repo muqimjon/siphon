@@ -85,6 +85,10 @@ public abstract class Msg
     public abstract string Back { get; }
     public abstract string Original { get; }
     public abstract string FormatBest { get; }
+    public abstract string LinkTaken { get; }
+    public abstract string LinkExpired { get; }
+    public abstract string UnlinkHint { get; }
+    public abstract string LinkOk(string email);
     public abstract string Queued { get; }
     public abstract string Downloading { get; }
     public abstract string Converting { get; }

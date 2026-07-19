@@ -38,7 +38,7 @@ public sealed class DownloadModule(SiphonApi api, ProbeCache probes, JobRunner r
         ProbeResult? probe;
         try
         {
-            probe = await api.ProbeAsync(url, ct);
+            probe = await api.ProbeAsync(url, ctx.UserId, ct);
         }
         catch (BackendException ex)
         {
@@ -64,6 +64,7 @@ public sealed class DownloadModule(SiphonApi api, ProbeCache probes, JobRunner r
 
         if (ctx.IsGroup)
         {
+            ctx.OwnerUserId = (await db.Groups.FindAsync([ctx.ChatId], ct))?.OwnerUserId;
             await RunGroupAsync(ctx, entry, probe, pref, mb, placeholder.MessageId, ct);
             return;
         }

@@ -101,7 +101,7 @@ public sealed class JobRunner(IOptions<LimitsOptions> limits, IHttpClientFactory
         string jobId;
         try
         {
-            jobId = await api.CreateJobAsync(entry.Url, output, format, formatId, ct);
+            jobId = await api.CreateJobAsync(entry.Url, output, format, formatId, OwnerFor(ctx), ct);
         }
         catch (BackendException ex)
         {
@@ -242,6 +242,8 @@ public sealed class JobRunner(IOptions<LimitsOptions> limits, IHttpClientFactory
         });
         return Task.CompletedTask;
     }
+
+    static long OwnerFor(UpdateContext ctx) => ctx.OwnerUserId ?? ctx.UserId;
 
     public static string PrefKey(string url, UserPref pref) =>
         $"{url}|pref|{pref.Kind}|{pref.AudioFormat}|{pref.VideoFormat}|{pref.Quality}";

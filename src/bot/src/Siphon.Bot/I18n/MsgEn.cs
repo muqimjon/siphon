@@ -14,6 +14,10 @@ public sealed class MsgEn : Msg
     public override string Back => "⬅️ Back";
     public override string Original => "original";
     public override string FormatBest => "⭐ Best (source quality)";
+    public override string LinkTaken => "This Telegram account is already linked to another account 🤔 Unlink it there first.";
+    public override string LinkExpired => "That link has expired. Grab a fresh one on the website 🙂";
+    public override string UnlinkHint => "To unlink, open your profile on the website — there is an \"Unlink\" button.";
+    public override string LinkOk(string email) => $"Account linked ✅\n\n{email}\n\nYour limits now come from this account.";
     public override string Queued => "⏳ In the queue…";
     public override string Downloading => "⬇️ Downloading…";
     public override string Converting => "🎛 Processing…";

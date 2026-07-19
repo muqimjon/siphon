@@ -13,11 +13,14 @@ public sealed class SiphonApi(HttpClient http, IHttpClientFactory factory)
 {
     static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
 
-    public Task<ProbeResult> ProbeAsync(string url, CancellationToken ct) =>
-        PostAsync<ProbeResult>("api/v1/probe", new { url }, ct);
+    public Task<ProbeResult> ProbeAsync(string url, long? telegramUserId, CancellationToken ct) =>
+        PostAsync<ProbeResult>("api/v1/probe", new { url }, telegramUserId, ct);
 
-    public async Task<string> CreateJobAsync(string url, string output, string format, string? formatId, CancellationToken ct) =>
-        (await PostAsync<JobCreated>("api/v1/jobs", new { url, output, format, formatId }, ct)).JobId;
+    public async Task<string> CreateJobAsync(string url, string output, string format, string? formatId, long? telegramUserId, CancellationToken ct) =>
+        (await PostAsync<JobCreated>("api/v1/jobs", new { url, output, format, formatId }, telegramUserId, ct)).JobId;
+
+    public Task<LinkResult> RedeemLinkAsync(string token, long telegramUserId, string? username, string? firstName, CancellationToken ct) =>
+        PostAsync<LinkResult>("api/v1/telegram/redeem", new { token, telegramUserId, username, firstName }, null, ct);
 
     public async Task<JobStatus> GetJobAsync(string id, CancellationToken ct)
     {
@@ -33,9 +36,14 @@ public sealed class SiphonApi(HttpClient http, IHttpClientFactory factory)
         return await response.Content.ReadAsStreamAsync(ct);
     }
 
-    async Task<T> PostAsync<T>(string path, object body, CancellationToken ct)
+    async Task<T> PostAsync<T>(string path, object body, long? telegramUserId, CancellationToken ct)
     {
-        using var response = await http.PostAsJsonAsync(path, body, Json, ct);
+        using var request = new HttpRequestMessage(HttpMethod.Post, path)
+        {
+            Content = JsonContent.Create(body, options: Json)
+        };
+        if (telegramUserId is long id) request.Headers.Add("X-Telegram-User", id.ToString());
+        using var response = await http.SendAsync(request, ct);
         return await ReadAsync<T>(response, ct);
     }
 

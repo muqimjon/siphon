@@ -13,6 +13,7 @@ public sealed class UpdateContext
     public required IServiceProvider Services { get; init; }
     public required long ChatId { get; init; }
     public required long UserId { get; init; }
+    public long? OwnerUserId { get; set; }
     public required ChatType ChatType { get; init; }
     public bool IsGroup => ChatType is ChatType.Group or ChatType.Supergroup;
     public ChatState State { get; set; } = null!;

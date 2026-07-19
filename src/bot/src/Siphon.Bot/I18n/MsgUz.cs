@@ -14,6 +14,10 @@ public sealed class MsgUz : Msg
     public override string Back => "⬅️ Orqaga";
     public override string Original => "asl";
     public override string FormatBest => "⭐ Eng yaxshi (asl sifat)";
+    public override string LinkTaken => "Bu Telegram hisob boshqa akkauntga bog'langan 🤔 Avval o'sha yerdan uzing.";
+    public override string LinkExpired => "Bog'lash havolasi eskirgan. Saytdan yangisini oling 🙂";
+    public override string UnlinkHint => "Hisobni uzish uchun saytdagi profilingizga kiring — u yerda \"Uzish\" tugmasi bor.";
+    public override string LinkOk(string email) => $"Hisobingiz bog'landi ✅\n\n{email}\n\nEndi limitlaringiz shu hisobdan olinadi.";
     public override string Queued => "⏳ Navbatda…";
     public override string Downloading => "⬇️ Yuklab olyapman…";
     public override string Converting => "🎛 Tayyorlayapman…";

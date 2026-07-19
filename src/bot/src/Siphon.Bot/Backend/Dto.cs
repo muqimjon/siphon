@@ -53,6 +53,12 @@ public sealed record JobCreated
     public string JobId { get; init; } = "";
 }
 
+public sealed record LinkResult
+{
+    public bool Ok { get; init; }
+    public string? Email { get; init; }
+}
+
 public sealed record JobStatus
 {
     public string State { get; init; } = "";

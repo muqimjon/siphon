@@ -36,7 +36,28 @@ public sealed class DbApiAuthenticator(StaticKeyAuthenticator staticKey, Account
             return outcome;
         }
 
-        return await staticKey.AuthenticateAsync(context);
+        var client = await staticKey.AuthenticateAsync(context);
+        return client.Caller is { Kind: "client", Id: "bot" }
+            ? await ForTelegramAsync(context, client)
+            : client;
+    }
+
+    private async Task<AuthOutcome> ForTelegramAsync(HttpContext context, AuthOutcome fallback)
+    {
+        if (!long.TryParse(context.Request.Headers["X-Telegram-User"], out var telegramUserId))
+            return fallback;
+
+        var link = await db.TelegramLinks.FirstOrDefaultAsync(l => l.TelegramUserId == telegramUserId);
+        if (link is null) return fallback;
+
+        var linked = await ForUserAsync(link.UserId, null, context);
+        if (linked.Caller is null) return fallback;
+
+        var limits = linked.Caller.Limits;
+        return AuthOutcome.Ok(linked.Caller with
+        {
+            Limits = limits with { MaxFileSizeMb = Math.Min(limits.MaxFileSizeMb, fallback.Caller!.Limits.MaxFileSizeMb) }
+        });
     }
 
     private async Task<AuthOutcome> ForUserAsync(string? userId, Guid? tokenId, HttpContext context)

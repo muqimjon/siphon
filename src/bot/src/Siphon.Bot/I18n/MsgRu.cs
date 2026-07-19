@@ -14,6 +14,10 @@ public sealed class MsgRu : Msg
     public override string Back => "⬅️ Назад";
     public override string Original => "оригинал";
     public override string FormatBest => "⭐ Лучшее (исходное качество)";
+    public override string LinkTaken => "Этот Telegram уже привязан к другому аккаунту 🤔 Сначала отвяжите его там.";
+    public override string LinkExpired => "Ссылка для привязки устарела. Получите новую на сайте 🙂";
+    public override string UnlinkHint => "Чтобы отвязать, зайдите в профиль на сайте — там есть кнопка \"Отвязать\".";
+    public override string LinkOk(string email) => $"Аккаунт привязан ✅\n\n{email}\n\nТеперь лимиты берутся из этого аккаунта.";
     public override string Queued => "⏳ В очереди…";
     public override string Downloading => "⬇️ Скачиваю…";
     public override string Converting => "🎛 Обрабатываю…";

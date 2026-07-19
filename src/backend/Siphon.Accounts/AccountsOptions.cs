@@ -11,6 +11,7 @@ public sealed class AccountsOptions
     public OAuthProvider Google { get; set; } = new();
     public OAuthProvider GitHub { get; set; } = new();
     public string? TelegramBotToken { get; set; }
+    public string? BotUsername { get; set; }
     public SmtpOptions Smtp { get; set; } = new();
     public FreePlanOptions FreePlan { get; set; } = new();
 
@@ -41,8 +42,8 @@ public sealed class AccountsOptions
 
     public sealed class FreePlanOptions
     {
-        public int DailyRequests { get; set; } = 500;
+        public int DailyRequests { get; set; } = 100;
         public int MaxConcurrent { get; set; } = 2;
-        public int MaxFileSizeMb { get; set; } = 2048;
+        public int MaxFileSizeMb { get; set; } = 500;
     }
 }
