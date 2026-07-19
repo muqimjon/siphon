@@ -100,11 +100,19 @@ public sealed class YtDlpEngine(IOptions<SiphonOptions> options, SelfUpdater upd
 
     private static string ResolveFormat(Job job, ProbeResult probe, bool audio)
     {
-        if (!audio || job.Request.Format != OutputFormat.Best) return job.Request.Format;
-        var best = job.Request.FormatId is { } id
-            ? probe.AudioVariants.FirstOrDefault(a => a.FormatId == id)
-            : probe.AudioVariants.MaxBy(a => a.AbrKbps ?? 0);
-        return OutputFormat.ForCodec(best?.Codec);
+        if (job.Request.Format != OutputFormat.Best) return job.Request.Format;
+        var id = job.Request.FormatId;
+        if (audio)
+        {
+            var track = id is null
+                ? probe.AudioVariants.MaxBy(a => a.AbrKbps ?? 0)
+                : probe.AudioVariants.FirstOrDefault(a => a.FormatId == id);
+            return OutputFormat.ForCodec(track?.Codec);
+        }
+        var clip = id is null
+            ? probe.VideoVariants.MaxBy(v => v.Height ?? 0)
+            : probe.VideoVariants.FirstOrDefault(v => v.FormatId == id);
+        return OutputFormat.ForVideoCodec(clip?.Codec);
     }
 
     public async Task RunSelfUpdateAsync(CancellationToken ct)

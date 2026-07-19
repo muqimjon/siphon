@@ -5,7 +5,7 @@ public static class OutputFormat
     public const string Best = "best";
 
     public static readonly string[] Audio = [Best, "mp3", "m4a", "opus"];
-    public static readonly string[] Video = ["mp4", "webm"];
+    public static readonly string[] Video = [Best, "mp4", "webm"];
 
     public static string Default(string output) => output == "audio" ? "mp3" : "mp4";
 
@@ -34,5 +34,7 @@ public static class OutputFormat
     public static string ForCodec(string? codec) => codec is not null && codec.StartsWith("opus") ? "opus" : "m4a";
 
     public static IReadOnlyList<string> AvailableVideo(IEnumerable<string> sourceCodecs) =>
-        sourceCodecs.Any(c => c is "vp9" or "av1") ? ["mp4", "webm"] : ["mp4"];
+        sourceCodecs.Any(c => c is "vp9" or "av1") ? [Best, "mp4", "webm"] : [Best, "mp4"];
+
+    public static string ForVideoCodec(string? codec) => codec is "vp9" or "av1" ? "webm" : "mp4";
 }

@@ -12,7 +12,7 @@ public class OutputFormatTests
 
     [Theory]
     [InlineData("audio", "best", true)]
-    [InlineData("video", "best", false)]
+    [InlineData("video", "best", true)]
     [InlineData("audio", "mp3", true)]
     [InlineData("audio", "m4a", true)]
     [InlineData("audio", "opus", true)]
@@ -43,6 +43,14 @@ public class OutputFormatTests
     public void ForCodec_keeps_the_source_container(string? codec, string expected) =>
         Assert.Equal(expected, OutputFormat.ForCodec(codec));
 
+    [Theory]
+    [InlineData("vp9", "webm")]
+    [InlineData("av1", "webm")]
+    [InlineData("h264", "mp4")]
+    [InlineData(null, "mp4")]
+    public void ForVideoCodec_keeps_the_source_container(string? codec, string expected) =>
+        Assert.Equal(expected, OutputFormat.ForVideoCodec(codec));
+
     [Fact]
     public void AvailableAudio_adds_opus_only_when_source_has_opus()
     {
@@ -53,8 +61,8 @@ public class OutputFormatTests
     [Fact]
     public void AvailableVideo_adds_webm_only_for_vp9_or_av1()
     {
-        Assert.Equal(["mp4"], OutputFormat.AvailableVideo(["h264"]));
-        Assert.Equal(["mp4", "webm"], OutputFormat.AvailableVideo(["h264", "vp9"]));
-        Assert.Equal(["mp4", "webm"], OutputFormat.AvailableVideo(["av1"]));
+        Assert.Equal(["best", "mp4"], OutputFormat.AvailableVideo(["h264"]));
+        Assert.Equal(["best", "mp4", "webm"], OutputFormat.AvailableVideo(["h264", "vp9"]));
+        Assert.Equal(["best", "mp4", "webm"], OutputFormat.AvailableVideo(["av1"]));
     }
 }
