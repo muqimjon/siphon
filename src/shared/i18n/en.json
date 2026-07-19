@@ -16,9 +16,9 @@
   "health.ok": "Online · v{version}",
   "health.offline": "Server unreachable",
   "theme.toggle": "Toggle theme",
-  "variants.audio": "Audio (MP3)",
-  "variants.audioSub": "{codec} {abr} → MP3 ~{mp3}k",
-  "variants.video": "Video (MP4)",
+  "variants.audio": "Audio",
+  "variants.audioSub": "{codec} {abr} · source quality",
+  "variants.video": "Video",
   "variants.videoSub": "{res} · {codec} · {size}",
   "variants.audioSection": "Audio formats",
   "variants.videoSection": "Video formats",
@@ -213,5 +213,6 @@
   "upsell.tooLargeUser": "This file is larger than your limit ({size} MB). For more, contact the admin.",
   "upsell.tooLargeAnon": "This file is too large. Register or contact the admin.",
   "upsell.quota": "You've hit today's limit. Try again tomorrow or contact the admin.",
-  "upsell.register": "Register"
+  "upsell.register": "Register",
+  "variants.formatBest": "⭐ Source"
 }

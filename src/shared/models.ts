@@ -46,6 +46,8 @@ export interface ProbeResult {
   videoVariants: VideoVariant[];
   audioVariants: AudioVariant[];
   images: ImageEntry[];
+  audioFormats: string[];
+  videoFormats: string[];
 }
 
 export interface JobFile {

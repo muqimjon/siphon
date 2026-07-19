@@ -58,6 +58,19 @@
 [data-theme="dark"] .sp-badge, :host([data-theme="dark"]) .sp-badge { color: #22D3EE; }
 .sp-badge-warn { background: rgba(245,158,11,.14); color: var(--sp-warn); }
 
+.sp-format-switch {
+  display: flex; flex-wrap: wrap; gap: 2px; padding: 2px; margin-bottom: var(--sp-2);
+  background: var(--sp-surface-2); border-radius: var(--sp-r-pill); align-self: flex-start;
+}
+.sp-format-btn {
+  border: 0; background: none; cursor: pointer;
+  font-family: inherit; font-size: var(--sp-fs-xs); font-weight: 600;
+  color: var(--sp-text-dim); padding: var(--sp-1) var(--sp-3); border-radius: var(--sp-r-pill);
+  transition: background var(--sp-t-fast) var(--sp-ease), color var(--sp-t-fast) var(--sp-ease);
+}
+.sp-format-btn.active { background: var(--sp-surface); color: var(--sp-text); box-shadow: var(--sp-shadow); }
+.sp-format-btn:focus-visible { outline: 2px solid var(--sp-accent); outline-offset: 2px; }
+
 .sp-progress {
   height: 6px; border-radius: var(--sp-r-pill);
   background: var(--sp-surface-2); overflow: hidden;

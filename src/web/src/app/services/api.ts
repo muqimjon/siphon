@@ -23,8 +23,8 @@ export class Api {
     return this.request<ProbeResult>('POST', '/probe', { url });
   }
 
-  createJob(url: string, output: OutputKind, formatId: string | null): Promise<CreateJobResponse> {
-    return this.request<CreateJobResponse>('POST', '/jobs', { url, output, formatId });
+  createJob(url: string, output: OutputKind, formatId: string | null, format: string | null): Promise<CreateJobResponse> {
+    return this.request<CreateJobResponse>('POST', '/jobs', { url, output, formatId, format });
   }
 
   job(id: string): Promise<JobStatus> {

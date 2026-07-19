@@ -10,11 +10,11 @@ import {
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { bytes, eta } from '@shared/format';
-import { ApiError, JobFile, JobStatus, OutputKind, ProbeResult } from '@shared/models';
+import { ApiError, JobFile, JobStatus, ProbeResult } from '@shared/models';
 import { Api } from '../../services/api';
 import { Auth } from '../../services/auth';
 import { I18n } from '../../services/i18n';
-import { Variants } from '../../variants/variants';
+import { Pick, Variants } from '../../variants/variants';
 
 type Stage = 'idle' | 'probing' | 'variants' | 'progress' | 'done' | 'error';
 
@@ -117,12 +117,12 @@ export class Home {
       .catch(() => {});
   }
 
-  onPick(pick: { output: OutputKind; formatId: string | null }): void {
+  onPick(pick: Pick): void {
     const url = this.probe()!.url;
     this.autoClicked = false;
     this.startProgress();
     this.api
-      .createJob(url, pick.output, pick.formatId)
+      .createJob(url, pick.output, pick.formatId, pick.format)
       .then((res) => this.poll(res.jobId, () => this.onPick(pick)))
       .catch((err: ApiError) => this.fail(err.code, () => this.onPick(pick)));
   }

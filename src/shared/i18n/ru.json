@@ -16,9 +16,9 @@
   "health.ok": "Онлайн · v{version}",
   "health.offline": "Нет связи с сервером",
   "theme.toggle": "Сменить тему",
-  "variants.audio": "Аудио (MP3)",
-  "variants.audioSub": "{codec} {abr} → MP3 ~{mp3}k",
-  "variants.video": "Видео (MP4)",
+  "variants.audio": "Аудио",
+  "variants.audioSub": "{codec} {abr} · исходное качество",
+  "variants.video": "Видео",
   "variants.videoSub": "{res} · {codec} · {size}",
   "variants.audioSection": "Аудио форматы",
   "variants.videoSection": "Видео форматы",
@@ -213,5 +213,6 @@
   "upsell.tooLargeUser": "Этот файл больше вашего лимита ({size} МБ). Чтобы больше — свяжитесь с админом.",
   "upsell.tooLargeAnon": "Этот файл слишком большой. Зарегистрируйтесь или свяжитесь с админом.",
   "upsell.quota": "Дневной лимит исчерпан. Попробуйте завтра или свяжитесь с админом.",
-  "upsell.register": "Зарегистрироваться"
+  "upsell.register": "Зарегистрироваться",
+  "variants.formatBest": "⭐ Исходное"
 }

@@ -16,9 +16,9 @@
   "health.ok": "Onlayn · v{version}",
   "health.offline": "Server bilan aloqa yo'q",
   "theme.toggle": "Mavzuni almashtirish",
-  "variants.audio": "Audio (MP3)",
-  "variants.audioSub": "{codec} {abr} → MP3 ~{mp3}k",
-  "variants.video": "Video (MP4)",
+  "variants.audio": "Audio",
+  "variants.audioSub": "{codec} {abr} · asl sifat",
+  "variants.video": "Video",
   "variants.videoSub": "{res} · {codec} · {size}",
   "variants.audioSection": "Audio formatlar",
   "variants.videoSection": "Video formatlar",
@@ -213,5 +213,6 @@
   "upsell.tooLargeUser": "Bu fayl sizning limitingizdan katta ({size} MB). Ko'proq uchun admin bilan bog'laning.",
   "upsell.tooLargeAnon": "Bu fayl juda katta. Ro'yxatdan o'ting yoki admin bilan bog'laning.",
   "upsell.quota": "Bugungi limit tugadi. Ertaga qayta urinib ko'ring yoki admin bilan bog'laning.",
-  "upsell.register": "Ro'yxatdan o'tish"
+  "upsell.register": "Ro'yxatdan o'tish",
+  "variants.formatBest": "⭐ Asl sifat"
 }

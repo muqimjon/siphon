@@ -16,14 +16,14 @@
     <div class="sp-smart-row">
       @if (audios().length) {
         @let a = audios()[0];
-        <button type="button" class="sp-btn sp-btn-primary sp-smart" [disabled]="busy()" (click)="emit('audio', a.formatId)">
+        <button type="button" class="sp-btn sp-btn-primary sp-smart" [disabled]="busy()" (click)="emit('audio', a.formatId, 'best')">
           <span>{{ i18n.t('variants.audio') }}</span>
-          <small>{{ i18n.t('variants.audioSub', { codec: a.codec, abr: kbps(a.abrKbps), mp3: a.plannedMp3.typicalKbps }) }}</small>
+          <small>{{ i18n.t('variants.audioSub', { codec: a.codec, abr: kbps(a.abrKbps) }) }}</small>
         </button>
       }
       @if (videos().length) {
         @let v = videos()[0];
-        <button type="button" class="sp-btn sp-btn-primary sp-smart" [disabled]="busy()" (click)="emit('video', v.formatId)">
+        <button type="button" class="sp-btn sp-btn-primary sp-smart" [disabled]="busy()" (click)="emit('video', v.formatId, videoFormat())">
           <span>{{ i18n.t('variants.video') }}</span>
           <small>{{ i18n.t('variants.videoSub', { res: videoRes(v), codec: v.codec, size: smartSize(v.approxSizeBytes) }) }}</small>
         </button>
@@ -32,7 +32,7 @@
   }
 
   @if (images().length) {
-    <button type="button" class="sp-btn sp-btn-primary sp-gallery" [disabled]="busy()" (click)="emit('gallery', null)">
+    <button type="button" class="sp-btn sp-btn-primary sp-gallery" [disabled]="busy()" (click)="emit('gallery', null, null)">
       {{ i18n.t('variants.galleryAll', { count: images().length }) }}
     </button>
   }
@@ -44,12 +44,19 @@
       </button>
       <div class="sp-collapse" [class.open]="audioOpen()">
         <div class="sp-section-body">
+          @if (audioFormats().length > 1) {
+            <div class="sp-format-switch" role="group">
+              @for (f of audioFormats(); track f) {
+                <button type="button" class="sp-format-btn" [class.active]="audioFormat() === f" (click)="audioFormat.set(f)">{{ formatLabel(f) }}</button>
+              }
+            </div>
+          }
           @for (a of audios(); track a.formatId) {
             <div class="sp-row">
               <span class="sp-badge">{{ a.codec }}</span>
-              <span class="sp-row-main">{{ kbps(a.abrKbps) }} → MP3 ~{{ a.plannedMp3.typicalKbps }}k</span>
+              <span class="sp-row-main">{{ audioDetail(a) }}</span>
               <span class="sp-row-size">{{ bytes(a.approxSizeBytes) }}</span>
-              <button type="button" class="sp-icon-btn" [disabled]="busy()" [attr.aria-label]="i18n.t('variants.download')" (click)="emit('audio', a.formatId)">
+              <button type="button" class="sp-icon-btn" [disabled]="busy()" [attr.aria-label]="i18n.t('variants.download')" (click)="emit('audio', a.formatId, audioFormat())">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11m0 0l-4.5-4.5M12 15l4.5-4.5M5 20h14"/></svg>
               </button>
             </div>
@@ -66,6 +73,13 @@
       </button>
       <div class="sp-collapse" [class.open]="videoOpen()">
         <div class="sp-section-body">
+          @if (videoFormats().length > 1) {
+            <div class="sp-format-switch" role="group">
+              @for (f of videoFormats(); track f) {
+                <button type="button" class="sp-format-btn" [class.active]="videoFormat() === f" (click)="videoFormat.set(f)">{{ formatLabel(f) }}</button>
+              }
+            </div>
+          }
           @for (v of videos(); track v.formatId) {
             <div class="sp-row">
               <span class="sp-badge">{{ v.codec }}</span>
@@ -74,7 +88,7 @@
                 <span class="sp-badge sp-badge-warn">{{ i18n.t('variants.reencode') }}</span>
               }
               <span class="sp-row-size">{{ bytes(v.approxSizeBytes) }}</span>
-              <button type="button" class="sp-icon-btn" [disabled]="busy()" [attr.aria-label]="i18n.t('variants.download')" (click)="emit('video', v.formatId)">
+              <button type="button" class="sp-icon-btn" [disabled]="busy()" [attr.aria-label]="i18n.t('variants.download')" (click)="emit('video', v.formatId, videoFormat())">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11m0 0l-4.5-4.5M12 15l4.5-4.5M5 20h14"/></svg>
               </button>
             </div>
