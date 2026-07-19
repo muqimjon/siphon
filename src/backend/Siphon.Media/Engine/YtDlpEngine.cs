@@ -11,7 +11,7 @@ namespace Siphon.Media.Engine;
 
 public sealed record DownloadOutcome(string Path, string FileName, string ContentType);
 
-public sealed class YtDlpEngine(IOptions<SiphonOptions> options, SelfUpdater updater, ILogger<YtDlpEngine> logger)
+public sealed class YtDlpEngine(IOptions<SiphonOptions> options, SelfUpdater updater, ProbeJsonCache probeCache, ILogger<YtDlpEngine> logger)
 {
     private static readonly string[] PostprocessMarkers = ["[Merger]", "[ExtractAudio]", "[VideoRemuxer]", "[VideoConvertor]", "[Fixup"];
     private readonly SiphonOptions _options = options.Value;
@@ -61,7 +61,8 @@ public sealed class YtDlpEngine(IOptions<SiphonOptions> options, SelfUpdater upd
 
     public async Task<DownloadOutcome> DownloadAsync(Job job, Action<double, int?, string> onProgress, CancellationToken ct)
     {
-        var probe = YtDlpJsonParser.Parse(job.Request.Url, await ProbeJsonAsync(job.Request.Url, job.CookiesPath, ct));
+        var cached = job.CookiesPath is null ? probeCache.Get(job.Request.Url) : null;
+        var probe = YtDlpJsonParser.Parse(job.Request.Url, cached ?? await ProbeJsonAsync(job.Request.Url, job.CookiesPath, ct));
         if (probe.IsLive)
             throw new MediaEngineException(ErrorCodes.LiveNotSupported, "Live streams cannot be downloaded.");
         if (probe.DurationSec is { } duration && duration > _options.MaxDurationMinutes * 60)
@@ -71,12 +72,20 @@ public sealed class YtDlpEngine(IOptions<SiphonOptions> options, SelfUpdater upd
 
         var audio = job.Request.Output == "audio";
         var format = ResolveFormat(job, probe, audio);
-        var args = BuildDownloadArgs(job, probe, audio, format, recode: false);
-        var exit = await RunDownloadAsync(job, args, onProgress, ct);
+        var infoPath = cached is null ? null : Path.Combine(job.Dir, "info.json");
+        if (infoPath is not null) await File.WriteAllTextAsync(infoPath, cached!, ct);
+
+        var exit = await RunDownloadAsync(job, BuildDownloadArgs(job, probe, audio, format, infoPath, recode: false), onProgress, ct);
+        if (exit.Code != 0 && infoPath is not null)
+        {
+            logger.LogWarning("cached info download failed for {Url}, retrying with a fresh extraction", job.Request.Url);
+            infoPath = null;
+            exit = await RunDownloadAsync(job, BuildDownloadArgs(job, probe, audio, format, null, recode: false), onProgress, ct);
+        }
         if (exit.Code != 0 && !audio && LooksLikeMuxFailure(exit.Stderr))
         {
             logger.LogWarning("remux failed for {Url}, retrying with recode", job.Request.Url);
-            exit = await RunDownloadAsync(job, BuildDownloadArgs(job, probe, audio, format, recode: true), onProgress, ct);
+            exit = await RunDownloadAsync(job, BuildDownloadArgs(job, probe, audio, format, infoPath, recode: true), onProgress, ct);
         }
         if (exit.Code != 0) throw Classified(exit.Stderr);
 
@@ -139,7 +148,7 @@ public sealed class YtDlpEngine(IOptions<SiphonOptions> options, SelfUpdater upd
         return stdout.ToString().Trim();
     }
 
-    private List<string> BuildDownloadArgs(Job job, ProbeResult probe, bool audio, string format, bool recode)
+    private List<string> BuildDownloadArgs(Job job, ProbeResult probe, bool audio, string format, string? infoPath, bool recode)
     {
         var args = new List<string>
         {
@@ -169,7 +178,8 @@ public sealed class YtDlpEngine(IOptions<SiphonOptions> options, SelfUpdater upd
         }
 
         AddCommon(args, job.CookiesPath);
-        args.Add(job.Request.Url);
+        if (infoPath is not null) args.AddRange(["--load-info-json", infoPath]);
+        else args.Add(job.Request.Url);
         return args;
     }
 

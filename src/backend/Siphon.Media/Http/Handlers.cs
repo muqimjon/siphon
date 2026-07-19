@@ -8,7 +8,7 @@ using Siphon.Media.Probing;
 
 namespace Siphon.Media.Http;
 
-public sealed class ProbeHandler(YtDlpEngine ytDlp, GalleryDlEngine galleryDl, IOptions<SiphonOptions> options)
+public sealed class ProbeHandler(YtDlpEngine ytDlp, GalleryDlEngine galleryDl, ProbeJsonCache probeCache, IOptions<SiphonOptions> options)
 {
     public async Task<IResult> Handle(ProbeRequest request, CancellationToken ct)
     {
@@ -30,6 +30,7 @@ public sealed class ProbeHandler(YtDlpEngine ytDlp, GalleryDlEngine galleryDl, I
         {
             var json = await ytDlp.ProbeJsonAsync(request.Url, cookiesPath, ct);
             var probe = YtDlpJsonParser.Parse(request.Url, json);
+            if (cookiesPath is null) probeCache.Put(request.Url, json);
             if (probe.Kind != "playlist") return Results.Ok(probe);
             if (IsGalleryCandidate(uri) && galleryDl.Enabled)
                 return Results.Ok(probe with { Kind = "gallery" });

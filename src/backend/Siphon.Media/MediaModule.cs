@@ -9,6 +9,7 @@ using Siphon.Media.Delivery;
 using Siphon.Media.Engine;
 using Siphon.Media.Http;
 using Siphon.Media.Jobs;
+using Siphon.Media.Probing;
 
 namespace Siphon.Media;
 
@@ -39,6 +40,7 @@ public static class MediaModule
         services.AddSingleton<JobEngine>();
         services.AddSingleton<FileTokenService>();
         services.AddSingleton<SelfUpdater>();
+        services.AddSingleton<ProbeJsonCache>();
         services.AddSingleton<YtDlpEngine>();
         services.AddSingleton<GalleryDlEngine>();
         services.AddSingleton<ProbeHandler>();
