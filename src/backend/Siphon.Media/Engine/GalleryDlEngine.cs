@@ -74,7 +74,10 @@ public sealed class GalleryDlEngine(IOptions<SiphonOptions> options)
         {
             var single = files[0];
             var ext = Path.GetExtension(single);
-            return new DownloadOutcome(single, baseName + ext.ToLowerInvariant(),
+            var stem = baseName.EndsWith(ext, StringComparison.OrdinalIgnoreCase)
+                ? baseName[..^ext.Length]
+                : baseName;
+            return new DownloadOutcome(single, stem + ext.ToLowerInvariant(),
                 ImageTypes.GetValueOrDefault(ext, "application/octet-stream"));
         }
 

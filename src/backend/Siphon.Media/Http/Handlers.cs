@@ -36,7 +36,7 @@ public sealed class ProbeHandler(YtDlpEngine ytDlp, GalleryDlEngine galleryDl, P
                 return Results.Ok(probe with { Kind = "gallery" });
             return Problems.Create(ErrorCodes.PlaylistNotSupported, "Playlists are not supported yet.");
         }
-        catch (MediaEngineException ex) when (galleryDl.Enabled && IsGalleryCandidate(uri) && ex.Code != ErrorCodes.LoginRequired)
+        catch (MediaEngineException ex) when (galleryDl.Enabled && ex.Code != ErrorCodes.LoginRequired)
         {
             try
             {
