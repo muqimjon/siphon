@@ -2,13 +2,15 @@
 
 Istalgan havoladan media'ni **asl sifatida** yuklab beruvchi tizim — YouTube, Instagram, TikTok va yt-dlp qo'llab-quvvatlaydigan barcha saytlar. Havolada kontent bo'lsa, sug'urib oladi.
 
-Asosiy tamoyil: **sifat sun'iy oshirilmaydi ham, pasaytirilmaydi ham.** Video stream-copy bilan mp4'ga qadoqlanadi (remux), audio esa manba bitrate'idan kelib chiqib mp3'ga o'giriladi — hech qachon qat'iy 320k emas.
+Asosiy tamoyil: **sifat sun'iy oshirilmaydi ham, pasaytirilmaydi ham.** Video stream-copy bilan mp4/webm'ga qadoqlanadi (remux), audio esa mp3/m4a/opus formatlarda beriladi — mp3 manba bitrate'iga moslanadi, hech qachon qat'iy 320k emas.
+
+Sayt orqali yuklab olish **bepul va ro'yxatdan o'tishsiz**. Dasturchilar uchun **API** bor — foydalanish uchun ro'yxatdan o'tib token olinadi. API hujjati: web'da `/docs` (qo'llanma) va `/reference` (interaktiv Scalar).
 
 ## Tarkib
 
 | Papka | Nima | Stack |
 |-------|------|-------|
-| `src/backend/` | HTTP API (Siphon.Api + Siphon.Media modul + Siphon.Tests) | .NET 10 |
+| `src/backend/` | HTTP API — Siphon.Media (yuklash) + Siphon.Accounts (akkaunt/token/foydalanish) + Siphon.Tests | .NET 10 |
 | `src/web/` | web ilova (build'da backend `wwwroot`'iga tushadi) | Angular 22 (TS) |
 | `src/extension/` | Chrome MV3 kengaytmasi (unpacked yuklanadi) | TypeScript + esbuild |
 | `src/shared/` | umumiy TS model, format, i18n va dizayn tokenlari — web va extension bo'lishadi | TypeScript |
@@ -27,12 +29,20 @@ curl -L --create-dirs https://github.com/yt-dlp/yt-dlp/releases/latest/download/
 curl -L --create-dirs https://github.com/mikf/gallery-dl/releases/latest/download/gallery-dl.exe -o tools/gallery-dl.exe
 ```
 
-**Backend** (`appsettings.Development.json` dev kalitlari bilan tayyor):
+**PostgreSQL** (akkaunt/token/foydalanish uchun) — dev'da:
 
 ```bash
-dotnet run --project src/backend/Siphon.Api      # http://localhost:5046
+docker run -d --name siphon-pg -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=siphon -p 5432:5432 postgres:17
+```
+
+**Backend** (`appsettings.Development.json` dev kalitlari + connection string bilan tayyor):
+
+```bash
+dotnet run --project src/backend/Siphon.Api      # http://localhost:5046 → /reference (API docs)
 dotnet test Siphon.slnx
 ```
+
+Dev'da API sof API (root → `/reference` Scalar); web'ni alohida `ng serve` beradi (yoki VS'da `api + web` startup profili). Email-kod (OTP) dev'da SMTP'siz — kod konsolga chiqadi. Google/GitHub/Telegram login faqat `appsettings`da sozlansa yoqiladi (`Accounts` bo'limi).
 
 **Web (Angular)** — dev serverda backendga proxy qiladi:
 
@@ -55,8 +65,12 @@ cd src/extension && npm install && npm run build  # dist/ yaratadi
 ## Productionga (VPS, Docker)
 
 ```bash
-cp docker/.env.example docker/.env   # qiymatlarni to'ldiring
+cp docker/.env.example docker/.env   # qiymatlarni to'ldiring (POSTGRES_PASSWORD, JWT_SECRET, ADMIN_EMAIL, ...)
 docker compose -f docker/docker-compose.yml up -d --build
 ```
 
-Backend image Angular'ni ham o'zi quradi (node bosqichi). Datacenter IP'lar YouTube tomonidan tez-tez bloklanadi — kerak bo'lsa extension cookie'sini ulash yoki `Siphon:ProxyUrl` (residential proxy) ishlatiladi.
+Compose `postgres` + `api` (+ `bot`) ko'taradi; backend image Angular'ni ham o'zi quradi (node bosqichi), startda migratsiya bajaradi.
+
+**API login provayderlari uchun prereq'lar** (ixtiyoriy — sozlanmagани o'chiq qoladi): Google Cloud OAuth client, GitHub OAuth app, Telegram bot domenini `/setdomain` bilan sozlash (Login Widget), SMTP (email-kod). `ADMIN_EMAIL` bilan ro'yxatdan o'tgan foydalanuvchi admin bo'ladi.
+
+Datacenter IP'lar YouTube tomonidan tez-tez bloklanadi — kerak bo'lsa extension cookie'sini ulash yoki `Siphon:ProxyUrl` (residential proxy) ishlatiladi.
