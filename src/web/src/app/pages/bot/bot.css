@@ -1,0 +1,27 @@
+:host { display: block; max-width: 720px; margin: 0 auto; }
+
+.bot-hero { text-align: center; }
+.bot-hero h1 { font-size: clamp(var(--sp-fs-xl), 5vw, 32px); margin: 0 0 var(--sp-2); letter-spacing: -.02em; }
+.bot-hero p { color: var(--sp-text-dim); margin: 0 0 var(--sp-5); line-height: 1.6; }
+.bot-cta { margin: 0 auto; }
+
+.steps { margin-top: var(--sp-8); display: flex; flex-direction: column; gap: var(--sp-3); }
+.step {
+  display: flex; gap: var(--sp-3); padding: var(--sp-4);
+  background: var(--sp-surface); border: 1px solid var(--sp-border); border-radius: var(--sp-r-lg);
+}
+.step-num {
+  flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; border-radius: var(--sp-r-pill);
+  font-weight: 700; font-size: var(--sp-fs-sm);
+  background: var(--sp-flow); color: var(--sp-accent-fg);
+}
+.step-body h3 { margin: 0 0 2px; font-size: var(--sp-fs-md); font-weight: 700; }
+.step-body p { margin: 0; font-size: var(--sp-fs-sm); color: var(--sp-text-dim); line-height: 1.5; }
+
+.bot-notes { margin-top: var(--sp-6); display: flex; flex-direction: column; gap: var(--sp-2); }
+.bot-note {
+  display: flex; align-items: center; gap: var(--sp-2);
+  font-size: var(--sp-fs-sm); color: var(--sp-text-dim);
+}
+.bot-note svg { flex: 0 0 auto; color: var(--sp-accent); }

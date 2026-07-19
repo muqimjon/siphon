@@ -1,0 +1,146 @@
+<header class="doc-head">
+  <h1>{{ i18n.t('docs.title') }}</h1>
+  <p class="doc-intro">{{ i18n.t('docs.intro') }}</p>
+</header>
+
+<section class="doc-section">
+  <h2>{{ i18n.t('docs.baseUrlTitle') }}</h2>
+  <p class="doc-lead">{{ i18n.t('docs.baseUrlDesc') }}</p>
+  <div class="code-block">
+    <button type="button" class="copy-btn" (click)="copy('baseUrl', baseUrl)">{{ copiedKey() === 'baseUrl' ? i18n.t('docs.copied') : i18n.t('docs.copy') }}</button>
+    <pre>{{ baseUrl }}</pre>
+  </div>
+</section>
+
+<section class="doc-section">
+  <h2>{{ i18n.t('docs.authTitle') }}</h2>
+  <p class="doc-lead">{{ i18n.t('docs.authDesc') }}</p>
+  <div class="code-block">
+    <button type="button" class="copy-btn" (click)="copy('authHeader', authHeader)">{{ copiedKey() === 'authHeader' ? i18n.t('docs.copied') : i18n.t('docs.copy') }}</button>
+    <pre>{{ authHeader }}</pre>
+  </div>
+</section>
+
+<section class="doc-section">
+  <h2>{{ i18n.t('docs.endpointsTitle') }}</h2>
+
+  <article class="endpoint">
+    <div class="endpoint-head">
+      <span class="method method-post">POST</span>
+      <span class="endpoint-path">/probe</span>
+    </div>
+    <p class="endpoint-desc">{{ i18n.t('docs.probeDesc') }}</p>
+    <span class="subhead">{{ i18n.t('docs.paramsTitle') }}</span>
+    <dl class="param-list">
+      <dt>url</dt>
+      <dd>{{ i18n.t('docs.probeParamUrl') }}</dd>
+    </dl>
+    <span class="subhead">cURL</span>
+    <div class="code-block">
+      <button type="button" class="copy-btn" (click)="copy('probeCurl', probeCurl)">{{ copiedKey() === 'probeCurl' ? i18n.t('docs.copied') : i18n.t('docs.copy') }}</button>
+      <pre>{{ probeCurl }}</pre>
+    </div>
+    <span class="subhead">JavaScript (fetch)</span>
+    <div class="code-block">
+      <button type="button" class="copy-btn" (click)="copy('probeJs', probeJs)">{{ copiedKey() === 'probeJs' ? i18n.t('docs.copied') : i18n.t('docs.copy') }}</button>
+      <pre>{{ probeJs }}</pre>
+    </div>
+    <span class="subhead">{{ i18n.t('docs.responseTitle') }}</span>
+    <div class="code-block">
+      <button type="button" class="copy-btn" (click)="copy('probeRes', probeRes)">{{ copiedKey() === 'probeRes' ? i18n.t('docs.copied') : i18n.t('docs.copy') }}</button>
+      <pre>{{ probeRes }}</pre>
+    </div>
+  </article>
+
+  <article class="endpoint">
+    <div class="endpoint-head">
+      <span class="method method-post">POST</span>
+      <span class="endpoint-path">/jobs</span>
+    </div>
+    <p class="endpoint-desc">{{ i18n.t('docs.jobsDesc') }}</p>
+    <span class="subhead">{{ i18n.t('docs.paramsTitle') }}</span>
+    <dl class="param-list">
+      <dt>url</dt>
+      <dd>{{ i18n.t('docs.jobsParamUrl') }}</dd>
+      <dt>output</dt>
+      <dd>{{ i18n.t('docs.jobsParamOutput') }}</dd>
+      <dt>format</dt>
+      <dd>{{ i18n.t('docs.jobsParamFormat') }}</dd>
+      <dt>formatId</dt>
+      <dd>{{ i18n.t('docs.jobsParamFormatId') }}</dd>
+    </dl>
+    <span class="subhead">cURL</span>
+    <div class="code-block">
+      <button type="button" class="copy-btn" (click)="copy('jobsCurl', jobsCurl)">{{ copiedKey() === 'jobsCurl' ? i18n.t('docs.copied') : i18n.t('docs.copy') }}</button>
+      <pre>{{ jobsCurl }}</pre>
+    </div>
+    <span class="subhead">{{ i18n.t('docs.responseTitle') }}</span>
+    <div class="code-block">
+      <button type="button" class="copy-btn" (click)="copy('jobsRes', jobsRes)">{{ copiedKey() === 'jobsRes' ? i18n.t('docs.copied') : i18n.t('docs.copy') }}</button>
+      <pre>{{ jobsRes }}</pre>
+    </div>
+  </article>
+
+  <article class="endpoint">
+    <div class="endpoint-head">
+      <span class="method method-get">GET</span>
+      <span class="endpoint-path">/jobs/&#123;id&#125;</span>
+    </div>
+    <p class="endpoint-desc">{{ i18n.t('docs.jobStatusDesc') }}</p>
+    <span class="subhead">cURL</span>
+    <div class="code-block">
+      <button type="button" class="copy-btn" (click)="copy('statusCurl', statusCurl)">{{ copiedKey() === 'statusCurl' ? i18n.t('docs.copied') : i18n.t('docs.copy') }}</button>
+      <pre>{{ statusCurl }}</pre>
+    </div>
+    <span class="subhead">{{ i18n.t('docs.responseTitle') }}</span>
+    <div class="code-block">
+      <button type="button" class="copy-btn" (click)="copy('statusRes', statusRes)">{{ copiedKey() === 'statusRes' ? i18n.t('docs.copied') : i18n.t('docs.copy') }}</button>
+      <pre>{{ statusRes }}</pre>
+    </div>
+  </article>
+
+  <article class="endpoint">
+    <div class="endpoint-head">
+      <span class="method method-get">GET</span>
+      <span class="endpoint-path">/files/&#123;id&#125;?token=...</span>
+    </div>
+    <p class="endpoint-desc">{{ i18n.t('docs.filesDesc') }}</p>
+    <span class="subhead">{{ i18n.t('docs.paramsTitle') }}</span>
+    <dl class="param-list">
+      <dt>token</dt>
+      <dd>{{ i18n.t('docs.filesParamToken') }}</dd>
+    </dl>
+    <span class="subhead">cURL</span>
+    <div class="code-block">
+      <button type="button" class="copy-btn" (click)="copy('filesCurl', filesCurl)">{{ copiedKey() === 'filesCurl' ? i18n.t('docs.copied') : i18n.t('docs.copy') }}</button>
+      <pre>{{ filesCurl }}</pre>
+    </div>
+  </article>
+</section>
+
+<section class="doc-section">
+  <h2>{{ i18n.t('docs.errorsTitle') }}</h2>
+  <table class="err-table">
+    <thead>
+      <tr>
+        <th>{{ i18n.t('docs.errCodeCol') }}</th>
+        <th>{{ i18n.t('docs.errMeaningCol') }}</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (e of errorCodes; track e.code) {
+        <tr>
+          <td><code>{{ e.code }}</code></td>
+          <td>{{ i18n.t(e.key) }}</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+  <p class="doc-note">{{ i18n.t('docs.quotaNote') }}</p>
+</section>
+
+<section class="doc-section">
+  <h2>{{ i18n.t('docs.scalarTitle') }}</h2>
+  <p class="doc-lead">{{ i18n.t('docs.scalarDesc') }}</p>
+  <a class="sp-btn sp-btn-secondary" href="/docs" target="_blank" rel="noopener">{{ i18n.t('docs.scalarLink') }}</a>
+</section>
