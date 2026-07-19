@@ -25,6 +25,7 @@ public static class MiniAppApi
         group.MapGet("/profile", GetProfile);
         group.MapPut("/prefs", PutPrefs);
         group.MapPut("/lang", PutLang);
+        group.MapPost("/connect-code", ConnectCode);
     }
 
     static async Task<IResult> GetProfile(HttpContext http, BotDb db, IOptions<BotOptions> bot, IOptions<MiniAppOptions> mini, IOptions<LimitsOptions> limits, CancellationToken ct)
@@ -72,6 +73,21 @@ public static class MiniAppApi
             platforms = await PlatformsFor(db, user.Id, ct),
             groups = groupDtos
         });
+    }
+
+    static async Task<IResult> ConnectCode(HttpContext http, Siphon.Bot.Backend.SiphonApi api, IOptions<BotOptions> bot, IOptions<MiniAppOptions> mini, CancellationToken ct)
+    {
+        var user = Authenticate(http, bot.Value, mini.Value);
+        if (user is null) return Results.Unauthorized();
+        try
+        {
+            var result = await api.IssueConnectCodeAsync(user.Id, user.Username, user.FirstName, ct);
+            return Results.Ok(new { code = result.Code });
+        }
+        catch (Exception)
+        {
+            return Results.StatusCode(StatusCodes.Status502BadGateway);
+        }
     }
 
     static async Task<IResult> PutLang(HttpContext http, BotDb db, IOptions<BotOptions> bot, IOptions<MiniAppOptions> mini, LangUpdate body, CancellationToken ct)

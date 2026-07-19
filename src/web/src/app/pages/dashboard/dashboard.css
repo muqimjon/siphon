@@ -85,3 +85,6 @@
   font-size: var(--sp-fs-sm);
 }
 .link-note a { color: var(--sp-accent); word-break: break-all; }
+
+.code-form { display: flex; gap: var(--sp-2); margin-bottom: var(--sp-2); flex-wrap: wrap; }
+.code-form .sp-input { flex: 0 1 160px; letter-spacing: .18em; text-align: center; font-family: var(--sp-font-mono); }

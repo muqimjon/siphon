@@ -1,7 +1,7 @@
 import {
-  afterNextRender,
   ChangeDetectionStrategy,
   Component,
+  effect,
   ElementRef,
   inject,
   signal,
@@ -9,10 +9,8 @@ import {
 } from '@angular/core';
 import { Router } from '@angular/router';
 import { ApiError } from '@shared/models';
-import { Auth, TelegramAuth } from '../../services/auth';
+import { Auth, ProviderInfo, TelegramAuth } from '../../services/auth';
 import { I18n } from '../../services/i18n';
-
-const TELEGRAM_BOT = 'siphon_bot';
 
 declare global {
   interface Window {
@@ -31,22 +29,32 @@ export class Providers {
   private readonly auth = inject(Auth);
   private readonly router = inject(Router);
 
-  readonly telegramBot = TELEGRAM_BOT;
+  readonly available = signal<ProviderInfo | null>(null);
+  readonly telegramBot = signal('');
   readonly error = signal<string | null>(null);
   private readonly host = viewChild<ElementRef<HTMLDivElement>>('tgHost');
 
   constructor() {
-    afterNextRender(() => this.mountTelegram());
+    this.auth
+      .providers()
+      .then((p) => {
+        this.available.set(p);
+        if (p.telegram && p.botUsername) this.telegramBot.set(p.botUsername);
+      })
+      .catch(() => this.available.set({ google: false, github: false, telegram: false, botUsername: null }));
+    effect(() => {
+      const bot = this.telegramBot();
+      const host = this.host()?.nativeElement;
+      if (bot && host && host.childElementCount === 0) this.mountTelegram(bot, host);
+    });
   }
 
-  private mountTelegram(): void {
-    const host = this.host()?.nativeElement;
-    if (!host) return;
+  private mountTelegram(bot: string, host: HTMLDivElement): void {
     window.onTelegramAuth = (user) => this.onTelegram(user);
     const script = document.createElement('script');
     script.async = true;
     script.src = 'https://telegram.org/js/telegram-widget.js?22';
-    script.setAttribute('data-telegram-login', this.telegramBot);
+    script.setAttribute('data-telegram-login', bot);
     script.setAttribute('data-size', 'large');
     script.setAttribute('data-radius', '10');
     script.setAttribute('data-onauth', 'onTelegramAuth(user)');

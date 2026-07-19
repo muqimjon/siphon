@@ -221,5 +221,10 @@
   "dash.telegramNone": "Hali hech qanday Telegram hisob bog'lanmagan.",
   "dash.telegramUnlink": "Uzish",
   "dash.telegramOpened": "Telegram ochildi — botda \"Start\" ni bosing, so'ng yangilang:",
-  "dash.telegramRefresh": "Yangilash"
+  "dash.telegramRefresh": "Yangilash",
+  "dash.telegramConnectCode": "Bog'lash",
+  "dash.telegramCodePlaceholder": "123456",
+  "dash.telegramCodeHint": "Botga /connect yozing yoki Mini App'dan kod oling va shu yerga kiriting.",
+  "dash.telegramBadCode": "Kod noto'g'ri yoki muddati o'tgan.",
+  "dash.telegramTaken": "Bu Telegram hisob boshqa akkauntga bog'langan."
 }

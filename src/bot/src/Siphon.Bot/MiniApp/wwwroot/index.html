@@ -111,6 +111,14 @@
   }
   .pill:active { transform: scale(.93); }
 
+  .code-box {
+    margin-top: 12px; padding: 14px; border-radius: 14px; text-align: center;
+    background: var(--soft); border: 1px dashed var(--accent);
+    font-size: 28px; font-weight: 800; letter-spacing: .18em; color: var(--accent);
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    user-select: all;
+  }
+
   .adv-toggle {
     display: flex; align-items: center; gap: 6px; width: 100%; margin-top: 6px;
     border: 0; background: none; color: var(--hint); cursor: pointer;
@@ -183,6 +191,7 @@ const I18N = {
     autoBest: "sifat yuqori — eng yaxshi format", configured: "sozlangan",
     onlyAudio: "Faqat audio olinadi — video sozlamasi kerak emas.",
     onlyVideo: "Faqat video olinadi — audio sozlamasi kerak emas.",
+    connectTitle: "Saytga bog'lash", connectBtn: "Kod olish", connectAgain: "Yangi kod", connectHint: "Saytda profilingizga kiring va shu kodni kiriting. Kod 10 daqiqa amal qiladi.",
     advanced: "Qo'shimcha", advancedHint: "Odatda kerak emas — sifat allaqachon manbadagidek saqlanadi."
   },
   ru: {
@@ -202,6 +211,7 @@ const I18N = {
     autoBest: "качество высокое — лучший формат", configured: "настроено",
     onlyAudio: "Берётся только аудио — видео настраивать не нужно.",
     onlyVideo: "Берётся только видео — аудио настраивать не нужно.",
+    connectTitle: "Привязка к сайту", connectBtn: "Получить код", connectAgain: "Новый код", connectHint: "Войдите в профиль на сайте и введите этот код. Код действует 10 минут.",
     advanced: "Дополнительно", advancedHint: "Обычно не нужно — качество и так сохраняется как в источнике."
   },
   en: {
@@ -221,6 +231,7 @@ const I18N = {
     autoBest: "quality is high — best format", configured: "configured",
     onlyAudio: "Audio only — no need to configure video.",
     onlyVideo: "Video only — no need to configure audio.",
+    connectTitle: "Connect to the website", connectBtn: "Get a code", connectAgain: "New code", connectHint: "Open your profile on the website and enter this code. Valid for 10 minutes.",
     advanced: "Advanced", advancedHint: "Usually not needed — quality is already kept as in the source."
   }
 };
@@ -462,6 +473,30 @@ function profileView() {
   ml.appendChild(el("span", null, T.left.replace("{n}", Math.max(0, s.dailyLimit - s.downloadsToday))));
   card.appendChild(ml);
   frag.appendChild(card);
+
+  frag.appendChild(el("div", "section-title", T.connectTitle));
+  const connect = el("div", "card");
+  connect.appendChild(el("div", "hint", T.connectHint));
+  const codeBox = el("div", "code-box");
+  codeBox.style.display = "none";
+  const btn = el("button", "pill on", T.connectBtn);
+  btn.style.cssText = "width:100%;padding:12px;border-radius:14px;font-size:14px";
+  btn.onclick = async () => {
+    btn.disabled = true;
+    haptic("light");
+    try {
+      const r = await api("POST", "/connect-code");
+      codeBox.textContent = r.code;
+      codeBox.style.display = "block";
+      btn.textContent = T.connectAgain;
+    } catch (e) {
+      toast(T.error, true);
+    }
+    btn.disabled = false;
+  };
+  connect.appendChild(btn);
+  connect.appendChild(codeBox);
+  frag.appendChild(connect);
 
   if (s.topSites && s.topSites.length) {
     frag.appendChild(el("div", "section-title", T.topSites));

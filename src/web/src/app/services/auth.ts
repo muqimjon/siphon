@@ -47,6 +47,13 @@ export interface Limits {
   dailyRequestLimitOverride: number | null;
 }
 
+export interface ProviderInfo {
+  google: boolean;
+  github: boolean;
+  telegram: boolean;
+  botUsername: string | null;
+}
+
 export interface TelegramLinkView {
   telegramUserId: number;
   username: string | null;
@@ -154,8 +161,16 @@ export class Auth {
     return this.request<Usage>('GET', `/usage?days=${days}`);
   }
 
+  providers(): Promise<ProviderInfo> {
+    return this.request<ProviderInfo>('GET', '/auth/providers');
+  }
+
   telegramLinks(): Promise<TelegramLinkView[]> {
     return this.request<TelegramLinkView[]>('GET', '/telegram/links');
+  }
+
+  connectTelegram(code: string): Promise<void> {
+    return this.request<void>('POST', '/telegram/connect', { code });
   }
 
   createLinkToken(): Promise<LinkToken> {

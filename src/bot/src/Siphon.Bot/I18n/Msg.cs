@@ -89,6 +89,7 @@ public abstract class Msg
     public abstract string LinkExpired { get; }
     public abstract string UnlinkHint { get; }
     public abstract string LinkOk(string email);
+    public abstract string ConnectCode(string code);
     public abstract string Queued { get; }
     public abstract string Downloading { get; }
     public abstract string Converting { get; }

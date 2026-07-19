@@ -18,6 +18,7 @@ public sealed class MsgUz : Msg
     public override string LinkExpired => "Bog'lash havolasi eskirgan. Saytdan yangisini oling 🙂";
     public override string UnlinkHint => "Hisobni uzish uchun saytdagi profilingizga kiring — u yerda \"Uzish\" tugmasi bor.";
     public override string LinkOk(string email) => $"Hisobingiz bog'landi ✅\n\n{email}\n\nEndi limitlaringiz shu hisobdan olinadi.";
+    public override string ConnectCode(string code) => $"Mana kodingiz:\n\n<code>{code}</code>\n\nUni saytdagi profilingizga kiriting. Kod 10 daqiqa amal qiladi.";
     public override string Queued => "⏳ Navbatda…";
     public override string Downloading => "⬇️ Yuklab olyapman…";
     public override string Converting => "🎛 Tayyorlayapman…";

@@ -18,6 +18,7 @@ public sealed class MsgEn : Msg
     public override string LinkExpired => "That link has expired. Grab a fresh one on the website 🙂";
     public override string UnlinkHint => "To unlink, open your profile on the website — there is an \"Unlink\" button.";
     public override string LinkOk(string email) => $"Account linked ✅\n\n{email}\n\nYour limits now come from this account.";
+    public override string ConnectCode(string code) => $"Here is your code:\n\n<code>{code}</code>\n\nEnter it in your profile on the website. It is valid for 10 minutes.";
     public override string Queued => "⏳ In the queue…";
     public override string Downloading => "⬇️ Downloading…";
     public override string Converting => "🎛 Processing…";

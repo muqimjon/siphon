@@ -10,6 +10,7 @@ public sealed class AccountsDb(DbContextOptions<AccountsDb> options) : IdentityD
     public DbSet<UsageDaily> Usage => Set<UsageDaily>();
     public DbSet<TelegramLink> TelegramLinks => Set<TelegramLink>();
     public DbSet<TelegramLinkToken> TelegramLinkTokens => Set<TelegramLinkToken>();
+    public DbSet<TelegramConnectCode> TelegramConnectCodes => Set<TelegramConnectCode>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -43,6 +44,12 @@ public sealed class AccountsDb(DbContextOptions<AccountsDb> options) : IdentityD
         builder.Entity<TelegramLinkToken>(e =>
         {
             e.HasKey(x => x.Token);
+            e.HasIndex(x => x.ExpiresUtc);
+        });
+
+        builder.Entity<TelegramConnectCode>(e =>
+        {
+            e.HasKey(x => x.Code);
             e.HasIndex(x => x.ExpiresUtc);
         });
     }

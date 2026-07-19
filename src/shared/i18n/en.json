@@ -221,5 +221,10 @@
   "dash.telegramNone": "No Telegram account linked yet.",
   "dash.telegramUnlink": "Unlink",
   "dash.telegramOpened": "Telegram opened — press \"Start\" in the bot, then refresh:",
-  "dash.telegramRefresh": "Refresh"
+  "dash.telegramRefresh": "Refresh",
+  "dash.telegramConnectCode": "Connect",
+  "dash.telegramCodePlaceholder": "123456",
+  "dash.telegramCodeHint": "Send /connect to the bot or get a code in the Mini App, then enter it here.",
+  "dash.telegramBadCode": "That code is wrong or expired.",
+  "dash.telegramTaken": "This Telegram account is linked to another account."
 }

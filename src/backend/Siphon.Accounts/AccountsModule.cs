@@ -111,6 +111,15 @@ public static class AccountsModule
         auth.MapPost("/telegram", (TelegramLoginRequest r, AuthHandlers h) => h.Telegram(r))
             .WithSummary("Sign in with the Telegram Login Widget");
 
+        auth.MapGet("/providers", () => Results.Ok(new
+            {
+                google = options.Google.Enabled,
+                github = options.GitHub.Enabled,
+                telegram = !string.IsNullOrWhiteSpace(options.TelegramBotToken) && !string.IsNullOrWhiteSpace(options.BotUsername),
+                botUsername = options.BotUsername,
+            }))
+            .WithSummary("Which sign-in providers this server has configured");
+
         if (options.Google.Enabled)
         {
             auth.MapGet("/google", (ExternalAuthHandlers h) => h.Challenge(GoogleDefaults.AuthenticationScheme, "google")).ExcludeFromDescription();
@@ -141,6 +150,12 @@ public static class AccountsModule
             .RequireAuthorization().WithSummary("Telegram accounts linked to you");
         telegram.MapDelete("/links/{telegramUserId:long}", (ClaimsPrincipal u, long telegramUserId, Siphon.Accounts.Telegram.TelegramLinkHandlers h) => h.Unlink(u.FindFirstValue("sub")!, telegramUserId))
             .RequireAuthorization().WithSummary("Disconnect a Telegram account");
+        telegram.MapPost("/connect", (ClaimsPrincipal u, Siphon.Accounts.Telegram.ConnectCodeRequest r, Siphon.Accounts.Telegram.TelegramLinkHandlers h) => h.Connect(u.FindFirstValue("sub")!, r))
+            .RequireAuthorization().WithSummary("Link a Telegram account using the code the bot gave you");
+        telegram.MapPost("/code", (HttpContext c, Siphon.Accounts.Telegram.IssueCodeRequest r, Siphon.Accounts.Telegram.TelegramLinkHandlers h) =>
+                c.Items["caller"] is ApiCaller { Kind: "client", Id: "bot" } ? h.IssueCode(r) : Task.FromResult(Results.Unauthorized()))
+            .AddEndpointFilter<ApiKeyFilter>()
+            .ExcludeFromDescription();
         telegram.MapPost("/redeem", (HttpContext c, Siphon.Accounts.Telegram.RedeemLinkRequest r, Siphon.Accounts.Telegram.TelegramLinkHandlers h) =>
                 c.Items["caller"] is ApiCaller { Kind: "client", Id: "bot" } ? h.Redeem(r) : Task.FromResult(Results.Unauthorized()))
             .AddEndpointFilter<ApiKeyFilter>()

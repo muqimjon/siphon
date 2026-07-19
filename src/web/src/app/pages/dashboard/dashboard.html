@@ -148,6 +148,16 @@
     </div>
   }
 
+  <form class="code-form" (submit)="connect($event)">
+    <input class="sp-input" #codeInput inputmode="numeric" maxlength="6" autocomplete="off"
+           [placeholder]="i18n.t('dash.telegramCodePlaceholder')" [value]="code()" (input)="code.set(codeInput.value)">
+    <button type="submit" class="sp-btn sp-btn-primary" [disabled]="linkBusy()">{{ i18n.t('dash.telegramConnectCode') }}</button>
+  </form>
+  <p class="panel-hint">{{ i18n.t('dash.telegramCodeHint') }}</p>
+  @if (codeError(); as e) {
+    <div class="sp-error-card">{{ i18n.t(e) }}</div>
+  }
+
   @if (links().length === 0) {
     <p class="panel-hint">{{ i18n.t('dash.telegramNone') }}</p>
   } @else {

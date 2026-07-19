@@ -221,5 +221,10 @@
   "dash.telegramNone": "Пока не привязан ни один Telegram-аккаунт.",
   "dash.telegramUnlink": "Отвязать",
   "dash.telegramOpened": "Telegram открыт — нажмите \"Start\" в боте, затем обновите:",
-  "dash.telegramRefresh": "Обновить"
+  "dash.telegramRefresh": "Обновить",
+  "dash.telegramConnectCode": "Привязать",
+  "dash.telegramCodePlaceholder": "123456",
+  "dash.telegramCodeHint": "Напишите боту /connect или получите код в Mini App и введите его здесь.",
+  "dash.telegramBadCode": "Код неверный или устарел.",
+  "dash.telegramTaken": "Этот Telegram уже привязан к другому аккаунту."
 }

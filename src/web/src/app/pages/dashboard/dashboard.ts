@@ -34,6 +34,8 @@ export class Dashboard {
   readonly links = signal<TelegramLinkView[]>([]);
   readonly linkToken = signal<LinkToken | null>(null);
   readonly linkBusy = signal(false);
+  readonly code = signal('');
+  readonly codeError = signal<string | null>(null);
 
   constructor() {
     this.load();
@@ -92,6 +94,22 @@ export class Dashboard {
         if (t.url) window.open(t.url, '_blank');
       })
       .catch(() => {})
+      .finally(() => this.linkBusy.set(false));
+  }
+
+  connect(event: Event): void {
+    event.preventDefault();
+    const code = this.code().trim();
+    if (code.length < 4) return;
+    this.linkBusy.set(true);
+    this.codeError.set(null);
+    this.auth
+      .connectTelegram(code)
+      .then(() => {
+        this.code.set('');
+        this.loadLinks();
+      })
+      .catch((err: ApiError) => this.codeError.set('dash.' + (err.code === 'link-taken' ? 'telegramTaken' : 'telegramBadCode')))
       .finally(() => this.linkBusy.set(false));
   }
 

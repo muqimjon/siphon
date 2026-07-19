@@ -5,6 +5,7 @@ using Siphon.Bot.Middleware;
 using Telegram.Bot;
 using Telegram.Bot.Exceptions;
 using Telegram.Bot.Types;
+using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
 
 namespace Siphon.Bot.Modules.Core;
@@ -25,6 +26,7 @@ public sealed class CoreModule(SubscriptionGateMiddleware gate) : IFeatureModule
     [
         new("start", "Boshlash · Start"),
         new("lang", "Til · Language"),
+        new("connect", "Hisobni bog'lash · Connect"),
         new("unlink", "Hisobni uzish · Unlink")
     ];
 
@@ -33,7 +35,7 @@ public sealed class CoreModule(SubscriptionGateMiddleware gate) : IFeatureModule
         || (ctx.Message is not null && (!ctx.IsGroup || IsCommand(ctx.Message.Text)));
 
     static bool IsCommand(string? text) =>
-        text is not null && (text.StartsWith("/start") || text.StartsWith("/lang") || text.StartsWith("/unlink"));
+        text is not null && (text.StartsWith("/start") || text.StartsWith("/lang") || text.StartsWith("/unlink") || text.StartsWith("/connect"));
 
     public async Task HandleAsync(UpdateContext ctx, CancellationToken ct)
     {
@@ -48,6 +50,11 @@ public sealed class CoreModule(SubscriptionGateMiddleware gate) : IFeatureModule
             await LinkAsync(ctx, text["/start link_".Length..].Trim(), ct);
             return;
         }
+        if (text.StartsWith("/connect"))
+        {
+            await ConnectAsync(ctx, ct);
+            return;
+        }
         if (text.StartsWith("/unlink"))
         {
             await ctx.Bot.SendMessage(ctx.ChatId, ctx.L.UnlinkHint, cancellationToken: ct);
@@ -57,6 +64,23 @@ public sealed class CoreModule(SubscriptionGateMiddleware gate) : IFeatureModule
             await ctx.Bot.SendMessage(ctx.ChatId, Msg.ChooseLang, replyMarkup: LangKeyboard, cancellationToken: ct);
         else
             await ctx.Bot.SendMessage(ctx.ChatId, ctx.L.SendLink, replyMarkup: new ReplyKeyboardRemove(), cancellationToken: ct);
+    }
+
+    static async Task ConnectAsync(UpdateContext ctx, CancellationToken ct)
+    {
+        var from = ctx.Message!.From;
+        string text;
+        try
+        {
+            var result = await ctx.Services.GetRequiredService<SiphonApi>()
+                .IssueConnectCodeAsync(ctx.UserId, from?.Username, from?.FirstName, ct);
+            text = ctx.L.ConnectCode(result.Code);
+        }
+        catch (Exception ex) when (ex is BackendException or HttpRequestException or TaskCanceledException && !ct.IsCancellationRequested)
+        {
+            text = ctx.L.ServerDown;
+        }
+        await ctx.Bot.SendMessage(ctx.ChatId, text, parseMode: ParseMode.Html, cancellationToken: ct);
     }
 
     static async Task LinkAsync(UpdateContext ctx, string token, CancellationToken ct)

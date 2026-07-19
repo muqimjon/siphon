@@ -19,6 +19,9 @@ public sealed class SiphonApi(HttpClient http, IHttpClientFactory factory)
     public async Task<string> CreateJobAsync(string url, string output, string format, string? formatId, long? telegramUserId, CancellationToken ct) =>
         (await PostAsync<JobCreated>("api/v1/jobs", new { url, output, format, formatId }, telegramUserId, ct)).JobId;
 
+    public Task<ConnectCode> IssueConnectCodeAsync(long telegramUserId, string? username, string? firstName, CancellationToken ct) =>
+        PostAsync<ConnectCode>("api/v1/telegram/code", new { telegramUserId, username, firstName }, null, ct);
+
     public Task<LinkResult> RedeemLinkAsync(string token, long telegramUserId, string? username, string? firstName, CancellationToken ct) =>
         PostAsync<LinkResult>("api/v1/telegram/redeem", new { token, telegramUserId, username, firstName }, null, ct);
 

@@ -1,4 +1,5 @@
 <div class="providers">
+  @if (available()?.google) {
   <a class="sp-btn sp-btn-secondary provider-btn" href="/api/v1/auth/google">
     <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
       <path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5c-.3 1.5-1.1 2.7-2.4 3.6v3h3.9c2.3-2.1 3.5-5.2 3.5-8.8z"/>
@@ -8,15 +9,18 @@
     </svg>
     {{ i18n.t('auth.google') }}
   </a>
+  }
 
+  @if (available()?.github) {
   <a class="sp-btn sp-btn-secondary provider-btn" href="/api/v1/auth/github">
     <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
       <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/>
     </svg>
     {{ i18n.t('auth.github') }}
   </a>
+  }
 
-  @if (telegramBot) {
+  @if (telegramBot()) {
     <div class="tg-widget" #tgHost></div>
   } @else {
     <button type="button" class="sp-btn sp-btn-secondary provider-btn" disabled>

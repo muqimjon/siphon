@@ -8,6 +8,10 @@ namespace Siphon.Accounts.Telegram;
 
 public sealed record RedeemLinkRequest(string Token, long TelegramUserId, string? Username, string? FirstName);
 
+public sealed record IssueCodeRequest(long TelegramUserId, string? Username, string? FirstName);
+
+public sealed record ConnectCodeRequest(string Code);
+
 public sealed record LinkTokenResponse(string Token, string Url, DateTime ExpiresUtc);
 
 public sealed record TelegramLinkView(long TelegramUserId, string? Username, string? FirstName, DateTime LinkedAtUtc);
@@ -65,6 +69,54 @@ public sealed class TelegramLinkHandlers(AccountsDb db, IOptions<AccountsOptions
 
         var user = await db.Users.Include(u => u.Plan).FirstOrDefaultAsync(u => u.Id == entry.UserId);
         return Results.Ok(new { ok = true, email = user?.Email });
+    }
+
+    public async Task<IResult> IssueCode(IssueCodeRequest request)
+    {
+        var now = DateTime.UtcNow;
+        db.TelegramConnectCodes.RemoveRange(await db.TelegramConnectCodes
+            .Where(c => c.TelegramUserId == request.TelegramUserId || c.ExpiresUtc < now)
+            .ToListAsync());
+
+        var code = RandomNumberGenerator.GetInt32(100_000, 1_000_000).ToString();
+        var expires = now.AddMinutes(10);
+        db.TelegramConnectCodes.Add(new TelegramConnectCode
+        {
+            Code = code,
+            TelegramUserId = request.TelegramUserId,
+            Username = request.Username,
+            FirstName = request.FirstName,
+            ExpiresUtc = expires,
+        });
+        await db.SaveChangesAsync();
+        return Results.Ok(new { code, expiresUtc = expires });
+    }
+
+    public async Task<IResult> Connect(string userId, ConnectCodeRequest request)
+    {
+        var entry = await db.TelegramConnectCodes.FirstOrDefaultAsync(c => c.Code == request.Code);
+        if (entry is null || entry.ExpiresUtc < DateTime.UtcNow)
+            return Results.BadRequest(new { code = "code-invalid" });
+
+        var existing = await db.TelegramLinks.FindAsync(entry.TelegramUserId);
+        if (existing is not null && existing.UserId != userId)
+            return Results.Conflict(new { code = "link-taken" });
+
+        if (existing is null)
+        {
+            db.TelegramLinks.Add(new TelegramLink
+            {
+                TelegramUserId = entry.TelegramUserId,
+                UserId = userId,
+                Username = entry.Username,
+                FirstName = entry.FirstName,
+                LinkedAtUtc = DateTime.UtcNow,
+            });
+        }
+
+        db.TelegramConnectCodes.Remove(entry);
+        await db.SaveChangesAsync();
+        return Results.Ok(new { ok = true });
     }
 
     public async Task<IResult> List(string userId)
