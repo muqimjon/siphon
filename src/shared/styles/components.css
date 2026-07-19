@@ -194,3 +194,23 @@
   .sp-check circle, .sp-check path { stroke-dashoffset: 0; }
   .sp-btn, .sp-row, .sp-collapse, .sp-icon-btn, .sp-section-head::after { transition: none; }
 }
+
+.panel {
+  margin-bottom: var(--sp-5); padding: var(--sp-5);
+  background: var(--sp-surface); border: 1px solid var(--sp-border); border-radius: var(--sp-r-lg);
+}
+.panel-head {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: var(--sp-3); flex-wrap: wrap; margin-bottom: var(--sp-3);
+}
+.panel-head h2 { margin: 0; font-size: var(--sp-fs-lg); font-weight: 700; }
+.panel-hint { margin: 0 0 var(--sp-4); font-size: var(--sp-fs-sm); color: var(--sp-text-dim); line-height: 1.6; }
+
+.sp-input {
+  font-family: inherit; font-size: var(--sp-fs-md); color: var(--sp-text);
+  padding: 10px var(--sp-3); border-radius: var(--sp-r-md); width: 100%;
+  background: var(--sp-bg); border: 1px solid var(--sp-border);
+  transition: border-color var(--sp-t-fast) var(--sp-ease);
+}
+.sp-input:focus { outline: none; border-color: var(--sp-accent); }
+.sp-input::placeholder { color: var(--sp-text-dim); }
