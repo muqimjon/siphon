@@ -33,7 +33,22 @@ public static class VariantKeyboard
         return new InlineKeyboardMarkup(rows);
     }
 
-    public static (InlineKeyboardMarkup? Markup, int? AutoRunIndex) BuildQuality(ProbeResult probe, string token, string kind, string format, int page, int maxUploadMb, Msg l)
+    public static int? ResolveQuality(ProbeResult probe, string kind, string quality, int maxUploadMb)
+    {
+        var rows = (kind == "v" ? VideoRows(probe, maxUploadMb) : AudioRows(probe, maxUploadMb))
+            .Where(r => !r.Blocked)
+            .ToList();
+        if (rows.Count == 0) return null;
+        var row = quality switch
+        {
+            "high" => rows[0],
+            "low" => rows[^1],
+            _ => rows[rows.Count / 2]
+        };
+        return row.Index;
+    }
+
+    public static (InlineKeyboardMarkup? Markup, int? AutoRunIndex) BuildQuality(ProbeResult probe, string token, string kind, string format, int page, int maxUploadMb, Msg l, bool formatLocked = false)
     {
         var rows = kind == "v" ? VideoRows(probe, maxUploadMb) : AudioRows(probe, maxUploadMb);
         if (rows.Count == 1 && !rows[0].Blocked)
@@ -56,7 +71,7 @@ public static class VariantKeyboard
             keyboard.Add(nav.ToArray());
         }
         var formats = kind == "v" ? probe.VideoFormats : probe.AudioFormats;
-        var back = formats.Count > 1 ? $"d:{token}:t:{kind}" : $"d:{token}:t";
+        var back = !formatLocked && formats.Count > 1 ? $"d:{token}:t:{kind}" : $"d:{token}:t";
         keyboard.Add([InlineKeyboardButton.WithCallbackData(l.Back, back)]);
         return (new InlineKeyboardMarkup(keyboard), null);
     }

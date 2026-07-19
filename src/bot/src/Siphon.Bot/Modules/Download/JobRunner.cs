@@ -19,23 +19,24 @@ public sealed class JobRunner(IOptions<LimitsOptions> limits, IHttpClientFactory
 
     public async Task RunAsync(UpdateContext ctx, CachedProbe entry, string output, string format, string? formatId, int messageId, CancellationToken ct)
     {
-        var cb = ctx.Callback!;
+        var cb = ctx.Callback;
         var chatSlot = _chatSlots.GetOrAdd(ctx.ChatId, _ => new SemaphoreSlim(limits.Value.MaxActiveJobsPerChat));
         if (!await chatSlot.WaitAsync(0, ct))
         {
-            await ctx.Bot.AnswerCallbackQuery(cb.Id, ctx.L.Busy, showAlert: true, cancellationToken: ct);
+            await NotifyAsync(ctx, cb, messageId, ctx.L.Busy, ct);
             return;
         }
         try
         {
             if (!await _globalSlots.WaitAsync(0, ct))
             {
-                await ctx.Bot.AnswerCallbackQuery(cb.Id, ctx.L.ServerBusy, showAlert: true, cancellationToken: ct);
+                await NotifyAsync(ctx, cb, messageId, ctx.L.ServerBusy, ct);
                 return;
             }
             try
             {
-                await ctx.Bot.AnswerCallbackQuery(cb.Id, cancellationToken: ct);
+                if (cb is not null)
+                    await ctx.Bot.AnswerCallbackQuery(cb.Id, cancellationToken: ct);
                 await ExecuteAsync(ctx, entry, output, format, formatId, messageId, ct);
             }
             finally
@@ -46,6 +47,22 @@ public sealed class JobRunner(IOptions<LimitsOptions> limits, IHttpClientFactory
         finally
         {
             chatSlot.Release();
+        }
+    }
+
+    static async Task NotifyAsync(UpdateContext ctx, CallbackQuery? cb, int messageId, string text, CancellationToken ct)
+    {
+        if (cb is not null)
+        {
+            await ctx.Bot.AnswerCallbackQuery(cb.Id, text, showAlert: true, cancellationToken: ct);
+            return;
+        }
+        try
+        {
+            await ctx.Bot.EditMessageText(ctx.ChatId, messageId, text, cancellationToken: ct);
+        }
+        catch (ApiRequestException ex) when (ex.Message.Contains("not modified"))
+        {
         }
     }
 

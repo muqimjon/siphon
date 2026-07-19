@@ -27,36 +27,75 @@ public sealed class DownloadModule(SiphonApi api, ProbeCache probes, JobRunner r
         var url = ExtractUrl(message)!;
         var placeholder = await ctx.Bot.SendMessage(ctx.ChatId, ctx.L.Probing, replyParameters: new ReplyParameters { MessageId = message.MessageId, AllowSendingWithoutReply = true }, cancellationToken: ct);
         await ctx.Bot.SendChatAction(ctx.ChatId, ChatAction.Typing, cancellationToken: ct);
-        string text;
-        InlineKeyboardMarkup? markup = null;
+        ProbeResult? probe;
         try
         {
-            var probe = await api.ProbeAsync(url, ct);
-            if (probe.IsLive)
-            {
-                text = ctx.L.ErrorFor("live-not-supported");
-            }
-            else
-            {
-                var token = probes.Put(new CachedProbe(url, probe, message.MessageId));
-                if (Uri.TryCreate(url, UriKind.Absolute, out var uri))
-                    db.Events.Add(new UsageEvent { ChatId = ctx.ChatId, Kind = "probe", Site = uri.Host, Utc = DateTime.UtcNow });
-                markup = VariantKeyboard.BuildTypes(probe, token, limits.Value.MaxUploadMb, ctx.L);
-                var title = string.IsNullOrWhiteSpace(probe.Title) ? url : probe.Title;
-                var prompt = markup is null ? ctx.L.AllTooLarge(limits.Value.MaxUploadMb) : ctx.L.ChooseType;
-                text = $"{title}\n\n{prompt}";
-            }
+            probe = await api.ProbeAsync(url, ct);
         }
         catch (BackendException ex)
         {
-            text = ctx.L.ErrorFor(ex.Code);
+            await EditPlaceholderAsync(ctx, placeholder.MessageId, ctx.L.ErrorFor(ex.Code), ct);
+            return;
         }
         catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or TimeoutRejectedException && !ct.IsCancellationRequested)
         {
-            text = ctx.L.ServerDown;
+            await EditPlaceholderAsync(ctx, placeholder.MessageId, ctx.L.ServerDown, ct);
+            return;
         }
-        await ctx.Bot.EditMessageText(ctx.ChatId, placeholder.MessageId, text, replyMarkup: markup, cancellationToken: ct);
+        if (probe.IsLive)
+        {
+            await EditPlaceholderAsync(ctx, placeholder.MessageId, ctx.L.ErrorFor("live-not-supported"), ct);
+            return;
+        }
+
+        var mb = limits.Value.MaxUploadMb;
+        var platform = Platforms.Detect(url);
+        var pref = await db.Prefs.FindAsync([ctx.ChatId, platform], ct) ?? new UserPref { ChatId = ctx.ChatId, Platform = platform };
+        var entry = new CachedProbe(url, probe, message.MessageId, pref);
+        var token = probes.Put(entry);
+        if (Uri.TryCreate(url, UriKind.Absolute, out var uri))
+            db.Events.Add(new UsageEvent { ChatId = ctx.ChatId, Kind = "probe", Site = uri.Host, Utc = DateTime.UtcNow });
+
+        var plan = PrefResolver.Resolve(probe, pref, mb);
+        if (plan.Step == PrefStep.Run)
+        {
+            await RunVariantAsync(ctx, entry, plan.Kind, plan.Format, plan.Index, placeholder.MessageId, null, ct);
+            return;
+        }
+
+        InlineKeyboardMarkup? markup;
+        string prompt;
+        switch (plan.Step)
+        {
+            case PrefStep.TooLarge:
+                markup = null;
+                prompt = ctx.L.AllTooLarge(mb);
+                break;
+            case PrefStep.Quality:
+                var (qm, autoRun) = VariantKeyboard.BuildQuality(probe, token, plan.Kind, plan.Format, 0, mb, ctx.L, formatLocked: true);
+                if (autoRun is int index)
+                {
+                    await RunVariantAsync(ctx, entry, plan.Kind, plan.Format, index, placeholder.MessageId, null, ct);
+                    return;
+                }
+                markup = qm;
+                prompt = ctx.L.ChooseQuality;
+                break;
+            case PrefStep.Format:
+                markup = VariantKeyboard.BuildFormats(probe, token, plan.Kind, ctx.L);
+                prompt = ctx.L.ChooseFormat;
+                break;
+            default:
+                markup = VariantKeyboard.BuildTypes(probe, token, mb, ctx.L);
+                prompt = markup is null ? ctx.L.AllTooLarge(mb) : ctx.L.ChooseType;
+                break;
+        }
+        var title = string.IsNullOrWhiteSpace(probe.Title) ? url : probe.Title!;
+        await ctx.Bot.EditMessageText(ctx.ChatId, placeholder.MessageId, $"{title}\n\n{prompt}", replyMarkup: markup, cancellationToken: ct);
     }
+
+    static Task EditPlaceholderAsync(UpdateContext ctx, int messageId, string text, CancellationToken ct) =>
+        ctx.Bot.EditMessageText(ctx.ChatId, messageId, text, cancellationToken: ct);
 
     async Task HandleCallbackAsync(UpdateContext ctx, CancellationToken ct)
     {
@@ -94,7 +133,7 @@ public sealed class DownloadModule(SiphonApi api, ProbeCache probes, JobRunner r
                     await ShowFormatAsync(ctx, entry, token, parts[3], cb, ct);
                 break;
             case "f" when parts.Length >= 5:
-                await ShowQualityAsync(ctx, entry, token, parts[3], parts[4], 0, cb, ct);
+                await ChooseFormatAsync(ctx, entry, token, parts[3], parts[4], cb, ct);
                 break;
             case "pq" when parts.Length >= 6:
                 await ShowQualityAsync(ctx, entry, token, parts[3], parts[4], int.TryParse(parts[5], out var page) ? page : 0, cb, ct);
@@ -125,26 +164,60 @@ public sealed class DownloadModule(SiphonApi api, ProbeCache probes, JobRunner r
             await ctx.Bot.AnswerCallbackQuery(cb.Id, ctx.L.Expired, showAlert: true, cancellationToken: ct);
             return;
         }
-        var formats = kind == "v" ? entry.Probe.VideoFormats : entry.Probe.AudioFormats;
-        if (formats.Count == 1)
+        var plan = PrefResolver.Resolve(entry.Probe, entry.Pref, limits.Value.MaxUploadMb, kind);
+        switch (plan.Step)
         {
-            await ShowQualityAsync(ctx, entry, token, kind, formats[0], 0, cb, ct);
-            return;
+            case PrefStep.Format:
+                await EditScreenAsync(ctx, entry, cb, ctx.L.ChooseFormat, VariantKeyboard.BuildFormats(entry.Probe, token, kind, ctx.L), ct);
+                break;
+            case PrefStep.Quality:
+                await ShowQualityAsync(ctx, entry, token, plan.Kind, plan.Format, 0, cb, ct, formatLocked: true);
+                break;
+            case PrefStep.Run:
+                await RunVariantAsync(ctx, entry, plan.Kind, plan.Format, plan.Index, cb.Message!.MessageId, cb, ct);
+                break;
+            case PrefStep.TooLarge:
+                await ctx.Bot.AnswerCallbackQuery(cb.Id, ctx.L.AllTooLarge(limits.Value.MaxUploadMb), showAlert: true, cancellationToken: ct);
+                break;
+            default:
+                await ShowTypesAsync(ctx, entry, token, cb, ct);
+                break;
         }
-        await EditScreenAsync(ctx, entry, cb, ctx.L.ChooseFormat, VariantKeyboard.BuildFormats(entry.Probe, token, kind, ctx.L), ct);
     }
 
-    async Task ShowQualityAsync(UpdateContext ctx, CachedProbe entry, string token, string kind, string format, int page, CallbackQuery cb, CancellationToken ct)
+    async Task ChooseFormatAsync(UpdateContext ctx, CachedProbe entry, string token, string kind, string format, CallbackQuery cb, CancellationToken ct)
     {
         if (kind is not ("a" or "v"))
         {
             await ctx.Bot.AnswerCallbackQuery(cb.Id, ctx.L.Expired, showAlert: true, cancellationToken: ct);
             return;
         }
-        var (markup, autoRun) = VariantKeyboard.BuildQuality(entry.Probe, token, kind, format, page, limits.Value.MaxUploadMb, ctx.L);
+        var plan = PrefResolver.Resolve(entry.Probe, entry.Pref, limits.Value.MaxUploadMb, kind, format);
+        switch (plan.Step)
+        {
+            case PrefStep.Run:
+                await RunVariantAsync(ctx, entry, kind, format, plan.Index, cb.Message!.MessageId, cb, ct);
+                break;
+            case PrefStep.TooLarge:
+                await ctx.Bot.AnswerCallbackQuery(cb.Id, ctx.L.AllTooLarge(limits.Value.MaxUploadMb), showAlert: true, cancellationToken: ct);
+                break;
+            default:
+                await ShowQualityAsync(ctx, entry, token, kind, format, 0, cb, ct);
+                break;
+        }
+    }
+
+    async Task ShowQualityAsync(UpdateContext ctx, CachedProbe entry, string token, string kind, string format, int page, CallbackQuery cb, CancellationToken ct, bool formatLocked = false)
+    {
+        if (kind is not ("a" or "v"))
+        {
+            await ctx.Bot.AnswerCallbackQuery(cb.Id, ctx.L.Expired, showAlert: true, cancellationToken: ct);
+            return;
+        }
+        var (markup, autoRun) = VariantKeyboard.BuildQuality(entry.Probe, token, kind, format, page, limits.Value.MaxUploadMb, ctx.L, formatLocked);
         if (autoRun is int index)
         {
-            await RunAsync(ctx, entry, kind, format, index, cb, ct);
+            await RunVariantAsync(ctx, entry, kind, format, index, cb.Message!.MessageId, cb, ct);
             return;
         }
         await EditScreenAsync(ctx, entry, cb, ctx.L.ChooseQuality, markup, ct);
@@ -154,25 +227,41 @@ public sealed class DownloadModule(SiphonApi api, ProbeCache probes, JobRunner r
     {
         if (kind is not ("a" or "v") || !int.TryParse(indexText, out var index))
             return ctx.Bot.AnswerCallbackQuery(cb.Id, ctx.L.Expired, showAlert: true, cancellationToken: ct);
-        return RunAsync(ctx, entry, kind, format, index, cb, ct);
+        return RunVariantAsync(ctx, entry, kind, format, index, cb.Message!.MessageId, cb, ct);
     }
 
-    async Task RunAsync(UpdateContext ctx, CachedProbe entry, string kind, string format, int index, CallbackQuery cb, CancellationToken ct)
+    async Task RunVariantAsync(UpdateContext ctx, CachedProbe entry, string kind, string format, int index, int messageId, CallbackQuery? cb, CancellationToken ct)
     {
         var formatId = kind == "v"
             ? entry.Probe.VideoVariants.ElementAtOrDefault(index)?.FormatId
             : entry.Probe.AudioVariants.ElementAtOrDefault(index)?.FormatId;
         if (formatId is null)
         {
-            await ctx.Bot.AnswerCallbackQuery(cb.Id, ctx.L.Expired, showAlert: true, cancellationToken: ct);
+            await FailAsync(ctx, cb, messageId, ctx.L.Expired, ct);
             return;
         }
         if (ctx.State.DownloadsToday >= limits.Value.DailyDownloadsPerChat)
         {
-            await ctx.Bot.AnswerCallbackQuery(cb.Id, ctx.L.DailyLimit(limits.Value.DailyDownloadsPerChat), showAlert: true, cancellationToken: ct);
+            await FailAsync(ctx, cb, messageId, ctx.L.DailyLimit(limits.Value.DailyDownloadsPerChat), ct);
             return;
         }
-        await runner.RunAsync(ctx, entry, kind == "v" ? "video" : "audio", format, formatId, cb.Message!.MessageId, ct);
+        await runner.RunAsync(ctx, entry, kind == "v" ? "video" : "audio", format, formatId, messageId, ct);
+    }
+
+    async Task FailAsync(UpdateContext ctx, CallbackQuery? cb, int messageId, string text, CancellationToken ct)
+    {
+        if (cb is not null)
+        {
+            await ctx.Bot.AnswerCallbackQuery(cb.Id, text, showAlert: true, cancellationToken: ct);
+            return;
+        }
+        try
+        {
+            await ctx.Bot.EditMessageText(ctx.ChatId, messageId, text, cancellationToken: ct);
+        }
+        catch (ApiRequestException ex) when (ex.Message.Contains("not modified"))
+        {
+        }
     }
 
     async Task StartGalleryAsync(UpdateContext ctx, CachedProbe entry, CallbackQuery cb, CancellationToken ct)

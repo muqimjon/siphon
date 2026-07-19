@@ -21,10 +21,21 @@ public sealed class UsageEvent
     public DateTime Utc { get; set; }
 }
 
+public sealed class UserPref
+{
+    public long ChatId { get; set; }
+    public string Platform { get; set; } = "";
+    public string Kind { get; set; } = "ask";
+    public string AudioFormat { get; set; } = "ask";
+    public string VideoFormat { get; set; } = "ask";
+    public string Quality { get; set; } = "ask";
+}
+
 public sealed class BotDb(DbContextOptions<BotDb> options) : DbContext(options)
 {
     public DbSet<ChatState> Chats => Set<ChatState>();
     public DbSet<UsageEvent> Events => Set<UsageEvent>();
+    public DbSet<UserPref> Prefs => Set<UserPref>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -34,6 +45,7 @@ public sealed class BotDb(DbContextOptions<BotDb> options) : DbContext(options)
             e.Property(x => x.ChatId).ValueGeneratedNever();
         });
         builder.Entity<UsageEvent>().HasIndex(x => x.Utc);
+        builder.Entity<UserPref>().HasKey(x => new { x.ChatId, x.Platform });
     }
 }
 

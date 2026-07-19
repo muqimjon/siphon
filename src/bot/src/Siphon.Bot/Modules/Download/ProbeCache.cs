@@ -1,10 +1,11 @@
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using Siphon.Bot.Backend;
+using Siphon.Bot.Data;
 
 namespace Siphon.Bot.Modules.Download;
 
-public sealed record CachedProbe(string Url, ProbeResult Probe, int SourceMessageId);
+public sealed record CachedProbe(string Url, ProbeResult Probe, int SourceMessageId, UserPref Pref);
 
 public sealed class ProbeCache(IMemoryCache cache, IOptions<LimitsOptions> limits)
 {

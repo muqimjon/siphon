@@ -29,6 +29,48 @@ public abstract class Msg
         _ => Downloading
     };
 
+    public string PlatformName(string platform) => platform switch
+    {
+        "youtube" => "YouTube",
+        "instagram" => "Instagram",
+        "tiktok" => "TikTok",
+        "x" => "X",
+        "facebook" => "Facebook",
+        _ => OtherPlatform
+    };
+
+    public string KindLabel(string value) => value switch
+    {
+        "audio" => TypeAudio,
+        "video" => TypeVideo,
+        _ => KindAsk
+    };
+
+    public string AudioFormatLabel(string value) => value switch
+    {
+        "mp3" => "MP3",
+        "m4a" => "M4A",
+        "opus" => "OPUS",
+        _ => OptAsk
+    };
+
+    public string VideoFormatLabel(string value) => value switch
+    {
+        "mp4" => "MP4",
+        "webm" => "WEBM",
+        _ => OptAsk
+    };
+
+    public string QualityLabel(string value) => value switch
+    {
+        "high" => QualHigh,
+        "medium" => QualMedium,
+        "low" => QualLow,
+        _ => OptAsk
+    };
+
+    public string SettingsPlatform(string name) => $"⚙️ {name}\n\n{SettingsHint}";
+
     public abstract string LangName { get; }
     public abstract string Welcome { get; }
     public abstract string SendLink { get; }
@@ -61,4 +103,17 @@ public abstract class Msg
     public abstract string DailyLimit(int n);
     public abstract string Images(int n);
     public abstract string ErrorFor(string code);
+    public abstract string AdminUpsell { get; }
+    public abstract string SettingsIntro { get; }
+    public abstract string SettingsHint { get; }
+    public abstract string PrefKind { get; }
+    public abstract string PrefAudioFormat { get; }
+    public abstract string PrefVideoFormat { get; }
+    public abstract string PrefQuality { get; }
+    public abstract string KindAsk { get; }
+    public abstract string OptAsk { get; }
+    public abstract string QualHigh { get; }
+    public abstract string QualMedium { get; }
+    public abstract string QualLow { get; }
+    public abstract string OtherPlatform { get; }
 }

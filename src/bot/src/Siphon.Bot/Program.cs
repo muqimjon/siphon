@@ -8,6 +8,7 @@ using Siphon.Bot.Data;
 using Siphon.Bot.Middleware;
 using Siphon.Bot.Modules.Core;
 using Siphon.Bot.Modules.Download;
+using Siphon.Bot.Modules.Settings;
 using Telegram.Bot;
 
 var builder = Host.CreateApplicationBuilder(args);
@@ -57,6 +58,7 @@ services.AddScoped<IUpdateMiddleware>(sp => sp.GetRequiredService<SubscriptionGa
 services.AddScoped<IUpdateMiddleware, RouterMiddleware>();
 services.AddScoped<UpdatePipeline>();
 services.AddScoped<IFeatureModule, DownloadModule>();
+services.AddScoped<IFeatureModule, SettingsModule>();
 services.AddScoped<IFeatureModule, CoreModule>();
 services.AddSingleton<ProbeCache>();
 services.AddSingleton<JobRunner>();
