@@ -19,6 +19,7 @@ public sealed class SiphonOptions
     public SelfUpdateOptions SelfUpdate { get; set; } = new();
     public string FileTokenSecret { get; set; } = "";
     public Dictionary<string, string> ApiKeys { get; set; } = [];
+    public Dictionary<string, int> ClientLimits { get; set; } = [];
 
     public sealed class ToolPaths
     {

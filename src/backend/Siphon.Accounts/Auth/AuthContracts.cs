@@ -15,4 +15,4 @@ public sealed record TokenResponse(string Token);
 
 public sealed record MeResponse(string Email, string Role, PlanView Plan, IReadOnlyList<string> Providers);
 
-public sealed record PlanView(string Name, int DailyRequests, int MaxConcurrent, int MaxFileSizeMb);
+public sealed record PlanView(string Name, int DailyRequests, int MaxConcurrent, int MaxFileSizeMb, int UsedToday);

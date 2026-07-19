@@ -45,6 +45,7 @@ public static class MediaModule
         services.AddSingleton<JobHandlers>();
         services.AddSingleton<FileHandler>();
         services.AddSingleton<HealthHandler>();
+        services.AddHttpContextAccessor();
         services.AddScoped<IApiAuthenticator, StaticKeyAuthenticator>();
         services.AddSingleton<IUsageSink, NullUsageSink>();
         services.AddHostedService<JobWorker>();

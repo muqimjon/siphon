@@ -3,7 +3,9 @@ using Microsoft.Extensions.Options;
 
 namespace Siphon.Media.Http;
 
-public sealed record ApiCaller(string Kind, string Id);
+public sealed record CallerLimits(int MaxFileSizeMb);
+
+public sealed record ApiCaller(string Kind, string Id, CallerLimits Limits);
 
 public sealed record AuthOutcome(ApiCaller? Caller, string? ErrorCode)
 {
@@ -28,7 +30,9 @@ public sealed class StaticKeyAuthenticator(IOptions<SiphonOptions> options) : IA
     {
         var key = context.Request.Headers["X-Api-Key"].ToString();
         var client = key.Length == 0 ? null : options.Value.ApiKeys.FirstOrDefault(kv => kv.Value == key).Key;
-        return Task.FromResult(client is null ? AuthOutcome.Unauthorized : AuthOutcome.Ok(new ApiCaller("client", client)));
+        if (client is null) return Task.FromResult(AuthOutcome.Unauthorized);
+        var maxMb = options.Value.ClientLimits.GetValueOrDefault(client, options.Value.MaxFileSizeMb);
+        return Task.FromResult(AuthOutcome.Ok(new ApiCaller("client", client, new CallerLimits(maxMb))));
     }
 }
 

@@ -1,8 +1,12 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Siphon.Accounts.Data;
+using Siphon.Media;
+using Siphon.Media.Http;
 
 namespace Siphon.Accounts.Admin;
+
+public sealed record SetUserLimitsRequest(int? FileSizeLimitMb, int? DailyRequestLimit);
 
 public sealed class AdminHandlers(AccountsDb db)
 {
@@ -26,7 +30,7 @@ public sealed class AdminHandlers(AccountsDb db)
             .ToDictionaryAsync(x => x.UserId, x => x.Total);
 
         var users = await db.Users.Include(u => u.Plan)
-            .Select(u => new { u.Id, u.Email, u.Role, Plan = u.Plan!.Name, u.CreatedAt })
+            .Select(u => new { u.Id, u.Email, u.Role, u.Plan, u.CreatedAt, u.FileSizeLimitMbOverride, u.DailyRequestLimitOverride })
             .ToListAsync();
 
         var result = users.Select(u => new
@@ -34,10 +38,26 @@ public sealed class AdminHandlers(AccountsDb db)
             u.Id,
             u.Email,
             u.Role,
-            u.Plan,
+            Plan = u.Plan!.Name,
             u.CreatedAt,
             TotalUsage = totals.GetValueOrDefault(u.Id),
+            Limits = new UserLimitsView(
+                u.FileSizeLimitMbOverride ?? u.Plan!.MaxFileSizeMb,
+                u.DailyRequestLimitOverride ?? u.Plan!.DailyRequests,
+                u.FileSizeLimitMbOverride, u.DailyRequestLimitOverride),
         });
         return Results.Ok(result);
+    }
+
+    public async Task<IResult> SetLimits(string id, SetUserLimitsRequest request)
+    {
+        var user = await db.Users.Include(u => u.Plan).FirstOrDefaultAsync(u => u.Id == id);
+        if (user?.Plan is null)
+            return Problems.Create(ErrorCodes.JobNotFound, "User not found.");
+
+        user.FileSizeLimitMbOverride = request.FileSizeLimitMb;
+        user.DailyRequestLimitOverride = request.DailyRequestLimit;
+        await db.SaveChangesAsync();
+        return Results.Ok(user.EffectiveLimits());
     }
 }

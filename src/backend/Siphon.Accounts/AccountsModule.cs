@@ -16,6 +16,7 @@ using Siphon.Accounts.Data;
 using Siphon.Accounts.Email;
 using Siphon.Accounts.Integration;
 using Siphon.Accounts.Tokens;
+using Siphon.Accounts.Usage;
 using Siphon.Media.Http;
 
 namespace Siphon.Accounts;
@@ -51,6 +52,7 @@ public static class AccountsModule
         services.AddScoped<ExternalAuthHandlers>();
         services.AddScoped<TokenHandlers>();
         services.AddScoped<AdminHandlers>();
+        services.AddScoped<UsageHandlers>();
         services.AddScoped<IApiAuthenticator, DbApiAuthenticator>();
         services.AddScoped<IUsageSink, DbUsageSink>();
 
@@ -115,6 +117,9 @@ public static class AccountsModule
         app.MapGet("/api/v1/me", (ClaimsPrincipal u, AuthHandlers h) => h.Me(u))
             .RequireAuthorization().WithTags("Account").WithSummary("Current account, plan and linked providers");
 
+        app.MapGet("/api/v1/usage", (ClaimsPrincipal u, int? days, UsageHandlers h) => h.Mine(u, days))
+            .RequireAuthorization().WithTags("Account").WithSummary("Your daily request counts and effective limits");
+
         var tokens = app.MapGroup("/api/v1/tokens").WithTags("Tokens").RequireAuthorization();
         tokens.MapGet("", (ClaimsPrincipal u, TokenHandlers h) => h.List(u)).WithSummary("List your API tokens");
         tokens.MapPost("", (ClaimsPrincipal u, CreateTokenRequest r, TokenHandlers h) => h.Create(u, r))
@@ -125,6 +130,8 @@ public static class AccountsModule
         admin.MapGet("/usage", (DateOnly? from, DateOnly? to, AdminHandlers h) => h.Usage(from, to))
             .WithSummary("Usage aggregated by user and day");
         admin.MapGet("/users", (AdminHandlers h) => h.Users()).WithSummary("All users with plan and total usage");
+        admin.MapPut("/users/{id}/limits", (string id, SetUserLimitsRequest r, AdminHandlers h) => h.SetLimits(id, r))
+            .WithSummary("Set per-user file-size and daily-request overrides");
 
         return app;
     }

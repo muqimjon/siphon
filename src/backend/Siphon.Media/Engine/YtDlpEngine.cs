@@ -72,7 +72,7 @@ public sealed class YtDlpEngine(IOptions<SiphonOptions> options, SelfUpdater upd
         if (produced is null)
         {
             if (exit.Stdout.Contains("larger than max-filesize"))
-                throw new MediaEngineException(ErrorCodes.TooLarge, $"File is larger than the {_options.MaxFileSizeMb} MB limit.");
+                throw new MediaEngineException(ErrorCodes.TooLarge, $"File is larger than the {job.Request.MaxFileSizeMb} MB limit.");
             throw new MediaEngineException(
                 exit.Stdout.Contains("does not pass filter") ? ErrorCodes.LiveNotSupported : ErrorCodes.ExtractorBroken,
                 "Download produced no output file.");
@@ -111,7 +111,7 @@ public sealed class YtDlpEngine(IOptions<SiphonOptions> options, SelfUpdater upd
         {
             "--no-playlist", "--no-warnings", "--newline",
             "--socket-timeout", "15", "-N", "4",
-            "--max-filesize", $"{_options.MaxFileSizeMb}M",
+            "--max-filesize", $"{job.Request.MaxFileSizeMb}M",
             "--match-filter", "!is_live & !is_upcoming",
             "--progress-template", ProgressParser.Template,
             "-o", Path.Combine(job.Dir, "%(title).120B [%(id)s].%(ext)s"),

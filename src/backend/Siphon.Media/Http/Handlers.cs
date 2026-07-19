@@ -74,7 +74,7 @@ public sealed class ProbeHandler(YtDlpEngine ytDlp, GalleryDlEngine galleryDl, I
     }
 }
 
-public sealed class JobHandlers(JobEngine engine, JobStore store, GalleryDlEngine galleryDl, FileTokenService tokens, IOptions<SiphonOptions> options)
+public sealed class JobHandlers(JobEngine engine, JobStore store, GalleryDlEngine galleryDl, FileTokenService tokens, IHttpContextAccessor http, IOptions<SiphonOptions> options)
 {
     private static readonly HashSet<string> Outputs = ["audio", "video", "gallery"];
 
@@ -91,9 +91,11 @@ public sealed class JobHandlers(JobEngine engine, JobStore store, GalleryDlEngin
         if (request.Output != "gallery" && !OutputFormat.IsValid(request.Output, format))
             return Problems.Create(ErrorCodes.InvalidUrl, "Unsupported format for this output.");
 
+        var maxFileSizeMb = (http.HttpContext?.Items["caller"] as ApiCaller)?.Limits.MaxFileSizeMb ?? options.Value.MaxFileSizeMb;
+
         try
         {
-            var job = engine.Create(new JobRequest(request.Url, request.Output, format, request.FormatId, request.Cookies));
+            var job = engine.Create(new JobRequest(request.Url, request.Output, format, request.FormatId, request.Cookies, maxFileSizeMb));
             return Results.Accepted($"/api/v1/jobs/{job.Id}", new CreateJobResponse(job.Id, $"/api/v1/jobs/{job.Id}"));
         }
         catch (MediaEngineException ex)

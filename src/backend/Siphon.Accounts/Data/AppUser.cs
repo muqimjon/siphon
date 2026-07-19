@@ -8,4 +8,6 @@ public sealed class AppUser : IdentityUser
     public Plan? Plan { get; set; }
     public string Role { get; set; } = "user";
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public int? FileSizeLimitMbOverride { get; set; }
+    public int? DailyRequestLimitOverride { get; set; }
 }
