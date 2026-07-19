@@ -5,7 +5,7 @@ public sealed class MsgEn : Msg
     public override string LangName => "English";
     public override string Welcome => "Hi! 👋 I download videos, music and pictures from the internet.\n\nSend me a link — from YouTube, Instagram, TikTok and more. I'll handle the rest 😉";
     public override string SendLink => "Send me a link and I'll download it 😉";
-    public override string Probing => "🔎 Checking the link…";
+    public override string Probing => "🔎 Opening the link…";
     public override string ChooseType => "What should I download?";
     public override string ChooseFormat => "Which format?";
     public override string ChooseQuality => "Which quality?";
@@ -17,7 +17,7 @@ public sealed class MsgEn : Msg
     public override string Queued => "⏳ In the queue…";
     public override string Downloading => "⬇️ Downloading…";
     public override string Converting => "🎛 Processing…";
-    public override string Uploading => "📤 Sending to Telegram…";
+    public override string Uploading => "📤 Sending…";
     public override string Busy => "Please wait for your current download to finish 🙂";
     public override string ServerBusy => "Everything is busy right now. Try again in a couple of minutes 🙏";
     public override string ServerDown => "The server is taking a nap 😴 Please try again later.";

@@ -5,7 +5,7 @@ public sealed class MsgRu : Msg
     public override string LangName => "Русский";
     public override string Welcome => "Привет! 👋 Я скачиваю видео, музыку и картинки из интернета.\n\nПришлите мне ссылку — например, с YouTube, Instagram или TikTok. Остальное сделаю сам 😉";
     public override string SendLink => "Пришлите ссылку — скачаю 😉";
-    public override string Probing => "🔎 Проверяю ссылку…";
+    public override string Probing => "🔎 Открываю ссылку…";
     public override string ChooseType => "Что скачать?";
     public override string ChooseFormat => "В каком формате?";
     public override string ChooseQuality => "В каком качестве?";
@@ -17,7 +17,7 @@ public sealed class MsgRu : Msg
     public override string Queued => "⏳ В очереди…";
     public override string Downloading => "⬇️ Скачиваю…";
     public override string Converting => "🎛 Обрабатываю…";
-    public override string Uploading => "📤 Отправляю в Telegram…";
+    public override string Uploading => "📤 Отправляю…";
     public override string Busy => "Дождитесь окончания текущей загрузки 🙂";
     public override string ServerBusy => "Сейчас всё занято. Попробуйте через пару минут 🙏";
     public override string ServerDown => "Сервер немного отдыхает 😴 Попробуйте позже.";

@@ -5,7 +5,7 @@ public sealed class MsgUz : Msg
     public override string LangName => "O'zbekcha";
     public override string Welcome => "Salom! 👋 Men internetdan video, musiqa va rasm yuklab beraman.\n\nMenga havola yuboring — masalan YouTube, Instagram yoki TikTokdan. Qolganini o'zim qilaman 😉";
     public override string SendLink => "Havola yuboring — yuklab beraman 😉";
-    public override string Probing => "🔎 Havolani tekshiryapman…";
+    public override string Probing => "🔎 Havolani ochyapman…";
     public override string ChooseType => "Nimani yuklay?";
     public override string ChooseFormat => "Qaysi formatda?";
     public override string ChooseQuality => "Qaysi sifatda?";
@@ -17,11 +17,11 @@ public sealed class MsgUz : Msg
     public override string Queued => "⏳ Navbatda…";
     public override string Downloading => "⬇️ Yuklab olyapman…";
     public override string Converting => "🎛 Tayyorlayapman…";
-    public override string Uploading => "📤 Telegramga yuboryapman…";
+    public override string Uploading => "📤 Jo'natyapman…";
     public override string Busy => "Avvalgi yuklash tugashini kutib turing 🙂";
     public override string ServerBusy => "Hozir hamma joy band. Bir-ikki daqiqadan keyin urinib ko'ring 🙏";
     public override string ServerDown => "Server biroz dam olyapti 😴 Keyinroq urinib ko'ring.";
-    public override string Oops => "Nimadir xato ketdi 😅 Yana bir bor urinib ko'ring.";
+    public override string Oops => "Bu safar chiqmadi 😅 Yana bir bor urinib ko'ring.";
     public override string TimedOut => "Juda uzoq cho'zildi, to'xtatishga to'g'ri keldi 😔 Yana urinib ko'ring.";
     public override string Expired => "Bu tugmaning vaqti o'tib ketibdi. Havolani qaytadan yuboring 🙂";
     public override string SubscribeFirst => "Botdan foydalanish uchun avval kanalimizga obuna bo'ling 🙂";
