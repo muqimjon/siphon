@@ -1,0 +1,42 @@
+services:
+  api:
+    build:
+      context: ..
+      dockerfile: docker/backend.Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - Siphon__FileTokenSecret=${SIPHON_TOKEN_SECRET}
+      - Siphon__ApiKeys__extension=${SIPHON_KEY_EXTENSION}
+      - Siphon__ApiKeys__web=${SIPHON_KEY_WEB}
+      - Siphon__ApiKeys__bot=${SIPHON_KEY_BOT}
+    restart: unless-stopped
+
+  bot:
+    build:
+      context: ../src/bot
+      dockerfile: Dockerfile
+    environment:
+      - Bot__Token=${BOT_TOKEN}
+      - Backend__BaseUrl=http://api:8080
+      - Backend__ApiKey=${SIPHON_KEY_BOT}
+      - Db__Path=/data/bot.db
+    volumes:
+      - botdata:/data
+    depends_on:
+      - api
+    restart: unless-stopped
+
+#  telegram-bot-api:
+#    image: aiogram/telegram-bot-api:latest
+#    environment:
+#      - TELEGRAM_API_ID=${TG_API_ID}
+#      - TELEGRAM_API_HASH=${TG_API_HASH}
+#    volumes:
+#      - tgapidata:/var/lib/telegram-bot-api
+#    restart: unless-stopped
+#    # 2GB fayl limiti uchun: botda Bot__ApiBaseUrl=http://telegram-bot-api:8081
+
+volumes:
+  botdata:
+#  tgapidata:
