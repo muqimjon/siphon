@@ -17,12 +17,16 @@ public static class ErrorCodes
     public const string JobNotFound = "job-not-found";
     public const string TokenInvalid = "token-invalid";
     public const string TokenExpired = "token-expired";
+    public const string Unauthorized = "unauthorized";
+    public const string QuotaExceeded = "quota-exceeded";
 
     public static int HttpStatus(string code) => code switch
     {
         InvalidUrl => 400,
+        Unauthorized => 401,
         TooLarge => 413,
         QueueFull => 429,
+        QuotaExceeded => 429,
         DiskFull => 503,
         ExtractorBroken => 502,
         JobNotFound => 404,
