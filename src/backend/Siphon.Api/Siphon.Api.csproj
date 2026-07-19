@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <ItemGroup>
     <ProjectReference Include="..\Siphon.Media\Siphon.Media.csproj" />
@@ -16,13 +16,14 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <Version>0.0.1</Version>
+    <UserSecretsId>212f4135-7345-4797-8152-541ec1d66e2b</UserSecretsId>
   </PropertyGroup>
 
   <Target Name="CopyWebDist" BeforeTargets="Build" Condition="Exists('..\..\web\dist\siphon-web')">
     <ItemGroup>
       <WebDist Include="..\..\web\dist\siphon-web\**\*" />
     </ItemGroup>
-    <Copy SourceFiles="@(WebDist)" DestinationFiles="@(WebDist->'wwwroot\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(WebDist)" DestinationFiles="@(WebDist-&gt;'wwwroot\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
   </Target>
 
 </Project>

@@ -115,7 +115,10 @@ public static class AccountsModule
             {
                 google = options.Google.Enabled,
                 github = options.GitHub.Enabled,
-                telegram = !string.IsNullOrWhiteSpace(options.TelegramBotToken) && !string.IsNullOrWhiteSpace(options.BotUsername),
+                telegram = !string.IsNullOrWhiteSpace(options.TelegramBotToken)
+                    && !string.IsNullOrWhiteSpace(options.BotUsername)
+                    && !options.WebBaseUrl.Contains("localhost", StringComparison.OrdinalIgnoreCase)
+                    && !options.WebBaseUrl.Contains("127.0.0.1", StringComparison.Ordinal),
                 botUsername = options.BotUsername,
             }))
             .WithSummary("Which sign-in providers this server has configured");
