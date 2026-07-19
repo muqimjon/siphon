@@ -57,10 +57,16 @@ public sealed class JobWorker(
                         job.Phase = phase;
                     }, linked.Token);
 
+                var produced = new FileInfo(outcome.Path).Length;
+                var cap = (long)job.Request.MaxFileSizeMb * 1024 * 1024;
+                if (produced > cap)
+                    throw new MediaEngineException(ErrorCodes.TooLarge,
+                        $"File is larger than the {job.Request.MaxFileSizeMb} MB limit.");
+
                 job.FilePath = outcome.Path;
                 job.FileName = outcome.FileName;
                 job.ContentType = outcome.ContentType;
-                job.FileSizeBytes = new FileInfo(outcome.Path).Length;
+                job.FileSizeBytes = produced;
                 job.ProgressPct = 100;
                 job.EtaSec = 0;
                 job.Phase = null;
