@@ -46,11 +46,15 @@
         <span class="usage-label">{{ i18n.t('dash.usageDaily') }}</span>
       </div>
       <div class="usage-stat">
+        <span class="usage-value">{{ volume(u.monthBytes) }} / {{ u.limits.monthlyGb }} GB</span>
+        <span class="usage-label">{{ i18n.t('dash.monthVolume') }}</span>
+      </div>
+      <div class="usage-stat">
         <span class="usage-value">{{ i18n.t('dash.mb', { size: u.limits.maxFileSizeMb }) }}</span>
         <span class="usage-label">{{ i18n.t('dash.usageFileSize') }}</span>
       </div>
       <div class="usage-stat">
-        <span class="usage-value">{{ auth.user()?.plan?.maxConcurrent }}</span>
+        <span class="usage-value">{{ u.limits.maxConcurrent }}</span>
         <span class="usage-label">{{ i18n.t('dash.usageConcurrent') }}</span>
       </div>
     </div>

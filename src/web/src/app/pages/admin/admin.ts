@@ -25,6 +25,7 @@ export class Admin {
   readonly edited = signal<AdminUser | null>(null);
   readonly concurrentVal = signal('');
   readonly expiresVal = signal('');
+  readonly monthlyVal = signal('');
   readonly fileVal = signal('');
   readonly dailyVal = signal('');
   readonly saving = signal(false);
@@ -43,6 +44,7 @@ export class Admin {
     this.dailyVal.set(u.limits.dailyRequestLimitOverride?.toString() ?? '');
     this.concurrentVal.set(u.limits.concurrentLimitOverride?.toString() ?? '');
     this.expiresVal.set(u.limits.overridesExpireAt ? u.limits.overridesExpireAt.slice(0, 10) : '');
+    this.monthlyVal.set(u.limits.monthlyGbOverride?.toString() ?? '');
     this.edited.set(u);
   }
 
@@ -71,6 +73,7 @@ export class Admin {
         this.parse(this.fileVal()),
         this.parse(this.dailyVal()),
         this.parse(this.concurrentVal()),
+        this.parse(this.monthlyVal()),
         expires ? new Date(expires + 'T23:59:59Z').toISOString() : null,
       )
       .then((limits) => {

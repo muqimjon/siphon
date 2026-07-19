@@ -72,7 +72,7 @@ public sealed class DbApiAuthenticator(StaticKeyAuthenticator staticKey, Account
         if (tokenId is not null)
             context.Items[TokenIdItem] = tokenId;
         return AuthOutcome.Ok(new ApiCaller("user", userId,
-            new CallerLimits(user.EffectiveMaxFileSizeMb(), user.EffectiveDailyRequests(), user.EffectiveMaxConcurrent()))
+            new CallerLimits(user.EffectiveMaxFileSizeMb(), user.EffectiveDailyRequests(), user.EffectiveMaxConcurrent(), user.EffectiveMonthlyGb()))
         { TokenId = tokenId });
     }
 

@@ -9,7 +9,7 @@ namespace Siphon.Accounts.Usage;
 
 public sealed record UsageDayView(string DateUtc, int Count);
 
-public sealed record UsageResponse(IReadOnlyList<UsageDayView> Daily, UserLimitsView Limits, int UsedToday);
+public sealed record UsageResponse(IReadOnlyList<UsageDayView> Daily, UserLimitsView Limits, int UsedToday, long MonthBytes);
 
 public sealed class UsageHandlers(AccountsDb db)
 {
@@ -34,7 +34,12 @@ public sealed class UsageHandlers(AccountsDb db)
             .Select(d => new UsageDayView(d.ToString("yyyy-MM-dd"), counts.GetValueOrDefault(d)))
             .ToList();
 
-        return Results.Ok(new UsageResponse(daily, user.EffectiveLimits(), counts.GetValueOrDefault(today)));
+        var monthStart = new DateOnly(today.Year, today.Month, 1);
+        var monthBytes = await db.Usage
+            .Where(u => u.UserId == id && u.DateUtc >= monthStart)
+            .SumAsync(u => (long?)u.Bytes) ?? 0;
+
+        return Results.Ok(new UsageResponse(daily, user.EffectiveLimits(), counts.GetValueOrDefault(today), monthBytes));
     }
 
     public async Task<IResult> ByToken(ClaimsPrincipal principal, int? days)

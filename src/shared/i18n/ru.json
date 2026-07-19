@@ -264,5 +264,9 @@
   "admin.until": "до {date}",
   "admin.expired": "Срок истёк — тариф Free",
   "admin.expiryHint": "По истечении срока лимиты автоматически вернутся к Free. Пусто — бессрочно.",
-  "tokens.bytes": "Объём"
+  "tokens.bytes": "Объём",
+  "admin.colMonthly": "Объём/мес",
+  "admin.monthlyLabel": "Объём в месяц (ГБ)",
+  "admin.gb": "{size} ГБ",
+  "dash.monthVolume": "Скачано в этом месяце"
 }

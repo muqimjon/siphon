@@ -9,4 +9,5 @@ public sealed class Plan
     public int DailyRequests { get; set; }
     public int MaxConcurrent { get; set; }
     public int MaxFileSizeMb { get; set; }
+    public int MonthlyGb { get; set; }
 }

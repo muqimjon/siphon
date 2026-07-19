@@ -18,17 +18,27 @@ public sealed class DbUsageSink(AccountsDb db, IHttpContextAccessor http) : IUsa
         await db.SaveChangesAsync();
     }
 
-    public async Task<bool> TryConsumeAsync(ApiCaller caller, string endpoint)
+    public async Task<string?> TryConsumeAsync(ApiCaller caller, string endpoint)
     {
-        if (caller.Kind != "user") return true;
+        if (caller.Kind != "user") return null;
 
         var tokenId = caller.TokenId ?? http.HttpContext?.Items[DbApiAuthenticator.TokenIdItem] as Guid?;
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
 
+        if (caller.Limits.MonthlyGb is { } gb and > 0)
+        {
+            var monthStart = new DateOnly(today.Year, today.Month, 1);
+            var usedBytes = await db.Usage
+                .Where(u => u.UserId == caller.Id && u.DateUtc >= monthStart)
+                .SumAsync(u => (long?)u.Bytes) ?? 0;
+            if (usedBytes >= (long)gb * 1024 * 1024 * 1024)
+                return $"Monthly download volume of {gb} GB is used up. It resets at the start of next month.";
+        }
+
         if (caller.Limits.DailyRequests is { } cap)
         {
             var used = await db.Usage.Where(u => u.UserId == caller.Id && u.DateUtc == today).SumAsync(u => (int?)u.Count) ?? 0;
-            if (used >= cap) return false;
+            if (used >= cap) return $"Daily limit of {cap} downloads is used up.";
         }
 
         for (var attempt = 0; ; attempt++)
@@ -42,7 +52,7 @@ public sealed class DbUsageSink(AccountsDb db, IHttpContextAccessor http) : IUsa
             try
             {
                 await db.SaveChangesAsync();
-                return true;
+                return null;
             }
             catch (DbUpdateException) when (attempt == 0)
             {

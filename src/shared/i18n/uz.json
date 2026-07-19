@@ -264,5 +264,9 @@
   "admin.until": "{date} gacha",
   "admin.expired": "Muddati tugagan — Free tarifda",
   "admin.expiryHint": "Muddat tugagach limitlar avtomatik Free tarifiga qaytadi. Bo'sh qoldirilsa — muddatsiz.",
-  "tokens.bytes": "Hajm"
+  "tokens.bytes": "Hajm",
+  "admin.colMonthly": "Oylik hajm",
+  "admin.monthlyLabel": "Oylik hajm (GB)",
+  "admin.gb": "{size} GB",
+  "dash.monthVolume": "Shu oyda yuklangan"
 }

@@ -26,6 +26,7 @@ public sealed class AccountsDb(DbContextOptions<AccountsDb> options) : IdentityD
             DailyRequests = 100,
             MaxConcurrent = 2,
             MaxFileSizeMb = 500,
+            MonthlyGb = 5,
         });
 
         builder.Entity<ApiToken>().HasIndex(t => t.TokenHash).IsUnique();

@@ -8,6 +8,7 @@ export interface Plan {
   name: string;
   dailyRequests: number;
   maxConcurrent: number;
+  monthlyGb: number;
   maxFileSizeMb: number;
 }
 
@@ -46,9 +47,11 @@ export interface Limits {
   maxFileSizeMb: number;
   dailyRequests: number;
   maxConcurrent: number;
+  monthlyGb: number;
   fileSizeLimitMbOverride: number | null;
   dailyRequestLimitOverride: number | null;
   concurrentLimitOverride: number | null;
+  monthlyGbOverride: number | null;
   overridesExpireAt: string | null;
   overridesActive: boolean;
 }
@@ -102,6 +105,7 @@ export interface Usage {
   daily: { dateUtc: string; count: number }[];
   limits: Limits;
   usedToday: number;
+  monthBytes: number;
 }
 
 export interface AdminUser {
@@ -252,12 +256,14 @@ export class Auth {
     fileSizeLimitMb: number | null,
     dailyRequestLimit: number | null,
     concurrentLimit: number | null,
+    monthlyGb: number | null,
     expiresAt: string | null,
   ): Promise<Limits> {
     return this.request<Limits>('PUT', `/admin/users/${id}/limits`, {
       fileSizeLimitMb,
       dailyRequestLimit,
       concurrentLimit,
+      monthlyGb,
       expiresAt,
     });
   }

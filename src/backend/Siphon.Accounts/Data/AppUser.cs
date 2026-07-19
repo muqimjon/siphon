@@ -13,5 +13,6 @@ public sealed class AppUser : IdentityUser
     public int? FileSizeLimitMbOverride { get; set; }
     public int? DailyRequestLimitOverride { get; set; }
     public int? ConcurrentLimitOverride { get; set; }
+    public int? MonthlyGbOverride { get; set; }
     public DateTime? OverridesExpireAt { get; set; }
 }

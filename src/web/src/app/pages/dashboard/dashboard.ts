@@ -33,6 +33,11 @@ export class Dashboard {
     return new Date(iso).toLocaleDateString(this.i18n.lang());
   }
 
+  volume(bytes: number): string {
+    const gb = bytes / 1073741824;
+    return gb >= 1 ? gb.toFixed(1) : (bytes / 1048576).toFixed(0) + ' MB';
+  }
+
   private applyUsage(usage: Usage): void {
     this.usage.set(usage);
     const max = Math.max(1, ...usage.daily.map((d) => d.count));

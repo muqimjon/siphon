@@ -6,7 +6,7 @@ using Siphon.Media.Http;
 
 namespace Siphon.Accounts.Admin;
 
-public sealed record SetUserLimitsRequest(int? FileSizeLimitMb, int? DailyRequestLimit, int? ConcurrentLimit, DateTime? ExpiresAt);
+public sealed record SetUserLimitsRequest(int? FileSizeLimitMb, int? DailyRequestLimit, int? ConcurrentLimit, int? MonthlyGb, DateTime? ExpiresAt);
 
 public sealed class AdminHandlers(AccountsDb db)
 {
@@ -55,6 +55,7 @@ public sealed class AdminHandlers(AccountsDb db)
         user.FileSizeLimitMbOverride = request.FileSizeLimitMb;
         user.DailyRequestLimitOverride = request.DailyRequestLimit;
         user.ConcurrentLimitOverride = request.ConcurrentLimit;
+        user.MonthlyGbOverride = request.MonthlyGb;
         user.OverridesExpireAt = request.ExpiresAt;
         await db.SaveChangesAsync();
         return Results.Ok(user.EffectiveLimits());

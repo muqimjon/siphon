@@ -97,8 +97,8 @@ public sealed class JobHandlers(JobEngine engine, JobStore store, GalleryDlEngin
         var caller = http.HttpContext?.Items["caller"] as ApiCaller;
         if (caller?.Limits.MaxConcurrent is int maxActive && store.ActiveFor(caller.Id) >= maxActive)
             return Problems.Create(ErrorCodes.QuotaExceeded, $"You already have {maxActive} download(s) running.");
-        if (caller is not null && !await usage.TryConsumeAsync(caller, "download"))
-            return Problems.Create(ErrorCodes.QuotaExceeded, "Daily download quota exceeded.");
+        if (caller is not null && await usage.TryConsumeAsync(caller, "download") is { } denied)
+            return Problems.Create(ErrorCodes.QuotaExceeded, denied);
 
         var maxFileSizeMb = caller?.Limits.MaxFileSizeMb ?? options.Value.MaxFileSizeMb;
 

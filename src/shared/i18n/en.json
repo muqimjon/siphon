@@ -264,5 +264,9 @@
   "admin.until": "until {date}",
   "admin.expired": "Expired — back on Free",
   "admin.expiryHint": "When it expires the limits fall back to Free automatically. Leave empty for no expiry.",
-  "tokens.bytes": "Volume"
+  "tokens.bytes": "Volume",
+  "admin.colMonthly": "Monthly volume",
+  "admin.monthlyLabel": "Monthly volume (GB)",
+  "admin.gb": "{size} GB",
+  "dash.monthVolume": "Downloaded this month"
 }

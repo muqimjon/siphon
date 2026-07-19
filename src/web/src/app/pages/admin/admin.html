@@ -29,6 +29,7 @@
           <th>{{ i18n.t('admin.colRole') }}</th>
           <th>{{ i18n.t('admin.colPlan') }}</th>
           <th>{{ i18n.t('admin.colFileSize') }}</th>
+          <th>{{ i18n.t('admin.colMonthly') }}</th>
           <th>{{ i18n.t('admin.colDaily') }}</th>
           <th>{{ i18n.t('admin.colJoined') }}</th>
           <th class="num">{{ i18n.t('admin.colUsage') }}</th>
@@ -58,6 +59,12 @@
               }
             </td>
             <td>
+              {{ i18n.t('admin.gb', { size: u.limits.monthlyGb }) }}
+              @if (u.limits.monthlyGbOverride !== null) {
+                <span class="sp-badge sp-badge-warn">{{ i18n.t('admin.override') }}</span>
+              }
+            </td>
+            <td>
               {{ u.limits.dailyRequests }}
               @if (u.limits.dailyRequestLimitOverride !== null) {
                 <span class="sp-badge sp-badge-warn">{{ i18n.t('admin.override') }}</span>
@@ -70,7 +77,7 @@
             </td>
           </tr>
         } @empty {
-          <tr><td colspan="8" class="admin-empty">{{ i18n.t('admin.empty') }}</td></tr>
+          <tr><td colspan="9" class="admin-empty">{{ i18n.t('admin.empty') }}</td></tr>
         }
       </tbody>
     </table>
@@ -103,6 +110,12 @@
           <input class="sp-input" #conInput type="number" min="1" inputmode="numeric"
                  [placeholder]="i18n.t('admin.limitPlaceholder')"
                  [value]="concurrentVal()" (input)="concurrentVal.set(conInput.value)">
+        </label>
+        <label class="limits-field">
+          <span>{{ i18n.t('admin.monthlyLabel') }}</span>
+          <input class="sp-input" #monInput type="number" min="1" inputmode="numeric"
+                 [placeholder]="i18n.t('admin.limitPlaceholder')"
+                 [value]="monthlyVal()" (input)="monthlyVal.set(monInput.value)">
         </label>
         <label class="limits-field">
           <span>{{ i18n.t('admin.expiresLabel') }}</span>
