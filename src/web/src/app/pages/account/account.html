@@ -1,5 +1,3 @@
-<sp-account-nav/>
-
 <section class="panel">
   <div class="panel-head"><h2>{{ i18n.t('account.identity') }}</h2></div>
   @if (profile(); as p) {
@@ -54,7 +52,7 @@
         <span class="method-name">{{ providerLabel(o.provider) }}</span>
         @if (o.linked) {
           <span class="method-state on">{{ i18n.t('account.methodOn') }}</span>
-          <button type="button" class="sp-btn" [disabled]="!canUnlink()" (click)="unlink(o.provider)">
+          <button type="button" class="sp-btn sp-btn-secondary" [disabled]="!canUnlink()" (click)="unlink(o.provider)">
             {{ i18n.t('account.disconnect') }}
           </button>
         } @else {

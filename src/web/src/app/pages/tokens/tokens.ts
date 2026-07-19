@@ -2,13 +2,11 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { ApiError } from '@shared/models';
 import { Auth, CreatedToken, TokenUsage, TokenView } from '../../services/auth';
 import { I18n } from '../../services/i18n';
-import { AccountNav } from '../account/account-nav';
 
 @Component({
   selector: 'sp-tokens',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [AccountNav],
-  templateUrl: './tokens.html',
+    templateUrl: './tokens.html',
   styleUrl: './tokens.css',
 })
 export class Tokens {

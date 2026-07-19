@@ -23,14 +23,18 @@
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     background: var(--bg);
     color: var(--text);
-    padding: 14px 14px 40px;
+    padding: 14px 14px calc(84px + env(safe-area-inset-bottom));
     line-height: 1.4;
     max-width: 620px;
     margin: 0 auto;
   }
   .tabs {
-    display: flex; gap: 4px; padding: 4px; margin-bottom: 18px;
-    background: var(--soft); border: 1px solid var(--line); border-radius: 14px;
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 50;
+    display: flex; gap: 2px;
+    padding: 6px 8px calc(6px + env(safe-area-inset-bottom));
+    background: color-mix(in srgb, var(--bg) 92%, transparent);
+    backdrop-filter: blur(14px);
+    border-top: 1px solid var(--line);
   }
   .tab {
     flex: 1; border: 0; background: none; color: var(--hint); cursor: pointer;
@@ -40,7 +44,9 @@
     transition: background .15s, color .15s;
   }
   .tab .ico { font-size: 15px; }
-  .tab.on { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: var(--btn-text); }
+  .tab.on { color: var(--accent); }
+  .tab.on .ico { transform: translateY(-1px) scale(1.12); }
+  .tab .ico { transition: transform .15s; }
   .tab:active { transform: scale(.97); }
 
   .section-title {
@@ -118,6 +124,22 @@
     font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
     user-select: all;
   }
+
+  .group-card { padding: 0; overflow: hidden; }
+  .group-head {
+    display: flex; align-items: center; gap: 10px; width: 100%;
+    padding: 15px 14px; border: 0; background: none; color: var(--text);
+    font-family: inherit; font-size: 15px; font-weight: 700; cursor: pointer; text-align: left;
+  }
+  .group-title { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .group-chevron {
+    width: 8px; height: 8px; flex: 0 0 auto; margin-right: 2px;
+    border-right: 2px solid var(--hint); border-bottom: 2px solid var(--hint);
+    transform: rotate(45deg); transition: transform .18s;
+  }
+  .group-head.open .group-chevron { transform: rotate(225deg); }
+  .group-body { padding: 0 14px 14px; }
+  .group-body .card { padding: 0; border: 0; background: none; margin: 0; }
 
   .adv-toggle {
     display: flex; align-items: center; gap: 6px; width: 100%; margin-top: 6px;
@@ -532,7 +554,34 @@ function groupsView() {
     empty.appendChild(el("div", "hint", T.noGroupsHint));
     frag.appendChild(empty);
   } else {
-    data.groups.forEach(g => frag.appendChild(board("group", g.chatId, g.platforms, g.title || "—", null)));
+    data.groups.forEach(g => {
+      const wrap = el("div", "card group-card");
+      const head = el("button", "group-head");
+      head.appendChild(el("span", "dot"));
+      head.appendChild(el("span", "group-title", g.title || "—"));
+      head.appendChild(el("span", "group-chevron"));
+      const body = el("div", "group-body");
+      body.style.display = "none";
+      let built = false;
+      head.onclick = () => {
+        const open = body.style.display !== "none";
+        haptic("selection");
+        if (open) {
+          body.style.display = "none";
+          head.classList.remove("open");
+          return;
+        }
+        if (!built) {
+          body.appendChild(board("group", g.chatId, g.platforms, null, null));
+          built = true;
+        }
+        body.style.display = "block";
+        head.classList.add("open");
+      };
+      wrap.appendChild(head);
+      wrap.appendChild(body);
+      frag.appendChild(wrap);
+    });
   }
   return frag;
 }

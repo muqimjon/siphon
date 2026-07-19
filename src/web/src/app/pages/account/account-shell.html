@@ -1,0 +1,40 @@
+<div class="account-layout">
+  <aside class="account-side">
+    <div class="side-card">
+      <div class="side-avatar">{{ initial() }}</div>
+      <div class="side-id">
+        <div class="side-email">{{ auth.user()?.email }}</div>
+        <div class="side-plan">{{ auth.user()?.plan?.name }}</div>
+      </div>
+    </div>
+
+    <nav class="side-nav">
+      <a routerLink="/dashboard" routerLinkActive="active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18M7 15l4-4 3 3 5-6"/></svg>
+        <span>{{ i18n.t('nav.dashboard') }}</span>
+      </a>
+      <a routerLink="/tokens" routerLinkActive="active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7a4 4 0 1 1-3.9 5H8v3H5v-3H3v-2h8.1A4 4 0 0 1 15 7z"/></svg>
+        <span>{{ i18n.t('nav.tokens') }}</span>
+      </a>
+      <a routerLink="/telegram" routerLinkActive="active">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M21.9 4.3 18.7 19c-.24 1.06-.87 1.32-1.76.82l-4.86-3.58-2.35 2.26c-.26.26-.48.48-.98.48l.35-4.94 9-8.13c.39-.35-.08-.54-.6-.2L6.77 12.9l-4.8-1.5c-1.04-.32-1.06-1.04.22-1.54l18.77-7.23c.87-.32 1.63.2 1.35 1.67z"/></svg>
+        <span>{{ i18n.t('nav.telegram') }}</span>
+      </a>
+      <a routerLink="/account" routerLinkActive="active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/></svg>
+        <span>{{ i18n.t('nav.account') }}</span>
+      </a>
+      @if (auth.isAdmin()) {
+        <a routerLink="/admin" routerLinkActive="active" class="side-admin">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/></svg>
+          <span>{{ i18n.t('nav.admin') }}</span>
+        </a>
+      }
+    </nav>
+  </aside>
+
+  <div class="account-content">
+    <router-outlet/>
+  </div>
+</div>

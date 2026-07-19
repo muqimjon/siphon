@@ -2,13 +2,11 @@ import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/cor
 import { ApiError } from '@shared/models';
 import { Auth, LinkToken, TelegramLinkView } from '../../services/auth';
 import { I18n } from '../../services/i18n';
-import { AccountNav } from '../account/account-nav';
 
 @Component({
   selector: 'sp-telegram',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [AccountNav],
-  templateUrl: './telegram.html',
+    templateUrl: './telegram.html',
   styleUrl: './telegram.css',
 })
 export class Telegram {

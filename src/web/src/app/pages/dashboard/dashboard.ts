@@ -1,6 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { AccountNav } from '../account/account-nav';
 import { Auth, Usage } from '../../services/auth';
 import { I18n } from '../../services/i18n';
 
@@ -14,7 +13,7 @@ interface Bar {
 @Component({
   selector: 'sp-dashboard',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, AccountNav],
+  imports: [RouterLink],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css',
 })

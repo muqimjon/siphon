@@ -2,15 +2,13 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { ApiError } from '@shared/models';
 import { Auth, ProfileView, ProviderInfo } from '../../services/auth';
 import { I18n } from '../../services/i18n';
-import { AccountNav } from './account-nav';
 
 const OAUTH = ['google', 'github'] as const;
 
 @Component({
   selector: 'sp-account',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [AccountNav],
-  templateUrl: './account.html',
+    templateUrl: './account.html',
   styleUrl: './account.css',
 })
 export class Account {

@@ -1,5 +1,3 @@
-<sp-account-nav/>
-
 <section class="panel">
   <div class="panel-head">
     <h2>{{ i18n.t('dash.telegramTitle') }}</h2>
@@ -13,7 +11,7 @@
     <div class="link-note">
       <span>{{ i18n.t('dash.telegramOpened') }}</span>
       <a [href]="t.url" target="_blank" rel="noopener">{{ t.url }}</a>
-      <button type="button" class="sp-btn" (click)="refreshLinks()">{{ i18n.t('dash.telegramRefresh') }}</button>
+      <button type="button" class="sp-btn sp-btn-secondary" (click)="refreshLinks()">{{ i18n.t('dash.telegramRefresh') }}</button>
     </div>
   }
 
@@ -37,7 +35,7 @@
             <td>{{ linkName(l) }}</td>
             <td class="muted">{{ fmtDate(l.linkedAtUtc) }}</td>
             <td class="right">
-              <button type="button" class="sp-btn" (click)="unlink(l.telegramUserId)">{{ i18n.t('dash.telegramUnlink') }}</button>
+              <button type="button" class="sp-btn sp-btn-secondary" (click)="unlink(l.telegramUserId)">{{ i18n.t('dash.telegramUnlink') }}</button>
             </td>
           </tr>
         }

@@ -12,10 +12,51 @@ public sealed class GroupModule(BotDb db) : IFeatureModule
 {
     public IReadOnlyList<BotCommand> Commands { get; } = [];
 
-    public bool CanHandle(UpdateContext ctx) => ctx.Update.MyChatMember is not null;
+    async Task MigrateAsync(long oldChatId, long newChatId, CancellationToken ct)
+    {
+        var old = await db.Groups.FindAsync([oldChatId], ct);
+        if (old is null) return;
+
+        if (await db.Groups.FindAsync([newChatId], ct) is null)
+        {
+            db.Groups.Add(new GroupInfo
+            {
+                ChatId = newChatId,
+                Title = old.Title,
+                OwnerUserId = old.OwnerUserId,
+                AddedUtc = old.AddedUtc,
+            });
+        }
+
+        foreach (var pref in await db.Prefs.Where(p => p.ChatId == oldChatId).ToListAsync(ct))
+        {
+            if (await db.Prefs.FindAsync([newChatId, pref.Platform], ct) is null)
+                db.Prefs.Add(new UserPref
+                {
+                    ChatId = newChatId,
+                    Platform = pref.Platform,
+                    Kind = pref.Kind,
+                    AudioFormat = pref.AudioFormat,
+                    VideoFormat = pref.VideoFormat,
+                    Quality = pref.Quality,
+                });
+            db.Prefs.Remove(pref);
+        }
+
+        db.Groups.Remove(old);
+    }
+
+    public bool CanHandle(UpdateContext ctx) =>
+        ctx.Update.MyChatMember is not null || ctx.Update.Message?.MigrateToChatId is not null;
 
     public async Task HandleAsync(UpdateContext ctx, CancellationToken ct)
     {
+        if (ctx.Update.Message?.MigrateToChatId is long newChatId)
+        {
+            await MigrateAsync(ctx.Update.Message.Chat.Id, newChatId, ct);
+            return;
+        }
+
         var upd = ctx.Update.MyChatMember!;
         if (upd.Chat.Type is not (ChatType.Group or ChatType.Supergroup)) return;
         var existing = await db.Groups.FindAsync([upd.Chat.Id], ct);
