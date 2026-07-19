@@ -230,6 +230,7 @@ const I18N = {
     autoBest: "sifat yuqori — eng yaxshi format", configured: "sozlangan",
     onlyAudio: "Faqat audio olinadi — video sozlamasi kerak emas.",
     onlyVideo: "Faqat video olinadi — audio sozlamasi kerak emas.",
+    showSite: "Sayt nomini yozish", showSiteHint: "Fayl ostida qaysi saytdan olingani ko'rsatiladi.",
     deliveryTitle: "Yuborish", deleteLink: "Havolani o'chirish", deleteLinkHint: "Kontent yuborilgach havola xabari o'chiriladi.", showWho: "Kim so'raganini yozish", showWhoHint: "Fayl ostida sayt nomi va so'ragan odam ko'rsatiladi.",
     connectTitle: "Saytga bog'lash", connectBtn: "Kod olish", connectAgain: "Yangi kod", connectHint: "Saytda profilingizga kiring va shu kodni kiriting. Kod 10 daqiqa amal qiladi.",
     advanced: "Qo'shimcha", advancedHint: "Odatda kerak emas — sifat allaqachon manbadagidek saqlanadi."
@@ -251,6 +252,7 @@ const I18N = {
     autoBest: "качество высокое — лучший формат", configured: "настроено",
     onlyAudio: "Берётся только аудио — видео настраивать не нужно.",
     onlyVideo: "Берётся только видео — аудио настраивать не нужно.",
+    showSite: "Показывать сайт", showSiteHint: "Под файлом видно, с какого сайта он взят.",
     deliveryTitle: "Отправка", deleteLink: "Удалять ссылку", deleteLinkHint: "После отправки контента сообщение со ссылкой удаляется.", showWho: "Показывать, кто просил", showWhoHint: "Под файлом видно сайт и того, кто отправил ссылку.",
     connectTitle: "Привязка к сайту", connectBtn: "Получить код", connectAgain: "Новый код", connectHint: "Войдите в профиль на сайте и введите этот код. Код действует 10 минут.",
     advanced: "Дополнительно", advancedHint: "Обычно не нужно — качество и так сохраняется как в источнике."
@@ -272,6 +274,7 @@ const I18N = {
     autoBest: "quality is high — best format", configured: "configured",
     onlyAudio: "Audio only — no need to configure video.",
     onlyVideo: "Video only — no need to configure audio.",
+    showSite: "Show the site", showSiteHint: "Adds the source site under the file.",
     deliveryTitle: "Delivery", deleteLink: "Delete the link", deleteLinkHint: "Removes the link message once the content is sent.", showWho: "Show who asked", showWhoHint: "Adds the site and the requester under the file.",
     connectTitle: "Connect to the website", connectBtn: "Get a code", connectAgain: "New code", connectHint: "Open your profile on the website and enter this code. Valid for 10 minutes.",
     advanced: "Advanced", advancedHint: "Usually not needed — quality is already kept as in the source."
@@ -577,7 +580,8 @@ function toggleRow(label, hint, value, onChange) {
 function saveBehavior() {
   return api("PUT", "/behavior", {
     deleteSourceLink: data.user.deleteSourceLink,
-    showRequester: data.user.showRequester
+    showRequester: data.user.showRequester,
+    showPlatform: data.user.showPlatform
   });
 }
 
@@ -595,6 +599,11 @@ function prefsView() {
     const prev = data.user.showRequester;
     data.user.showRequester = v;
     try { await saveBehavior(); } catch (e) { data.user.showRequester = prev; throw e; }
+  }));
+  behavior.appendChild(toggleRow(T.showSite, T.showSiteHint, data.user.showPlatform, async (v) => {
+    const prev = data.user.showPlatform;
+    data.user.showPlatform = v;
+    try { await saveBehavior(); } catch (e) { data.user.showPlatform = prev; throw e; }
   }));
   frag.appendChild(behavior);
 

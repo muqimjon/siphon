@@ -11,7 +11,7 @@ public sealed record PrefUpdate(string Scope, long? GroupChatId, string Platform
 
 public sealed record LangUpdate(string Lang);
 
-public sealed record BehaviorUpdate(bool DeleteSourceLink, bool ShowRequester);
+public sealed record BehaviorUpdate(bool DeleteSourceLink, bool ShowRequester, bool ShowPlatform);
 
 public static class MiniAppApi
 {
@@ -64,7 +64,8 @@ public static class MiniAppApi
                 photoUrl = user.PhotoUrl,
                 lang = state?.Lang ?? Msg.Normalize(user.LanguageCode),
                 deleteSourceLink = state?.DeleteSourceLink ?? false,
-                showRequester = state?.ShowRequester ?? false
+                showRequester = state?.ShowRequester ?? false,
+                showPlatform = state?.ShowPlatform ?? false
             },
             stats = new
             {
@@ -103,13 +104,14 @@ public static class MiniAppApi
         var state = await db.Chats.FindAsync([user.Id], ct);
         if (state is null)
         {
-            state = new ChatState { ChatId = user.Id, DeleteSourceLink = body.DeleteSourceLink, ShowRequester = body.ShowRequester };
+            state = new ChatState { ChatId = user.Id, DeleteSourceLink = body.DeleteSourceLink, ShowRequester = body.ShowRequester, ShowPlatform = body.ShowPlatform };
             db.Chats.Add(state);
         }
         else
         {
             state.DeleteSourceLink = body.DeleteSourceLink;
             state.ShowRequester = body.ShowRequester;
+            state.ShowPlatform = body.ShowPlatform;
         }
         await db.SaveChangesAsync(ct);
         return Results.Ok(new { ok = true });

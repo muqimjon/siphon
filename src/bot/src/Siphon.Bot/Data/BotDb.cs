@@ -12,6 +12,7 @@ public sealed class ChatState
     public int DownloadsToday { get; set; }
     public bool DeleteSourceLink { get; set; }
     public bool ShowRequester { get; set; }
+    public bool ShowPlatform { get; set; }
 }
 
 public sealed class UsageEvent

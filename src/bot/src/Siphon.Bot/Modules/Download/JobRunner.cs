@@ -215,11 +215,15 @@ public sealed class JobRunner(IOptions<LimitsOptions> limits, IHttpClientFactory
 
     static string? SourceCaption(UpdateContext ctx, string url)
     {
-        if (!ctx.State.ShowRequester) return null;
-        var from = ctx.Callback?.From ?? ctx.Message?.From;
-        var who = from?.Username is { Length: > 0 } u ? "@" + u : from?.FirstName;
-        var site = Platforms.Label(Platforms.Detect(url));
-        return who is null ? site : $"{site} · {who}";
+        var parts = new List<string>(2);
+        if (ctx.State.ShowPlatform) parts.Add(Platforms.Label(Platforms.Detect(url)));
+        if (ctx.State.ShowRequester)
+        {
+            var from = ctx.Callback?.From ?? ctx.Message?.From;
+            if (from?.Username is { Length: > 0 } u) parts.Add("@" + u);
+            else if (from?.FirstName is { Length: > 0 } n) parts.Add(n);
+        }
+        return parts.Count == 0 ? null : string.Join(" · ", parts);
     }
 
     static async Task DeleteSourceAsync(UpdateContext ctx, int sourceMessageId, CancellationToken ct)
