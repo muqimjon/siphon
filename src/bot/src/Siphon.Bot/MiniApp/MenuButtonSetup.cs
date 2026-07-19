@@ -9,9 +9,7 @@ public sealed class MenuButtonSetup(ITelegramBotClient bot, IOptions<MiniAppOpti
 {
     public Task StartAsync(CancellationToken cancellationToken)
     {
-        var url = options.Value.BaseUrl;
-        if (url.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
-            _ = ApplyAsync(url);
+        _ = ApplyAsync(options.Value.BaseUrl);
         return Task.CompletedTask;
     }
 
@@ -19,11 +17,10 @@ public sealed class MenuButtonSetup(ITelegramBotClient bot, IOptions<MiniAppOpti
     {
         try
         {
-            await bot.SetChatMenuButton(menuButton: new MenuButtonWebApp
-            {
-                Text = "Sozlamalar",
-                WebApp = new WebAppInfo { Url = url }
-            });
+            MenuButton button = url.StartsWith("https://", StringComparison.OrdinalIgnoreCase)
+                ? new MenuButtonWebApp { Text = "Sozlamalar", WebApp = new WebAppInfo { Url = url } }
+                : new MenuButtonDefault();
+            await bot.SetChatMenuButton(menuButton: button);
         }
         catch (Exception ex)
         {

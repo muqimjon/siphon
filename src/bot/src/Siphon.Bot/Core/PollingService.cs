@@ -7,6 +7,13 @@ namespace Siphon.Bot.Core;
 
 public sealed class PollingService(ITelegramBotClient bot, IServiceProvider services, ILogger<PollingService> log) : BackgroundService
 {
+    static readonly BotCommandScope[] StaleCommandScopes =
+    [
+        new BotCommandScopeAllPrivateChats(),
+        new BotCommandScopeAllGroupChats(),
+        new BotCommandScopeAllChatAdministrators(),
+    ];
+
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         await RegisterCommandsAsync(stoppingToken);
@@ -38,6 +45,8 @@ public sealed class PollingService(ITelegramBotClient bot, IServiceProvider serv
         {
             using var scope = services.CreateScope();
             var commands = scope.ServiceProvider.GetServices<IFeatureModule>().SelectMany(m => m.Commands).ToList();
+            foreach (var scopeToClear in StaleCommandScopes)
+                await bot.DeleteMyCommands(scopeToClear, cancellationToken: ct);
             await bot.SetMyCommands(commands, cancellationToken: ct);
         }
         catch (Exception ex)
