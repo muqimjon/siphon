@@ -57,6 +57,7 @@ public abstract class Msg
 
     public string VideoFormatLabel(string value) => value switch
     {
+        "best" => FormatBest,
         "mp4" => "MP4",
         "webm" => "WEBM",
         _ => OptAsk
