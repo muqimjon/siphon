@@ -157,7 +157,7 @@
   @keyframes pulse { 0%,100% { opacity: .55; } 50% { opacity: .9; } }
 
   .toast {
-    position: fixed; left: 50%; bottom: 22px; transform: translate(-50%, 24px);
+    position: fixed; left: 50%; bottom: calc(92px + env(safe-area-inset-bottom)); transform: translate(-50%, 24px);
     background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: var(--btn-text);
     padding: 9px 18px; border-radius: 999px; font-size: 13px; font-weight: 700;
     opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s;
