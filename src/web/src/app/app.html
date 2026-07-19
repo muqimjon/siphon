@@ -1,0 +1,91 @@
+<header class="site-header">
+  <div class="brand">
+    <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+      <defs>
+        <linearGradient id="sp-drop" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#22D3EE"/>
+          <stop offset="1" stop-color="#0EA5E9"/>
+        </linearGradient>
+      </defs>
+      <path d="M12 2.5C8.7 7.4 5.5 10.9 5.5 14.5a6.5 6.5 0 0 0 13 0c0-3.6-3.2-7.1-6.5-12z" fill="url(#sp-drop)"/>
+    </svg>
+    <span>Siphon</span>
+  </div>
+  <div class="header-actions">
+    <div class="lang-switch" role="group">
+      @for (l of i18n.langs; track l) {
+        <button type="button" class="lang-btn" [class.active]="i18n.lang() === l" (click)="i18n.set(l)">{{ l.toUpperCase() }}</button>
+      }
+    </div>
+    <button type="button" class="theme-toggle" [attr.aria-label]="i18n.t('theme.toggle')" (click)="theme.toggle()">
+      <svg class="icon-sun" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <circle cx="12" cy="12" r="4"/>
+        <path d="M12 2v2m0 16v2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M2 12h2m16 0h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>
+      </svg>
+      <svg class="icon-moon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <h1>{{ i18n.t('hero.title') }}</h1>
+    <p>{{ i18n.t('hero.subtitle') }}</p>
+    <form class="url-box" (submit)="submit($event)">
+      <input #urlInput type="url" required autocomplete="off" spellcheck="false"
+             [placeholder]="i18n.t('probe.placeholder')" [value]="url()" (input)="url.set(urlInput.value)">
+      <button type="button" class="sp-btn sp-btn-secondary" (click)="paste(urlInput)">{{ i18n.t('probe.paste') }}</button>
+      <button type="submit" class="sp-btn sp-btn-primary" [disabled]="stage() === 'probing'">{{ i18n.t('probe.submit') }}</button>
+    </form>
+  </section>
+
+  <section class="result-card" [class.hidden]="stage() === 'idle'">
+    @switch (stage()) {
+      @case ('probing') {
+        <div class="sp-variants">
+          <div class="sp-skeleton" style="height:48px"></div>
+          <div class="sp-skeleton" style="height:44px"></div>
+          <div class="sp-skeleton" style="height:44px"></div>
+        </div>
+      }
+      @case ('variants') {
+        <sp-variants [probe]="probe()!" (pick)="onPick($event)"/>
+      }
+      @case ('progress') {
+        <div class="progress-view">
+          @if (probe()) {
+            <div class="sp-probe-title">{{ probe()!.title }}</div>
+          }
+          <div class="sp-progress" [class.indeterminate]="indeterminate()">
+            <div class="sp-progress-fill" [style.width.%]="fillPct()"></div>
+          </div>
+          <div class="progress-meta">
+            <span>{{ progressLabel() }}</span>
+            <span class="pct">{{ progressRight() }}</span>
+          </div>
+        </div>
+      }
+      @case ('done') {
+        <div class="sp-done">
+          <svg class="sp-check" viewBox="0 0 52 52"><circle cx="26" cy="26" r="24"/><path d="M15 27l7 7 14-14"/></svg>
+          <div class="sp-probe-title">{{ i18n.t('done.title') }}</div>
+          <div class="done-file">{{ doneFile()!.fileName }} · {{ bytes(doneFile()!.sizeBytes) }}</div>
+          <a #downloadLink class="sp-btn sp-btn-primary" [href]="doneFile()!.url" [attr.download]="doneFile()!.fileName">{{ i18n.t('done.download') }}</a>
+        </div>
+      }
+      @case ('error') {
+        <div class="sp-error-card">
+          <strong>{{ errText() }}</strong>
+          <button type="button" class="sp-btn sp-btn-secondary" (click)="retry()">{{ i18n.t('retry') }}</button>
+        </div>
+      }
+    }
+  </section>
+</main>
+
+<footer class="site-footer">
+  <span class="health-dot" [class.ok]="health()?.ok === true" [class.err]="health() != null && health()!.ok === false"></span>
+  <span>{{ healthText() }}</span>
+</footer>
