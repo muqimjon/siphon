@@ -1,6 +1,7 @@
 <Solution>
   <Folder Name="/src/" />
   <Folder Name="/src/backend/">
+    <Project Path="src/backend/Siphon.Accounts/Siphon.Accounts.csproj" />
     <Project Path="src/backend/Siphon.Api/Siphon.Api.csproj" />
     <Project Path="src/backend/Siphon.Media/Siphon.Media.csproj" />
     <Project Path="src/backend/Siphon.Tests/Siphon.Tests.csproj" />

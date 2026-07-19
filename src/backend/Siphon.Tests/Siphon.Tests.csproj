@@ -20,6 +20,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Siphon.Media\Siphon.Media.csproj" />
+    <ProjectReference Include="..\Siphon.Accounts\Siphon.Accounts.csproj" />
   </ItemGroup>
 
   <ItemGroup>

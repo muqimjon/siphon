@@ -1,0 +1,11 @@
+using Microsoft.AspNetCore.Identity;
+
+namespace Siphon.Accounts.Data;
+
+public sealed class AppUser : IdentityUser
+{
+    public int PlanId { get; set; }
+    public Plan? Plan { get; set; }
+    public string Role { get; set; } = "user";
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+}

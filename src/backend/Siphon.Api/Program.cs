@@ -1,6 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Scalar.AspNetCore;
+using Siphon.Accounts;
 using Siphon.Media;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -9,16 +10,18 @@ builder.Services.ConfigureHttpJsonOptions(o =>
 builder.Services.AddProblemDetails();
 builder.Services.AddOpenApi();
 builder.Services.AddMedia(builder.Configuration, builder.Environment.ContentRootPath);
+builder.Services.AddAccounts(builder.Configuration);
 
 var app = builder.Build();
+app.MigrateAccounts();
 app.UseExceptionHandler();
 
 app.MapOpenApi();
-app.MapScalarApiReference("/docs", o => o.WithTitle("Siphon API"));
+app.MapScalarApiReference("/reference", o => o.WithTitle("Siphon API"));
 
 if (app.Environment.IsDevelopment())
 {
-    app.MapGet("/", () => Results.Redirect("/docs")).ExcludeFromDescription();
+    app.MapGet("/", () => Results.Redirect("/reference")).ExcludeFromDescription();
 }
 else
 {
@@ -26,8 +29,11 @@ else
     app.UseStaticFiles();
 }
 
+app.UseAuthentication();
+app.UseAuthorization();
 app.UseRateLimiter();
 app.MapMedia();
+app.MapAccounts();
 
 if (!app.Environment.IsDevelopment())
 {
