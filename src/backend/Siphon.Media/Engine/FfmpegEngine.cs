@@ -42,7 +42,9 @@ public sealed class FfmpegEngine(IOptions<SiphonOptions> options, IHttpClientFac
 
     private async Task DownloadAsync(string url, string path, int maxMb, CancellationToken ct)
     {
-        using var response = await http.CreateClient().GetAsync(url, HttpCompletionOption.ResponseHeadersRead, ct);
+        using var request = new HttpRequestMessage(HttpMethod.Get, url);
+        request.Headers.UserAgent.ParseAdd("Siphon/1.0");
+        using var response = await http.CreateClient().SendAsync(request, HttpCompletionOption.ResponseHeadersRead, ct);
         if (!response.IsSuccessStatusCode)
             throw new MediaEngineException(ErrorCodes.Unavailable, "Could not fetch the file.");
 
