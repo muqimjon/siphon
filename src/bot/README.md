@@ -55,6 +55,20 @@ If you ever need more, run your own [telegram-bot-api](https://github.com/tdlib/
 "Bot": { "ApiBaseUrl": "http://localhost:8081" }
 ```
 
+## Mini App (settings in a web page)
+
+Inline keyboard buttons can't be colored, so the richer settings live in a small Telegram Mini App. The bot now runs a tiny web server (Kestrel) next to the long-polling loop — same process, same database. It serves the Mini App page and a small `initData`-authenticated API where a user edits their own per-platform defaults and the defaults of every group they own.
+
+It listens on `MiniApp:Port` (default `8090`; `ASPNETCORE_URLS` works too). In `config`:
+
+```json
+"MiniApp": { "BaseUrl": "https://yourdomain.com/app", "Port": 8090, "InitDataTtlHours": 24 }
+```
+
+Telegram only opens Mini Apps over **HTTPS**, so `MiniApp:BaseUrl` must be a public HTTPS URL. Put a reverse proxy in front of the bot's `8090` (or serve it on a path of a domain you already have) and point `BaseUrl` there. On startup the bot sets its menu button ("Sozlamalar") to that URL.
+
+Leave `MiniApp:BaseUrl` empty in dev — the web host still starts (so you can open `http://localhost:8090/` locally), but the menu button is skipped since Telegram would reject a non-HTTPS URL.
+
 ## Webhooks?
 
 The bot uses long polling — zero setup, works everywhere. If you ever outgrow it, the update pipeline doesn't care where updates come from: swap `PollingService` for a small webhook endpoint and everything else stays the same.

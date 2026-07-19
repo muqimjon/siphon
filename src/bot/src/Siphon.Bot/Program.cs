@@ -6,13 +6,19 @@ using Siphon.Bot.Backend;
 using Siphon.Bot.Core;
 using Siphon.Bot.Data;
 using Siphon.Bot.Middleware;
+using Siphon.Bot.MiniApp;
 using Siphon.Bot.Modules.Core;
 using Siphon.Bot.Modules.Download;
 using Siphon.Bot.Modules.Group;
 using Siphon.Bot.Modules.Settings;
 using Telegram.Bot;
 
-var builder = Host.CreateApplicationBuilder(args);
+var builder = WebApplication.CreateBuilder(new WebApplicationOptions
+{
+    Args = args,
+    ContentRootPath = AppContext.BaseDirectory,
+    WebRootPath = Path.Combine(AppContext.BaseDirectory, "MiniApp", "wwwroot")
+});
 var services = builder.Services;
 var config = builder.Configuration;
 
@@ -20,6 +26,8 @@ services.Configure<BotOptions>(config.GetSection("Bot"));
 services.Configure<BackendOptions>(config.GetSection("Backend"));
 services.Configure<GateOptions>(config.GetSection("Gate"));
 services.Configure<LimitsOptions>(config.GetSection("Limits"));
+services.Configure<MiniAppOptions>(config.GetSection("MiniApp"));
+services.Configure<HostOptions>(o => o.BackgroundServiceExceptionBehavior = BackgroundServiceExceptionBehavior.Ignore);
 
 services.AddMemoryCache();
 services.AddDbContext<BotDb>(o => o.UseSqlite($"Data Source={config["Db:Path"] ?? "bot.db"}"));
@@ -56,7 +64,7 @@ services.AddScoped<IUpdateMiddleware, ErrorBoundaryMiddleware>();
 services.AddScoped<IUpdateMiddleware, StateMiddleware>();
 services.AddScoped<SubscriptionGateMiddleware>();
 services.AddScoped<IUpdateMiddleware>(sp => sp.GetRequiredService<SubscriptionGateMiddleware>());
-services.AddScoped<IUpdateMiddleware, RouterMiddleware>();
+services.AddScoped<IUpdateMiddleware, Siphon.Bot.Core.RouterMiddleware>();
 services.AddScoped<UpdatePipeline>();
 services.AddScoped<IFeatureModule, DownloadModule>();
 services.AddScoped<IFeatureModule, SettingsModule>();
@@ -65,11 +73,22 @@ services.AddScoped<IFeatureModule, CoreModule>();
 services.AddSingleton<ProbeCache>();
 services.AddSingleton<JobRunner>();
 services.AddHostedService<PollingService>();
+services.AddHostedService<MenuButtonSetup>();
 
-var host = builder.Build();
-using (var scope = host.Services.CreateScope())
+var miniApp = config.GetSection("MiniApp").Get<MiniAppOptions>() ?? new();
+if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("ASPNETCORE_URLS")))
+    builder.WebHost.UseUrls($"http://+:{miniApp.Port}");
+
+var app = builder.Build();
+using (var scope = app.Services.CreateScope())
     scope.ServiceProvider.GetRequiredService<BotDb>().Database.Migrate();
-host.Run();
+
+app.UseDefaultFiles();
+app.UseStaticFiles();
+app.MapMiniApp();
+app.MapFallbackToFile("index.html");
+
+app.Run();
 
 namespace Siphon.Bot
 {
@@ -103,5 +122,12 @@ namespace Siphon.Bot
         public int ProbeCacheMinutes { get; set; } = 15;
         public int JobTimeoutMinutes { get; set; } = 10;
         public int DailyDownloadsPerChat { get; set; } = 30;
+    }
+
+    public sealed class MiniAppOptions
+    {
+        public string BaseUrl { get; set; } = "";
+        public int Port { get; set; } = 8090;
+        public int InitDataTtlHours { get; set; } = 24;
     }
 }

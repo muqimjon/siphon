@@ -52,6 +52,9 @@ services:
       - Backend__BaseUrl=http://api:8080
       - Backend__ApiKey=${SIPHON_KEY_BOT}
       - Db__Path=/data/bot.db
+      - MiniApp__BaseUrl=${MINIAPP_BASE_URL}
+    expose:
+      - "8090"
     volumes:
       - botdata:/data
     depends_on:

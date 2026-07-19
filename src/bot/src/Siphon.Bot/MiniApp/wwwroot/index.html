@@ -1,0 +1,364 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Siphon</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  :root {
+    --bg: #14161c;
+    --text: #f2f4f8;
+    --hint: #8a93a6;
+    --card: #1d212b;
+    --btn: #22d3ee;
+    --btn-text: #06222a;
+    --accent: #22d3ee;
+    --accent-2: #38f0c8;
+    --line: rgba(255,255,255,.08);
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    padding: 16px 14px 40px;
+    line-height: 1.4;
+  }
+  header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+  .logo {
+    width: 40px; height: 40px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    display: grid; place-items: center;
+    font-size: 22px;
+    box-shadow: 0 6px 18px rgba(34,211,238,.35);
+  }
+  header h1 { font-size: 19px; margin: 0; font-weight: 700; }
+  header p { margin: 2px 0 0; font-size: 12px; color: var(--hint); }
+  .section-title {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: var(--hint);
+    margin: 22px 4px 10px;
+    font-weight: 700;
+  }
+  .hint { font-size: 12px; color: var(--hint); margin: 0 4px 12px; }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    padding: 14px;
+    margin-bottom: 14px;
+  }
+  .card-head { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; font-weight: 700; font-size: 15px; }
+  .card-head .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+  .chips {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 6px;
+    margin: 0 -2px 14px;
+    scrollbar-width: none;
+  }
+  .chips::-webkit-scrollbar { display: none; }
+  .chip {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border: 1px solid var(--line);
+    background: transparent;
+    color: var(--text);
+    padding: 8px 12px;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform .12s, background .15s, border-color .15s;
+  }
+  .chip.on {
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    color: var(--btn-text);
+    border-color: transparent;
+  }
+  .chip:active { transform: scale(.95); }
+  .row { margin-bottom: 14px; }
+  .row:last-child { margin-bottom: 2px; }
+  .row-label { font-size: 12px; color: var(--hint); margin-bottom: 7px; font-weight: 600; }
+  .pills { display: flex; flex-wrap: wrap; gap: 8px; }
+  .pill {
+    border: 1px solid var(--line);
+    background: rgba(255,255,255,.03);
+    color: var(--text);
+    padding: 9px 14px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform .1s, background .15s, color .15s, border-color .15s;
+  }
+  .pill.on {
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    color: var(--btn-text);
+    border-color: transparent;
+    box-shadow: 0 4px 12px rgba(34,211,238,.3);
+  }
+  .pill:active { transform: scale(.93); }
+  .empty { color: var(--hint); font-size: 14px; text-align: center; padding: 22px 10px; }
+  .toast {
+    position: fixed;
+    left: 50%;
+    bottom: 22px;
+    transform: translate(-50%, 24px);
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    color: var(--btn-text);
+    padding: 9px 18px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 700;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .2s, transform .2s;
+    box-shadow: 0 8px 24px rgba(0,0,0,.3);
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+  .toast.err { background: #ef4444; color: #fff; }
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">⚡</div>
+  <div>
+    <h1 id="title">Sozlamalar</h1>
+    <p id="subtitle">Siphon</p>
+  </div>
+</header>
+<div id="app"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const tg = window.Telegram && window.Telegram.WebApp;
+const initData = tg ? tg.initData : "";
+
+const PLATFORMS = [
+  { id: "youtube", icon: "▶️" },
+  { id: "instagram", icon: "📸" },
+  { id: "tiktok", icon: "🎵" },
+  { id: "x", icon: "✖️" },
+  { id: "facebook", icon: "📘" },
+  { id: "other", icon: "🌐" }
+];
+
+const ROWS = [
+  { field: "kind", label: "rowKind", options: ["ask", "audio", "video"] },
+  { field: "audioFormat", label: "rowAudio", options: ["ask", "mp3", "m4a", "opus"] },
+  { field: "videoFormat", label: "rowVideo", options: ["ask", "mp4", "webm"] },
+  { field: "quality", label: "rowQuality", options: ["ask", "high", "medium", "low"] }
+];
+
+const I18N = {
+  uz: {
+    title: "Sozlamalar", mine: "Mening sozlamalarim", groups: "Guruhlarim",
+    hint: "Havola kelganda shu sozlamalar avtomatik qo'llanadi.",
+    noGroups: "Sizda hali guruh yo'q.",
+    rowKind: "Tur", rowAudio: "Audio format", rowVideo: "Video format", rowQuality: "Sifat",
+    kind_ask: "Har safar so'ra", kind_audio: "Audio", kind_video: "Video",
+    ask: "So'ra", high: "Yuqori", medium: "O'rta", low: "Past",
+    other: "Boshqa", saved: "Saqlandi ✓", error: "Xatolik", authFail: "Ochib bo'lmadi"
+  },
+  ru: {
+    title: "Настройки", mine: "Мои настройки", groups: "Мои группы",
+    hint: "Эти настройки применяются автоматически, когда приходит ссылка.",
+    noGroups: "У вас пока нет групп.",
+    rowKind: "Тип", rowAudio: "Аудио формат", rowVideo: "Видео формат", rowQuality: "Качество",
+    kind_ask: "Спрашивать", kind_audio: "Аудио", kind_video: "Видео",
+    ask: "Спросить", high: "Высокое", medium: "Среднее", low: "Низкое",
+    other: "Другое", saved: "Сохранено ✓", error: "Ошибка", authFail: "Не удалось открыть"
+  },
+  en: {
+    title: "Settings", mine: "My settings", groups: "My groups",
+    hint: "These are applied automatically when a link arrives.",
+    noGroups: "You have no groups yet.",
+    rowKind: "Type", rowAudio: "Audio format", rowVideo: "Video format", rowQuality: "Quality",
+    kind_ask: "Ask each time", kind_audio: "Audio", kind_video: "Video",
+    ask: "Ask", high: "High", medium: "Medium", low: "Low",
+    other: "Other", saved: "Saved ✓", error: "Error", authFail: "Couldn't open"
+  }
+};
+
+function lang() {
+  const code = tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.language_code;
+  const n = (code || "uz").split("-")[0].toLowerCase();
+  return n === "ru" ? "ru" : n === "uz" ? "uz" : n === "en" ? "en" : "uz";
+}
+const T = I18N[lang()];
+
+function platformName(id) {
+  return id === "youtube" ? "YouTube"
+    : id === "instagram" ? "Instagram"
+    : id === "tiktok" ? "TikTok"
+    : id === "x" ? "X"
+    : id === "facebook" ? "Facebook"
+    : T.other;
+}
+
+function optionLabel(field, value) {
+  if (value === "ask") return field === "kind" ? T.kind_ask : T.ask;
+  if (field === "kind") return T["kind_" + value];
+  if (field === "quality") return T[value];
+  return value.toUpperCase();
+}
+
+function el(tag, cls, text) {
+  const n = document.createElement(tag);
+  if (cls) n.className = cls;
+  if (text != null) n.textContent = text;
+  return n;
+}
+
+function haptic(kind) {
+  try { tg && tg.HapticFeedback && (kind === "selection" ? tg.HapticFeedback.selectionChanged() : tg.HapticFeedback.impactOccurred("light")); } catch (e) {}
+}
+
+let toastTimer;
+function toast(msg, isErr) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.className = "toast show" + (isErr ? " err" : "");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { t.className = "toast"; }, 1400);
+}
+
+async function save(scope, groupChatId, pref) {
+  const body = {
+    scope: scope,
+    groupChatId: groupChatId,
+    platform: pref.platform,
+    kind: pref.kind,
+    audioFormat: pref.audioFormat,
+    videoFormat: pref.videoFormat,
+    quality: pref.quality
+  };
+  const res = await fetch("/miniapp/prefs", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json", "Authorization": "tma " + initData },
+    body: JSON.stringify(body)
+  });
+  if (!res.ok) throw new Error("save");
+}
+
+function board(scope, chatId, platforms, title) {
+  const byId = {};
+  platforms.forEach(p => byId[p.platform] = p);
+  let selected = "youtube";
+
+  const card = el("div", "card");
+  if (title) {
+    const head = el("div", "card-head");
+    head.appendChild(el("span", "dot"));
+    head.appendChild(el("span", null, title));
+    card.appendChild(head);
+  }
+
+  const chips = el("div", "chips");
+  const panel = el("div", "panel");
+  card.appendChild(chips);
+  card.appendChild(panel);
+
+  function paintChips() {
+    Array.from(chips.children).forEach(c => c.classList.toggle("on", c.dataset.pid === selected));
+  }
+
+  function paintPanel() {
+    panel.innerHTML = "";
+    const pref = byId[selected];
+    ROWS.forEach(r => {
+      const row = el("div", "row");
+      row.appendChild(el("div", "row-label", T[r.label]));
+      const pills = el("div", "pills");
+      r.options.forEach(opt => {
+        const pill = el("button", "pill" + (pref[r.field] === opt ? " on" : ""), optionLabel(r.field, opt));
+        pill.onclick = async () => {
+          if (pref[r.field] === opt) return;
+          const prev = pref[r.field];
+          pref[r.field] = opt;
+          Array.from(pills.children).forEach(p => p.classList.remove("on"));
+          pill.classList.add("on");
+          haptic("light");
+          try { await save(scope, chatId, pref); toast(T.saved); }
+          catch (e) { pref[r.field] = prev; paintPanel(); toast(T.error, true); }
+        };
+        pills.appendChild(pill);
+      });
+      row.appendChild(pills);
+      panel.appendChild(row);
+    });
+  }
+
+  PLATFORMS.forEach(p => {
+    const chip = el("button", "chip");
+    chip.dataset.pid = p.id;
+    chip.appendChild(el("span", null, p.icon));
+    chip.appendChild(el("span", null, platformName(p.id)));
+    chip.onclick = () => { selected = p.id; haptic("selection"); paintChips(); paintPanel(); };
+    chips.appendChild(chip);
+  });
+
+  paintChips();
+  paintPanel();
+  return card;
+}
+
+function render(data) {
+  const app = document.getElementById("app");
+  app.innerHTML = "";
+
+  app.appendChild(el("div", "section-title", T.mine));
+  app.appendChild(el("div", "hint", T.hint));
+  app.appendChild(board("user", null, data.user.platforms, null));
+
+  app.appendChild(el("div", "section-title", T.groups));
+  if (data.groups.length === 0) {
+    app.appendChild(el("div", "empty", T.noGroups));
+  } else {
+    data.groups.forEach(g => app.appendChild(board("group", g.chatId, g.platforms, g.title || "—")));
+  }
+}
+
+function applyTheme() {
+  const p = (tg && tg.themeParams) || {};
+  const s = document.documentElement.style;
+  const set = (k, v) => { if (v) s.setProperty(k, v); };
+  set("--bg", p.bg_color);
+  set("--text", p.text_color);
+  set("--hint", p.hint_color);
+  set("--card", p.secondary_bg_color);
+  set("--btn-text", p.button_text_color);
+}
+
+async function boot() {
+  document.getElementById("title").textContent = T.title;
+  document.documentElement.lang = lang();
+  if (tg) { tg.ready(); tg.expand(); applyTheme(); tg.onEvent("themeChanged", applyTheme); }
+  if (!initData) { document.getElementById("app").appendChild(el("div", "empty", T.authFail)); return; }
+  try {
+    const res = await fetch("/miniapp/prefs", { headers: { "Authorization": "tma " + initData } });
+    if (!res.ok) { document.getElementById("app").appendChild(el("div", "empty", T.authFail)); return; }
+    render(await res.json());
+  } catch (e) {
+    document.getElementById("app").appendChild(el("div", "empty", T.error));
+  }
+}
+
+boot();
+</script>
+</body>
+</html>

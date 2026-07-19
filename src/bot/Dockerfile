@@ -5,9 +5,11 @@ RUN dotnet restore src/Siphon.Bot/Siphon.Bot.csproj
 COPY src/ src/
 RUN dotnet publish src/Siphon.Bot/Siphon.Bot.csproj -c Release -o /app /p:UseAppHost=false
 
-FROM mcr.microsoft.com/dotnet/runtime:10.0
+FROM mcr.microsoft.com/dotnet/aspnet:10.0
 WORKDIR /app
 COPY --from=build /app .
 VOLUME /data
 ENV Db__Path=/data/bot.db
+ENV ASPNETCORE_URLS=http://+:8090
+EXPOSE 8090
 ENTRYPOINT ["dotnet", "Siphon.Bot.dll"]
