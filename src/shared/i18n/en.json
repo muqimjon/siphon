@@ -214,5 +214,12 @@
   "upsell.tooLargeAnon": "This file is too large. Register or contact the admin.",
   "upsell.quota": "You've hit today's limit. Try again tomorrow or contact the admin.",
   "upsell.register": "Register",
-  "variants.formatBest": "⭐ Source"
+  "variants.formatBest": "⭐ Source",
+  "dash.telegramTitle": "My Telegram accounts",
+  "dash.telegramConnect": "Connect Telegram",
+  "dash.telegramHint": "Once linked, bot downloads use this account's limits and show up in your stats.",
+  "dash.telegramNone": "No Telegram account linked yet.",
+  "dash.telegramUnlink": "Unlink",
+  "dash.telegramOpened": "Telegram opened — press \"Start\" in the bot, then refresh:",
+  "dash.telegramRefresh": "Refresh"
 }

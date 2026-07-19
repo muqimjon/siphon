@@ -214,5 +214,12 @@
   "upsell.tooLargeAnon": "Этот файл слишком большой. Зарегистрируйтесь или свяжитесь с админом.",
   "upsell.quota": "Дневной лимит исчерпан. Попробуйте завтра или свяжитесь с админом.",
   "upsell.register": "Зарегистрироваться",
-  "variants.formatBest": "⭐ Исходное"
+  "variants.formatBest": "⭐ Исходное",
+  "dash.telegramTitle": "Мои Telegram-аккаунты",
+  "dash.telegramConnect": "Привязать Telegram",
+  "dash.telegramHint": "После привязки загрузки в боте идут по лимиту этого аккаунта и попадают в вашу статистику.",
+  "dash.telegramNone": "Пока не привязан ни один Telegram-аккаунт.",
+  "dash.telegramUnlink": "Отвязать",
+  "dash.telegramOpened": "Telegram открыт — нажмите \"Start\" в боте, затем обновите:",
+  "dash.telegramRefresh": "Обновить"
 }

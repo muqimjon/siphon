@@ -130,3 +130,39 @@
     </div>
   }
 </section>
+
+<section class="panel">
+  <div class="panel-head">
+    <h2>{{ i18n.t('dash.telegramTitle') }}</h2>
+    <button type="button" class="sp-btn sp-btn-primary" [disabled]="linkBusy()" (click)="startLink()">
+      {{ i18n.t('dash.telegramConnect') }}
+    </button>
+  </div>
+  <p class="panel-hint">{{ i18n.t('dash.telegramHint') }}</p>
+
+  @if (linkToken(); as t) {
+    <div class="link-note">
+      <span>{{ i18n.t('dash.telegramOpened') }}</span>
+      <a [href]="t.url" target="_blank" rel="noopener">{{ t.url }}</a>
+      <button type="button" class="sp-btn" (click)="refreshLinks()">{{ i18n.t('dash.telegramRefresh') }}</button>
+    </div>
+  }
+
+  @if (links().length === 0) {
+    <p class="panel-hint">{{ i18n.t('dash.telegramNone') }}</p>
+  } @else {
+    <table class="tokens">
+      <tbody>
+        @for (l of links(); track l.telegramUserId) {
+          <tr>
+            <td>{{ linkName(l) }}</td>
+            <td class="muted">{{ fmtDate(l.linkedAtUtc) }}</td>
+            <td class="right">
+              <button type="button" class="sp-btn" (click)="unlink(l.telegramUserId)">{{ i18n.t('dash.telegramUnlink') }}</button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</section>

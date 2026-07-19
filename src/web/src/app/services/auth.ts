@@ -47,6 +47,19 @@ export interface Limits {
   dailyRequestLimitOverride: number | null;
 }
 
+export interface TelegramLinkView {
+  telegramUserId: number;
+  username: string | null;
+  firstName: string | null;
+  linkedAtUtc: string;
+}
+
+export interface LinkToken {
+  token: string;
+  url: string;
+  expiresUtc: string;
+}
+
 export interface Usage {
   daily: { dateUtc: string; count: number }[];
   limits: Limits;
@@ -139,6 +152,18 @@ export class Auth {
 
   usage(days: number): Promise<Usage> {
     return this.request<Usage>('GET', `/usage?days=${days}`);
+  }
+
+  telegramLinks(): Promise<TelegramLinkView[]> {
+    return this.request<TelegramLinkView[]>('GET', '/telegram/links');
+  }
+
+  createLinkToken(): Promise<LinkToken> {
+    return this.request<LinkToken>('POST', '/telegram/link-token');
+  }
+
+  unlinkTelegram(telegramUserId: number): Promise<void> {
+    return this.request<void>('DELETE', `/telegram/links/${telegramUserId}`);
   }
 
   adminUsage(): Promise<UsageRow[]> {

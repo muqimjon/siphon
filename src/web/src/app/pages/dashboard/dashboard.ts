@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ApiError } from '@shared/models';
-import { Auth, CreatedToken, TokenView, Usage } from '../../services/auth';
+import { Auth, CreatedToken, LinkToken, TelegramLinkView, TokenView, Usage } from '../../services/auth';
 import { I18n } from '../../services/i18n';
 
 interface Bar {
@@ -31,9 +31,13 @@ export class Dashboard {
   readonly error = signal<string | null>(null);
   readonly usage = signal<Usage | null>(null);
   readonly bars = signal<Bar[]>([]);
+  readonly links = signal<TelegramLinkView[]>([]);
+  readonly linkToken = signal<LinkToken | null>(null);
+  readonly linkBusy = signal(false);
 
   constructor() {
     this.load();
+    this.loadLinks();
     this.auth.usage(14).then((u) => this.applyUsage(u)).catch(() => {});
   }
 
@@ -77,6 +81,34 @@ export class Dashboard {
   fmtDate(iso: string | null): string {
     if (!iso) return this.i18n.t('dash.never');
     return new Date(iso).toLocaleDateString(this.i18n.lang());
+  }
+
+  startLink(): void {
+    this.linkBusy.set(true);
+    this.auth
+      .createLinkToken()
+      .then((t) => {
+        this.linkToken.set(t);
+        if (t.url) window.open(t.url, '_blank');
+      })
+      .catch(() => {})
+      .finally(() => this.linkBusy.set(false));
+  }
+
+  refreshLinks(): void {
+    this.loadLinks();
+  }
+
+  unlink(id: number): void {
+    this.auth.unlinkTelegram(id).then(() => this.loadLinks()).catch(() => {});
+  }
+
+  linkName(link: TelegramLinkView): string {
+    return link.username ? '@' + link.username : link.firstName || String(link.telegramUserId);
+  }
+
+  private loadLinks(): void {
+    this.auth.telegramLinks().then((l) => this.links.set(l)).catch(() => {});
   }
 
   private load(): void {

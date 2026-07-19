@@ -214,5 +214,12 @@
   "upsell.tooLargeAnon": "Bu fayl juda katta. Ro'yxatdan o'ting yoki admin bilan bog'laning.",
   "upsell.quota": "Bugungi limit tugadi. Ertaga qayta urinib ko'ring yoki admin bilan bog'laning.",
   "upsell.register": "Ro'yxatdan o'tish",
-  "variants.formatBest": "⭐ Asl sifat"
+  "variants.formatBest": "⭐ Asl sifat",
+  "dash.telegramTitle": "Telegram hisoblarim",
+  "dash.telegramConnect": "Telegramni bog'lash",
+  "dash.telegramHint": "Bog'lasangiz, botdagi yuklashlar ham shu hisobning limitidan ishlaydi va statistikangizga tushadi.",
+  "dash.telegramNone": "Hali hech qanday Telegram hisob bog'lanmagan.",
+  "dash.telegramUnlink": "Uzish",
+  "dash.telegramOpened": "Telegram ochildi — botda \"Start\" ni bosing, so'ng yangilang:",
+  "dash.telegramRefresh": "Yangilash"
 }
