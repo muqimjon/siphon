@@ -46,6 +46,9 @@
         <div class="account-menu" (click)="$event.stopPropagation()">
           <div class="account-email">{{ auth.user()?.email }}</div>
           <a routerLink="/dashboard" routerLinkActive="active" (click)="accountOpen.set(false)">{{ i18n.t('nav.dashboard') }}</a>
+          <a routerLink="/tokens" routerLinkActive="active" (click)="accountOpen.set(false)">{{ i18n.t('nav.tokens') }}</a>
+          <a routerLink="/telegram" routerLinkActive="active" (click)="accountOpen.set(false)">{{ i18n.t('nav.telegram') }}</a>
+          <a routerLink="/account" routerLinkActive="active" (click)="accountOpen.set(false)">{{ i18n.t('nav.account') }}</a>
           @if (auth.isAdmin()) {
             <a routerLink="/admin" routerLinkActive="active" (click)="accountOpen.set(false)">{{ i18n.t('nav.admin') }}</a>
           }

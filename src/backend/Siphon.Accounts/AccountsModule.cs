@@ -55,6 +55,7 @@ public static class AccountsModule
         services.AddScoped<TokenHandlers>();
         services.AddScoped<AdminHandlers>();
         services.AddScoped<Siphon.Accounts.Telegram.TelegramLinkHandlers>();
+        services.AddScoped<Siphon.Accounts.Profile.ProfileHandlers>();
         services.AddScoped<UsageHandlers>();
         services.AddScoped<IApiAuthenticator, DbApiAuthenticator>();
         services.AddScoped<IUsageSink, DbUsageSink>();
@@ -125,12 +126,12 @@ public static class AccountsModule
 
         if (options.Google.Enabled)
         {
-            auth.MapGet("/google", (ExternalAuthHandlers h) => h.Challenge(GoogleDefaults.AuthenticationScheme, "google")).ExcludeFromDescription();
+            auth.MapGet("/google", (ExternalAuthHandlers h, string? link) => h.Challenge(GoogleDefaults.AuthenticationScheme, "google", link)).ExcludeFromDescription();
             auth.MapGet("/google/callback", (HttpContext c, ExternalAuthHandlers h) => h.Callback(c, "google")).ExcludeFromDescription();
         }
         if (options.GitHub.Enabled)
         {
-            auth.MapGet("/github", (ExternalAuthHandlers h) => h.Challenge(GitHubAuthenticationDefaults.AuthenticationScheme, "github")).ExcludeFromDescription();
+            auth.MapGet("/github", (ExternalAuthHandlers h, string? link) => h.Challenge(GitHubAuthenticationDefaults.AuthenticationScheme, "github", link)).ExcludeFromDescription();
             auth.MapGet("/github/callback", (HttpContext c, ExternalAuthHandlers h) => h.Callback(c, "github")).ExcludeFromDescription();
         }
 
@@ -139,6 +140,21 @@ public static class AccountsModule
 
         app.MapGet("/api/v1/usage", (ClaimsPrincipal u, int? days, UsageHandlers h) => h.Mine(u, days))
             .RequireAuthorization().WithTags("Account").WithSummary("Your daily request counts and effective limits");
+
+        var profile = app.MapGroup("/api/v1/profile").WithTags("Account").RequireAuthorization();
+        profile.MapGet("", (ClaimsPrincipal u, Siphon.Accounts.Profile.ProfileHandlers h) => h.Get(u))
+            .WithSummary("Your profile, linked sign-in methods and password state");
+        profile.MapPut("", (ClaimsPrincipal u, Siphon.Accounts.Profile.UpdateProfileRequest r, Siphon.Accounts.Profile.ProfileHandlers h) => h.Update(u, r))
+            .WithSummary("Update your name and username");
+        profile.MapPost("/password", (ClaimsPrincipal u, Siphon.Accounts.Profile.SetPasswordRequest r, Siphon.Accounts.Profile.ProfileHandlers h) => h.SetPassword(u, r))
+            .WithSummary("Set or change your password");
+        profile.MapPost("/link-token", (ClaimsPrincipal u, Siphon.Accounts.Profile.ProfileHandlers h) => h.LinkToken(u))
+            .WithSummary("Start connecting another sign-in provider");
+        profile.MapDelete("/logins/{provider}", (ClaimsPrincipal u, string provider, Siphon.Accounts.Profile.ProfileHandlers h) => h.Unlink(u, provider))
+            .WithSummary("Disconnect a sign-in provider");
+
+        app.MapGet("/api/v1/usage/tokens", (ClaimsPrincipal u, int? days, UsageHandlers h) => h.ByToken(u, days))
+            .RequireAuthorization().WithTags("Account").WithSummary("Usage broken down per API token");
 
         var tokens = app.MapGroup("/api/v1/tokens").WithTags("Tokens").RequireAuthorization();
         tokens.MapGet("", (ClaimsPrincipal u, TokenHandlers h) => h.List(u)).WithSummary("List your API tokens");

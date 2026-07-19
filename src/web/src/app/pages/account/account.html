@@ -1,0 +1,91 @@
+<sp-account-nav/>
+
+<section class="panel">
+  <div class="panel-head"><h2>{{ i18n.t('account.identity') }}</h2></div>
+  @if (profile(); as p) {
+    <div class="identity">
+      <div class="identity-avatar">{{ (p.firstName || p.email || '?').charAt(0).toUpperCase() }}</div>
+      <div>
+        <div class="identity-email">{{ p.email }}</div>
+        <div class="identity-meta">{{ i18n.t('account.since', { date: fmtDate(p.createdAt) }) }}</div>
+      </div>
+      @if (p.role === 'admin') {
+        <span class="sp-badge identity-role">admin</span>
+      }
+    </div>
+  }
+
+  <form class="field-grid" (submit)="saveName($event)">
+    <label>
+      <span>{{ i18n.t('account.firstName') }}</span>
+      <input class="sp-input" #fn [value]="firstName()" (input)="firstName.set(fn.value)" autocomplete="given-name">
+    </label>
+    <label>
+      <span>{{ i18n.t('account.lastName') }}</span>
+      <input class="sp-input" #ln [value]="lastName()" (input)="lastName.set(ln.value)" autocomplete="family-name">
+    </label>
+    <label>
+      <span>{{ i18n.t('account.userName') }}</span>
+      <input class="sp-input" #un [value]="userName()" (input)="userName.set(un.value)" autocomplete="username">
+    </label>
+    <div class="field-actions">
+      <button type="submit" class="sp-btn sp-btn-primary" [disabled]="busy()">{{ i18n.t('account.save') }}</button>
+      @if (savedName()) { <span class="saved">{{ i18n.t('account.saved') }}</span> }
+    </div>
+  </form>
+  @if (nameError(); as e) { <div class="sp-error-card">{{ i18n.t(e) }}</div> }
+</section>
+
+<section class="panel">
+  <div class="panel-head"><h2>{{ i18n.t('account.signIn') }}</h2></div>
+  <p class="panel-hint">{{ i18n.t('account.signInHint') }}</p>
+
+  <div class="method-list">
+    @if (profile(); as p) {
+      <div class="method">
+        <span class="method-name">{{ i18n.t('account.password') }}</span>
+        <span class="method-state" [class.on]="p.hasPassword">
+          {{ p.hasPassword ? i18n.t('account.methodOn') : i18n.t('account.methodOff') }}
+        </span>
+      </div>
+    }
+    @for (o of oauth(); track o.provider) {
+      <div class="method">
+        <span class="method-name">{{ providerLabel(o.provider) }}</span>
+        @if (o.linked) {
+          <span class="method-state on">{{ i18n.t('account.methodOn') }}</span>
+          <button type="button" class="sp-btn" [disabled]="!canUnlink()" (click)="unlink(o.provider)">
+            {{ i18n.t('account.disconnect') }}
+          </button>
+        } @else {
+          <button type="button" class="sp-btn sp-btn-primary" (click)="link(o.provider)">
+            {{ i18n.t('account.connect') }}
+          </button>
+        }
+      </div>
+    }
+  </div>
+  @if (!canUnlink()) { <p class="panel-hint">{{ i18n.t('account.lastMethod') }}</p> }
+</section>
+
+<section class="panel">
+  <div class="panel-head"><h2>{{ i18n.t('account.password') }}</h2></div>
+  <p class="panel-hint">{{ profile()?.hasPassword ? i18n.t('account.passwordChange') : i18n.t('account.passwordSet') }}</p>
+  <form class="field-grid" (submit)="savePassword($event)">
+    @if (profile()?.hasPassword) {
+      <label>
+        <span>{{ i18n.t('account.currentPassword') }}</span>
+        <input class="sp-input" type="password" #cp [value]="currentPassword()" (input)="currentPassword.set(cp.value)" autocomplete="current-password">
+      </label>
+    }
+    <label>
+      <span>{{ i18n.t('account.newPassword') }}</span>
+      <input class="sp-input" type="password" #np [value]="newPassword()" (input)="newPassword.set(np.value)" autocomplete="new-password">
+    </label>
+    <div class="field-actions">
+      <button type="submit" class="sp-btn sp-btn-primary" [disabled]="busy()">{{ i18n.t('account.save') }}</button>
+      @if (savedPassword()) { <span class="saved">{{ i18n.t('account.saved') }}</span> }
+    </div>
+  </form>
+  @if (passwordError(); as e) { <div class="sp-error-card">{{ i18n.t(e) }}</div> }
+</section>

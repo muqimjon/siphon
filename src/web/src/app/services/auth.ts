@@ -47,6 +47,30 @@ export interface Limits {
   dailyRequestLimitOverride: number | null;
 }
 
+export interface LoginView {
+  provider: string;
+  displayName: string;
+}
+
+export interface ProfileView {
+  email: string | null;
+  firstName: string | null;
+  lastName: string | null;
+  userName: string | null;
+  role: string;
+  createdAt: string;
+  hasPassword: boolean;
+  logins: LoginView[];
+}
+
+export interface TokenUsage {
+  tokenId: string | null;
+  name: string | null;
+  prefix: string | null;
+  total: number;
+  today: number;
+}
+
 export interface ProviderInfo {
   google: boolean;
   github: boolean;
@@ -159,6 +183,31 @@ export class Auth {
 
   usage(days: number): Promise<Usage> {
     return this.request<Usage>('GET', `/usage?days=${days}`);
+  }
+
+  profile(): Promise<ProfileView> {
+    return this.request<ProfileView>('GET', '/profile');
+  }
+
+  updateProfile(firstName: string, lastName: string, userName: string): Promise<ProfileView> {
+    return this.request<ProfileView>('PUT', '/profile', { firstName, lastName, userName });
+  }
+
+  setPassword(currentPassword: string | null, newPassword: string): Promise<void> {
+    return this.request<void>('POST', '/profile/password', { currentPassword, newPassword });
+  }
+
+  unlinkLogin(provider: string): Promise<void> {
+    return this.request<void>('DELETE', `/profile/logins/${provider}`);
+  }
+
+  async linkProvider(provider: string): Promise<void> {
+    const res = await this.request<{ token: string }>('POST', '/profile/link-token');
+    location.href = `${BASE}/auth/${provider}?link=${res.token}`;
+  }
+
+  tokenUsage(): Promise<TokenUsage[]> {
+    return this.request<TokenUsage[]>('GET', '/usage/tokens');
   }
 
   providers(): Promise<ProviderInfo> {

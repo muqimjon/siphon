@@ -1,10 +1,11 @@
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Siphon.Accounts.Data;
 
 namespace Siphon.Accounts.Auth;
 
-public sealed class UserService(UserManager<AppUser> users, IOptions<AccountsOptions> options)
+public sealed class UserService(UserManager<AppUser> users, AccountsDb db, IOptions<AccountsOptions> options)
 {
     public UserManager<AppUser> Users => users;
 
@@ -44,6 +45,24 @@ public sealed class UserService(UserManager<AppUser> users, IOptions<AccountsOpt
         await users.AddLoginAsync(user, new UserLoginInfo(provider, key, provider));
         await PromoteIfAdminAsync(user);
         return user;
+    }
+
+    public async Task<AppUser?> LinkExternalAsync(string linkToken, string provider, string key)
+    {
+        var entry = await db.TelegramLinkTokens.FirstOrDefaultAsync(t => t.Token == linkToken);
+        if (entry is null || entry.ExpiresUtc < DateTime.UtcNow) return null;
+
+        var owner = await users.FindByIdAsync(entry.UserId);
+        if (owner is null) return null;
+
+        var existing = await users.FindByLoginAsync(provider, key);
+        if (existing is not null && existing.Id != owner.Id) return null;
+        if (existing is null)
+            await users.AddLoginAsync(owner, new UserLoginInfo(provider, key, provider));
+
+        db.TelegramLinkTokens.Remove(entry);
+        await db.SaveChangesAsync();
+        return owner;
     }
 
     public async Task PromoteIfAdminAsync(AppUser user)

@@ -1,0 +1,24 @@
+.identity { display: flex; align-items: center; gap: var(--sp-4); margin-bottom: var(--sp-5); }
+.identity-avatar {
+  width: 52px; height: 52px; flex: 0 0 auto; border-radius: var(--sp-r-md);
+  display: grid; place-items: center; font-size: 22px; font-weight: 800;
+  background: var(--sp-accent); color: var(--sp-accent-fg);
+}
+.identity-email { font-weight: 700; }
+.identity-meta { font-size: var(--sp-fs-xs); color: var(--sp-text-dim); margin-top: 2px; }
+.identity-role { margin-left: auto; }
+
+.field-grid { display: grid; gap: var(--sp-4); max-width: 420px; }
+.field-grid label { display: grid; gap: var(--sp-1); font-size: var(--sp-fs-sm); }
+.field-grid label span { color: var(--sp-text-dim); font-weight: 600; }
+.field-actions { display: flex; align-items: center; gap: var(--sp-3); }
+.saved { font-size: var(--sp-fs-sm); color: var(--sp-ok); font-weight: 600; }
+
+.method-list { display: grid; gap: var(--sp-2); }
+.method {
+  display: flex; align-items: center; gap: var(--sp-3);
+  padding: var(--sp-3); border: 1px solid var(--sp-border); border-radius: var(--sp-r-md);
+}
+.method-name { font-weight: 600; }
+.method-state { margin-left: auto; font-size: var(--sp-fs-xs); font-weight: 700; color: var(--sp-text-dim); }
+.method-state.on { color: var(--sp-ok); }

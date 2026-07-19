@@ -36,4 +36,38 @@ public sealed class UsageHandlers(AccountsDb db)
 
         return Results.Ok(new UsageResponse(daily, user.EffectiveLimits(), counts.GetValueOrDefault(today)));
     }
+
+    public async Task<IResult> ByToken(ClaimsPrincipal principal, int? days)
+    {
+        var id = principal.FindFirstValue("sub");
+        if (id is null) return Problems.Create(ErrorCodes.Unauthorized, "Missing subject.");
+
+        var span = Math.Clamp(days ?? 30, 1, 90);
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        var start = today.AddDays(-(span - 1));
+
+        var rows = await db.Usage
+            .Where(u => u.UserId == id && u.DateUtc >= start && u.DateUtc <= today)
+            .GroupBy(u => u.TokenId)
+            .Select(g => new { g.Key, Total = g.Sum(u => u.Count), Today = g.Sum(u => u.DateUtc == today ? u.Count : 0) })
+            .ToListAsync();
+
+        var tokens = await db.ApiTokens
+            .Where(t => t.UserId == id)
+            .Select(t => new { t.Id, t.Name, t.Prefix })
+            .ToListAsync();
+
+        var perToken = rows.Select(r => new
+        {
+            tokenId = r.Key,
+            name = r.Key is null
+                ? null
+                : tokens.FirstOrDefault(t => t.Id == r.Key)?.Name,
+            prefix = r.Key is null ? null : tokens.FirstOrDefault(t => t.Id == r.Key)?.Prefix,
+            total = r.Total,
+            today = r.Today,
+        }).OrderByDescending(x => x.total).ToList();
+
+        return Results.Ok(perToken);
+    }
 }
