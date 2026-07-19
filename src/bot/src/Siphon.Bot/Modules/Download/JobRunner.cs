@@ -89,6 +89,14 @@ public sealed class JobRunner(IOptions<LimitsOptions> limits, IHttpClientFactory
             }
         }
 
+        var db = ctx.Services.GetRequiredService<BotDb>();
+        var cacheKey = $"{entry.Url}|{output}|{format}|{formatId}";
+        if (await db.Files.FindAsync([cacheKey], ct) is { } hit && await ResendAsync(ctx, entry, hit, messageId, ct))
+        {
+            await CountDownloadAsync(ctx, entry, db);
+            return;
+        }
+
         await EditAsync(ctx.L.Queued);
         string jobId;
         try
@@ -107,9 +115,10 @@ public sealed class JobRunner(IOptions<LimitsOptions> limits, IHttpClientFactory
         }
 
         var deadline = DateTime.UtcNow.AddMinutes(lim.JobTimeoutMinutes);
+        var wait = TimeSpan.FromMilliseconds(400);
+        var maxWait = TimeSpan.FromSeconds(lim.PollSeconds);
         while (true)
         {
-            await Task.Delay(TimeSpan.FromSeconds(lim.PollSeconds), ct);
             if (DateTime.UtcNow > deadline)
             {
                 await EditAsync(ctx.L.TimedOut);
@@ -136,7 +145,7 @@ public sealed class JobRunner(IOptions<LimitsOptions> limits, IHttpClientFactory
             switch (status.State)
             {
                 case "completed" when status.File is not null:
-                    await DeliverAsync(ctx, api, entry, formatId, status.File, messageId, text => EditAsync(text), ct);
+                    await DeliverAsync(ctx, api, entry, formatId, status.File, messageId, cacheKey, text => EditAsync(text), ct);
                     return;
                 case "failed":
                     await EditAsync(ctx.L.ErrorFor(status.Error?.Code ?? ""));
@@ -148,10 +157,12 @@ public sealed class JobRunner(IOptions<LimitsOptions> limits, IHttpClientFactory
                     await EditAsync(ProgressText(ctx.L, status), force: false);
                     break;
             }
+            await Task.Delay(wait, ct);
+            if (wait < maxWait) wait += TimeSpan.FromMilliseconds(300);
         }
     }
 
-    async Task DeliverAsync(UpdateContext ctx, SiphonApi api, CachedProbe entry, string? formatId, JobFile file, int messageId, Func<string, Task> edit, CancellationToken ct)
+    async Task DeliverAsync(UpdateContext ctx, SiphonApi api, CachedProbe entry, string? formatId, JobFile file, int messageId, string cacheKey, Func<string, Task> edit, CancellationToken ct)
     {
         var lim = limits.Value;
         if (file.SizeBytes > lim.MaxUploadMb * 1024L * 1024)
@@ -166,24 +177,25 @@ public sealed class JobRunner(IOptions<LimitsOptions> limits, IHttpClientFactory
         await ctx.Bot.SendChatAction(ctx.ChatId, ActionFor(file.ContentType), cancellationToken: ct);
         await using var stream = await api.OpenFileAsync(file.Url, ct);
         var input = InputFile.FromStream(stream, file.FileName);
+        Message sent;
         if (file.ContentType.StartsWith("audio"))
         {
             var (performer, title) = SplitTitle(probe);
             var thumbnail = await GetThumbnailAsync(probe.ThumbnailUrl, ct);
-            await ctx.Bot.SendAudio(ctx.ChatId, input, replyParameters: reply, duration: duration, performer: performer, title: title, thumbnail: thumbnail, cancellationToken: ct);
+            sent = await ctx.Bot.SendAudio(ctx.ChatId, input, replyParameters: reply, duration: duration, performer: performer, title: title, thumbnail: thumbnail, cancellationToken: ct);
         }
         else if (file.ContentType.StartsWith("video"))
         {
             var variant = probe.VideoVariants.FirstOrDefault(v => v.FormatId == formatId);
-            await ctx.Bot.SendVideo(ctx.ChatId, input, replyParameters: reply, duration: duration, width: variant?.Width, height: variant?.Height, supportsStreaming: true, cancellationToken: ct);
+            sent = await ctx.Bot.SendVideo(ctx.ChatId, input, replyParameters: reply, duration: duration, width: variant?.Width, height: variant?.Height, supportsStreaming: true, cancellationToken: ct);
         }
         else if (file.ContentType.StartsWith("image"))
         {
-            await ctx.Bot.SendPhoto(ctx.ChatId, input, replyParameters: reply, cancellationToken: ct);
+            sent = await ctx.Bot.SendPhoto(ctx.ChatId, input, replyParameters: reply, cancellationToken: ct);
         }
         else
         {
-            await ctx.Bot.SendDocument(ctx.ChatId, input, replyParameters: reply, cancellationToken: ct);
+            sent = await ctx.Bot.SendDocument(ctx.ChatId, input, replyParameters: reply, cancellationToken: ct);
         }
         try
         {
@@ -192,14 +204,75 @@ public sealed class JobRunner(IOptions<LimitsOptions> limits, IHttpClientFactory
         catch (ApiRequestException)
         {
         }
+        var db = ctx.Services.GetRequiredService<BotDb>();
+        Remember(db, cacheKey, sent);
+        await CountDownloadAsync(ctx, entry, db);
+    }
+
+    static void Remember(BotDb db, string cacheKey, Message sent)
+    {
+        var (fileId, kind) = sent switch
+        {
+            { Audio: { } a } => (a.FileId, "audio"),
+            { Video: { } v } => (v.FileId, "video"),
+            { Document: { } d } => (d.FileId, "document"),
+            _ => (null, "")
+        };
+        if (fileId is null) return;
+        if (db.Files.Local.FirstOrDefault(f => f.Key == cacheKey) is { } stale)
+        {
+            stale.FileId = fileId;
+            stale.Kind = kind;
+            stale.CreatedUtc = DateTime.UtcNow;
+            return;
+        }
+        db.Files.Add(new CachedFile { Key = cacheKey, FileId = fileId, Kind = kind, CreatedUtc = DateTime.UtcNow });
+    }
+
+    static Task CountDownloadAsync(UpdateContext ctx, CachedProbe entry, BotDb db)
+    {
         ctx.State.DownloadsToday++;
-        ctx.Services.GetRequiredService<BotDb>().Events.Add(new UsageEvent
+        db.Events.Add(new UsageEvent
         {
             ChatId = ctx.ChatId,
             Kind = "download",
             Site = Uri.TryCreate(entry.Url, UriKind.Absolute, out var uri) ? uri.Host : null,
             Utc = DateTime.UtcNow
         });
+        return Task.CompletedTask;
+    }
+
+    static async Task<bool> ResendAsync(UpdateContext ctx, CachedProbe entry, CachedFile hit, int messageId, CancellationToken ct)
+    {
+        var reply = new ReplyParameters { MessageId = entry.SourceMessageId, AllowSendingWithoutReply = true };
+        var input = InputFile.FromFileId(hit.FileId);
+        try
+        {
+            switch (hit.Kind)
+            {
+                case "audio":
+                    await ctx.Bot.SendAudio(ctx.ChatId, input, replyParameters: reply, cancellationToken: ct);
+                    break;
+                case "video":
+                    await ctx.Bot.SendVideo(ctx.ChatId, input, replyParameters: reply, supportsStreaming: true, cancellationToken: ct);
+                    break;
+                default:
+                    await ctx.Bot.SendDocument(ctx.ChatId, input, replyParameters: reply, cancellationToken: ct);
+                    break;
+            }
+        }
+        catch (ApiRequestException)
+        {
+            return false;
+        }
+        try
+        {
+            await ctx.Bot.DeleteMessage(ctx.ChatId, messageId, ct);
+        }
+        catch (ApiRequestException)
+        {
+        }
+        return true;
     }
 
     async Task<InputFile?> GetThumbnailAsync(string? url, CancellationToken ct)

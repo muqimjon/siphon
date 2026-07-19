@@ -31,6 +31,14 @@ public sealed class UserPref
     public string Quality { get; set; } = "ask";
 }
 
+public sealed class CachedFile
+{
+    public string Key { get; set; } = "";
+    public string FileId { get; set; } = "";
+    public string Kind { get; set; } = "";
+    public DateTime CreatedUtc { get; set; }
+}
+
 public sealed class GroupInfo
 {
     public long ChatId { get; set; }
@@ -45,6 +53,7 @@ public sealed class BotDb(DbContextOptions<BotDb> options) : DbContext(options)
     public DbSet<UsageEvent> Events => Set<UsageEvent>();
     public DbSet<UserPref> Prefs => Set<UserPref>();
     public DbSet<GroupInfo> Groups => Set<GroupInfo>();
+    public DbSet<CachedFile> Files => Set<CachedFile>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -59,6 +68,11 @@ public sealed class BotDb(DbContextOptions<BotDb> options) : DbContext(options)
         {
             e.HasKey(x => x.ChatId);
             e.Property(x => x.ChatId).ValueGeneratedNever();
+        });
+        builder.Entity<CachedFile>(e =>
+        {
+            e.HasKey(x => x.Key);
+            e.Property(x => x.Key).ValueGeneratedNever();
         });
     }
 }
