@@ -1,4 +1,18 @@
 services:
+  postgres:
+    image: postgres:17
+    environment:
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=siphon
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
   api:
     build:
       context: ..
@@ -10,6 +24,23 @@ services:
       - Siphon__ApiKeys__extension=${SIPHON_KEY_EXTENSION}
       - Siphon__ApiKeys__web=${SIPHON_KEY_WEB}
       - Siphon__ApiKeys__bot=${SIPHON_KEY_BOT}
+      - Accounts__ConnectionString=Host=postgres;Database=siphon;Username=postgres;Password=${POSTGRES_PASSWORD}
+      - Accounts__Jwt__Secret=${JWT_SECRET}
+      - Accounts__AdminEmail=${ADMIN_EMAIL}
+      - Accounts__WebBaseUrl=${WEB_BASE_URL}
+      - Accounts__Google__ClientId=${GOOGLE_CLIENT_ID}
+      - Accounts__Google__ClientSecret=${GOOGLE_CLIENT_SECRET}
+      - Accounts__GitHub__ClientId=${GITHUB_CLIENT_ID}
+      - Accounts__GitHub__ClientSecret=${GITHUB_CLIENT_SECRET}
+      - Accounts__TelegramBotToken=${BOT_TOKEN}
+      - Accounts__Smtp__Host=${SMTP_HOST}
+      - Accounts__Smtp__Port=${SMTP_PORT}
+      - Accounts__Smtp__User=${SMTP_USER}
+      - Accounts__Smtp__Password=${SMTP_PASSWORD}
+      - Accounts__Smtp__From=${SMTP_FROM}
+    depends_on:
+      postgres:
+        condition: service_healthy
     restart: unless-stopped
 
   bot:
@@ -39,4 +70,5 @@ services:
 
 volumes:
   botdata:
+  pgdata:
 #  tgapidata:
