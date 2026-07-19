@@ -33,9 +33,9 @@ public static class VariantKeyboard
         return new InlineKeyboardMarkup(rows);
     }
 
-    public static int? ResolveQuality(ProbeResult probe, string kind, string quality, int maxUploadMb)
+    public static int? ResolveQuality(ProbeResult probe, string kind, string quality, int maxUploadMb, string format = "mp3")
     {
-        var rows = (kind == "v" ? VideoRows(probe, maxUploadMb) : AudioRows(probe, maxUploadMb))
+        var rows = (kind == "v" ? VideoRows(probe, maxUploadMb) : AudioRows(probe, maxUploadMb, format))
             .Where(r => !r.Blocked)
             .ToList();
         if (rows.Count == 0) return null;
@@ -50,7 +50,7 @@ public static class VariantKeyboard
 
     public static (InlineKeyboardMarkup? Markup, int? AutoRunIndex) BuildQuality(ProbeResult probe, string token, string kind, string format, int page, int maxUploadMb, Msg l, bool formatLocked = false)
     {
-        var rows = kind == "v" ? VideoRows(probe, maxUploadMb) : AudioRows(probe, maxUploadMb);
+        var rows = kind == "v" ? VideoRows(probe, maxUploadMb) : AudioRows(probe, maxUploadMb, format);
         if (rows.Count == 1 && !rows[0].Blocked)
             return (null, rows[0].Index);
 
@@ -91,24 +91,29 @@ public static class VariantKeyboard
                     : x.v.FormatId;
                 return new Row($"{Block(blocked)}🎬 {res}{SizePart(size)}", blocked, x.i);
             })
+            .DistinctBy(r => r.Label)
             .ToList();
     }
 
-    static List<Row> AudioRows(ProbeResult probe, int maxUploadMb)
+    static List<Row> AudioRows(ProbeResult probe, int maxUploadMb, string format = "mp3")
     {
         var limit = maxUploadMb * 1024L * 1024;
+        var transcoded = format == "mp3";
         return probe.AudioVariants
             .Select((a, i) => (a, i))
-            .OrderByDescending(x => x.a.PlannedMp3?.TypicalKbps ?? x.a.AbrKbps ?? 0)
+            .OrderByDescending(x => (transcoded ? x.a.PlannedMp3?.TypicalKbps : null) ?? x.a.AbrKbps ?? 0)
             .Select(x =>
             {
-                var kbps = x.a.PlannedMp3?.TypicalKbps ?? (x.a.AbrKbps is double abr ? (int)Math.Round(abr) : 0);
-                var size = x.a.PlannedMp3 is not null
+                var kbps = transcoded && x.a.PlannedMp3 is not null
+                    ? x.a.PlannedMp3.TypicalKbps
+                    : x.a.AbrKbps is double abr ? (int)Math.Round(abr) : 0;
+                var size = transcoded && x.a.PlannedMp3 is not null
                     ? Estimate(x.a.PlannedMp3.TypicalKbps, probe.DurationSec) ?? x.a.ApproxSizeBytes
                     : x.a.ApproxSizeBytes ?? Estimate(x.a.AbrKbps, probe.DurationSec);
                 var blocked = size > limit;
                 return new Row($"{Block(blocked)}🎵{(kbps > 0 ? $" {kbps}k" : "")}{SizePart(size)}", blocked, x.i);
             })
+            .DistinctBy(r => r.Label)
             .ToList();
     }
 

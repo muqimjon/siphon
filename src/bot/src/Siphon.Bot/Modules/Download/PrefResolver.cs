@@ -16,7 +16,7 @@ public static class PrefResolver
         format ??= ResolveFormat(probe, pref, kind);
         if (format is null) return new PrefPlan(PrefStep.Format, kind, "", 0);
         if (pref.Quality == "ask") return new PrefPlan(PrefStep.Quality, kind, format, 0);
-        return VariantKeyboard.ResolveQuality(probe, kind, pref.Quality, maxUploadMb) is int index
+        return VariantKeyboard.ResolveQuality(probe, kind, pref.Quality, maxUploadMb, format) is int index
             ? new PrefPlan(PrefStep.Run, kind, format, index)
             : new PrefPlan(PrefStep.TooLarge, kind, format, 0);
     }
@@ -27,7 +27,7 @@ public static class PrefResolver
         if (kind is null) return new PrefPlan(PrefStep.Type, "", "", 0);
         var format = ResolveGroupFormat(probe, pref, kind);
         var quality = pref.Quality == "ask" ? "high" : pref.Quality;
-        return VariantKeyboard.ResolveQuality(probe, kind, quality, maxUploadMb) is int index
+        return VariantKeyboard.ResolveQuality(probe, kind, quality, maxUploadMb, format) is int index
             ? new PrefPlan(PrefStep.Run, kind, format, index)
             : new PrefPlan(PrefStep.TooLarge, kind, format, 0);
     }
