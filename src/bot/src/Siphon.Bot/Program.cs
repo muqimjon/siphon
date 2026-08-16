@@ -12,6 +12,7 @@ using Siphon.Bot.Modules.Download;
 using Siphon.Bot.Modules.Group;
 using Siphon.Bot.Modules.Settings;
 using Telegram.Bot;
+using Telegram.Bot.Types;
 
 var builder = WebApplication.CreateBuilder(new WebApplicationOptions
 {
@@ -30,7 +31,10 @@ services.Configure<MiniAppOptions>(config.GetSection("MiniApp"));
 services.Configure<HostOptions>(o => o.BackgroundServiceExceptionBehavior = BackgroundServiceExceptionBehavior.Ignore);
 
 services.AddMemoryCache();
-services.AddDbContext<BotDb>(o => o.UseSqlite($"Data Source={config["Db:Path"] ?? "bot.db"}"));
+services.AddDbContext<BotDb>(o => o.UseNpgsql(
+    config.GetConnectionString("Bot")
+    ?? config["Db:ConnectionString"]
+    ?? throw new InvalidOperationException("Bot DB connection string missing (ConnectionStrings:Bot or Db:ConnectionString)")));
 
 var backend = config.GetSection("Backend").Get<BackendOptions>() ?? new();
 var backendBase = new Uri(backend.BaseUrl.TrimEnd('/') + "/");
@@ -77,7 +81,8 @@ services.AddScoped<IFeatureModule, CoreModule>();
 services.AddSingleton<ProbeCache>();
 services.AddSingleton<JobRunner>();
 services.AddSingleton<Siphon.Bot.Modules.Convert.ConvertCache>();
-services.AddHostedService<PollingService>();
+services.AddSingleton<UpdateDispatcher>();
+services.AddHostedService<WebhookInitializer>();
 services.AddHostedService<MenuButtonSetup>();
 services.AddHostedService<Siphon.Bot.Modules.Download.FileCacheJanitor>();
 
@@ -87,7 +92,16 @@ if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("ASPNETCORE_URLS")))
 
 var app = builder.Build();
 using (var scope = app.Services.CreateScope())
-    scope.ServiceProvider.GetRequiredService<BotDb>().Database.Migrate();
+    scope.ServiceProvider.GetRequiredService<BotDb>().Database.EnsureCreated();
+
+var webhookSecret = config.GetSection("Bot").Get<BotOptions>()?.WebhookSecret ?? "";
+app.MapPost("/tg/webhook", async (Update update, UpdateDispatcher dispatcher, HttpContext ctx, CancellationToken ct) =>
+{
+    if (ctx.Request.Headers["X-Telegram-Bot-Api-Secret-Token"] != webhookSecret)
+        return Results.Unauthorized();
+    await dispatcher.DispatchAsync(update, ct);
+    return Results.Ok();
+});
 
 app.UseDefaultFiles();
 app.UseStaticFiles();
@@ -102,6 +116,7 @@ namespace Siphon.Bot
     {
         public string Token { get; set; } = "";
         public string? ApiBaseUrl { get; set; }
+        public string WebhookSecret { get; set; } = "";
     }
 
     public sealed class BackendOptions

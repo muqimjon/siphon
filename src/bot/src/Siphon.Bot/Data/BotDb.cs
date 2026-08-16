@@ -84,5 +84,6 @@ public sealed class BotDb(DbContextOptions<BotDb> options) : DbContext(options)
 public sealed class BotDbFactory : IDesignTimeDbContextFactory<BotDb>
 {
     public BotDb CreateDbContext(string[] args) =>
-        new(new DbContextOptionsBuilder<BotDb>().UseSqlite("Data Source=bot.db").Options);
+        new(new DbContextOptionsBuilder<BotDb>()
+            .UseNpgsql("Host=localhost;Database=siphon_bot;Username=postgres;Password=postgres").Options);
 }
