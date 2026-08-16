@@ -88,7 +88,8 @@ public sealed class GalleryDlEngine(IOptions<SiphonOptions> options)
     private Command Run(IEnumerable<string> tail, string? cookiesPath)
     {
         var args = new List<string>();
-        if (cookiesPath is not null && File.Exists(cookiesPath)) args.AddRange(["--cookies", cookiesPath]);
+        var cookies = cookiesPath ?? _options.CookiesFile;
+        if (cookies is not null && File.Exists(cookies)) args.AddRange(["--cookies", cookies]);
         if (_options.ProxyUrl is not null) args.AddRange(["--proxy", _options.ProxyUrl]);
         args.AddRange(tail);
         return Cli.Wrap(_options.Tools.GalleryDlPath!).WithArguments(args);

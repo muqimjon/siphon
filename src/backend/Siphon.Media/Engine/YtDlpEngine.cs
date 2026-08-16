@@ -186,7 +186,8 @@ public sealed class YtDlpEngine(IOptions<SiphonOptions> options, SelfUpdater upd
     private void AddCommon(List<string> args, string? cookiesPath)
     {
         args.AddRange(["--ffmpeg-location", _options.Tools.FfmpegPath]);
-        if (cookiesPath is not null && File.Exists(cookiesPath)) args.AddRange(["--cookies", cookiesPath]);
+        var cookies = cookiesPath ?? _options.CookiesFile;
+        if (cookies is not null && File.Exists(cookies)) args.AddRange(["--cookies", cookies]);
         if (_options.ProxyUrl is not null) args.AddRange(["--proxy", _options.ProxyUrl]);
     }
 
