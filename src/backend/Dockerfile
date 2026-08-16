@@ -27,7 +27,7 @@ RUN apt-get update \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 COPY --from=build /app .
-COPY --from=web /web/src/web/dist/siphon-web/browser ./wwwroot
+COPY --from=web /web/src/web/dist/siphon-web ./wwwroot
 
 VOLUME /data
 ENV Siphon__TempRoot=/data/tmp
