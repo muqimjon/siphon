@@ -10,12 +10,10 @@ RUN dotnet publish src/backend/Siphon.Api/Siphon.Api.csproj -c Release -o /app /
 FROM mcr.microsoft.com/dotnet/aspnet:10.0
 WORKDIR /app
 
-# ffmpeg from apt, yt-dlp and gallery-dl from pip so they work on both amd64 and arm64
+# ffmpeg from apt, yt-dlp and gallery-dl from pip (both land in /usr/local/bin)
 RUN apt-get update \
     && apt-get install -y --no-install-recommends ffmpeg python3 python3-pip ca-certificates \
     && pip3 install --no-cache-dir --break-system-packages yt-dlp gallery-dl \
-    && ln -sf "$(which yt-dlp)" /usr/local/bin/yt-dlp \
-    && ln -sf "$(which gallery-dl)" /usr/local/bin/gallery-dl \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 COPY --from=build /app .
