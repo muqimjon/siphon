@@ -1,11 +1,3 @@
-FROM node:22-alpine AS web
-WORKDIR /web
-COPY src/web/package*.json src/web/
-RUN cd src/web && npm ci
-COPY src/web/ src/web/
-COPY src/shared/ src/shared/
-RUN cd src/web && npx ng build
-
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 COPY src/backend/Siphon.Api/Siphon.Api.csproj src/backend/Siphon.Api/
@@ -27,7 +19,6 @@ RUN apt-get update \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 COPY --from=build /app .
-COPY --from=web /web/src/web/dist/siphon-web ./wwwroot
 
 VOLUME /data
 ENV Siphon__TempRoot=/data/tmp
