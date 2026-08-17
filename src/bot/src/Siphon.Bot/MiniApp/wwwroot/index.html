@@ -233,6 +233,8 @@ const I18N = {
     onlyVideo: "Faqat video olinadi — audio sozlamasi kerak emas.",
     showSite: "Sayt nomini yozish", showSiteHint: "Fayl ostida qaysi saytdan olingani ko'rsatiladi.",
     convertFiles: "Fayllar bilan ishlash", convertFilesHint: "Fayl tashlansa, uni MP3/GIF/dumaloq videoga o'girishni taklif qiladi.", convertFilesGroupHint: "Guruhda odatda o'chiq — aks holda bot har bir rasm va videoga aralashadi.",
+    replyToSource: "Havolaga javob (reply)", replyToSourceHint: "Yuklangan fayl siz yuborgan havolaga reply qilib yuboriladi.",
+    quietMode: "Faqat kontent", quietModeHint: "Hech qanday xabarsiz — faqat video/audio yuboriladi, xato bo'lsa jim.", quietModeGroupHint: "Guruhlar uchun qulay — xato xabarlari guruhni to'ldirmaydi.",
     deliveryTitle: "Yuborish", deleteLink: "Havolani o'chirish", deleteLinkHint: "Kontent yuborilgach havola xabari o'chiriladi.", showWho: "Kim so'raganini yozish", showWhoHint: "Fayl ostida sayt nomi va so'ragan odam ko'rsatiladi.",
     connectTitle: "Saytga bog'lash", connectBtn: "Kod olish", connectAgain: "Yangi kod", connectHint: "Saytda profilingizga kiring va shu kodni kiriting. Kod 10 daqiqa amal qiladi.",
     advanced: "Qo'shimcha", advancedHint: "Odatda kerak emas — sifat allaqachon manbadagidek saqlanadi."
@@ -256,6 +258,8 @@ const I18N = {
     onlyVideo: "Берётся только видео — аудио настраивать не нужно.",
     showSite: "Показывать сайт", showSiteHint: "Под файлом видно, с какого сайта он взят.",
     convertFiles: "Работа с файлами", convertFilesHint: "Если прислать файл, предложит сделать MP3/GIF/кружок.", convertFilesGroupHint: "В группах обычно выключено — иначе бот лезет в каждое фото и видео.",
+    replyToSource: "Ответ на ссылку (reply)", replyToSourceHint: "Готовый файл отправляется ответом на вашу ссылку.",
+    quietMode: "Только контент", quietModeHint: "Без сообщений — только видео/аудио, при ошибке молча.", quietModeGroupHint: "Удобно для групп — сообщения об ошибках не засоряют чат.",
     deliveryTitle: "Отправка", deleteLink: "Удалять ссылку", deleteLinkHint: "После отправки контента сообщение со ссылкой удаляется.", showWho: "Показывать, кто просил", showWhoHint: "Под файлом видно сайт и того, кто отправил ссылку.",
     connectTitle: "Привязка к сайту", connectBtn: "Получить код", connectAgain: "Новый код", connectHint: "Войдите в профиль на сайте и введите этот код. Код действует 10 минут.",
     advanced: "Дополнительно", advancedHint: "Обычно не нужно — качество и так сохраняется как в источнике."
@@ -279,6 +283,8 @@ const I18N = {
     onlyVideo: "Video only — no need to configure audio.",
     showSite: "Show the site", showSiteHint: "Adds the source site under the file.",
     convertFiles: "Work with files", convertFilesHint: "Offers MP3/GIF/video-note when someone sends a file.", convertFilesGroupHint: "Usually off in groups — otherwise the bot reacts to every photo and video.",
+    replyToSource: "Reply to the link", replyToSourceHint: "The finished file is sent as a reply to your link.",
+    quietMode: "Content only", quietModeHint: "No messages — only the video/audio; silent on failure.", quietModeGroupHint: "Great for groups — error messages don't clutter the chat.",
     deliveryTitle: "Delivery", deleteLink: "Delete the link", deleteLinkHint: "Removes the link message once the content is sent.", showWho: "Show who asked", showWhoHint: "Adds the site and the requester under the file.",
     connectTitle: "Connect to the website", connectBtn: "Get a code", connectAgain: "New code", connectHint: "Open your profile on the website and enter this code. Valid for 10 minutes.",
     advanced: "Advanced", advancedHint: "Usually not needed — quality is already kept as in the source."
@@ -587,7 +593,9 @@ function saveBehavior() {
     deleteSourceLink: data.user.deleteSourceLink,
     showRequester: data.user.showRequester,
     showPlatform: data.user.showPlatform,
-    convertFiles: data.user.convertFiles
+    convertFiles: data.user.convertFiles,
+    replyToSource: data.user.replyToSource,
+    quietMode: data.user.quietMode
   });
 }
 
@@ -615,6 +623,16 @@ function prefsView() {
     const prev = data.user.convertFiles;
     data.user.convertFiles = v;
     try { await saveBehavior(); } catch (e) { data.user.convertFiles = prev; throw e; }
+  }));
+  behavior.appendChild(toggleRow(T.replyToSource, T.replyToSourceHint, data.user.replyToSource, async (v) => {
+    const prev = data.user.replyToSource;
+    data.user.replyToSource = v;
+    try { await saveBehavior(); } catch (e) { data.user.replyToSource = prev; throw e; }
+  }));
+  behavior.appendChild(toggleRow(T.quietMode, T.quietModeHint, data.user.quietMode, async (v) => {
+    const prev = data.user.quietMode;
+    data.user.quietMode = v;
+    try { await saveBehavior(); } catch (e) { data.user.quietMode = prev; throw e; }
   }));
   frag.appendChild(behavior);
 
@@ -659,7 +677,9 @@ function groupsView() {
             deleteSourceLink: b.deleteSourceLink,
             showRequester: b.showRequester,
             showPlatform: b.showPlatform,
-            convertFiles: b.convertFiles
+            convertFiles: b.convertFiles,
+            replyToSource: b.replyToSource,
+            quietMode: b.quietMode
           });
           const box = el("div", "group-behavior");
           const add = (label, hint, key) => box.appendChild(toggleRow(label, hint, b[key], async (v) => {
@@ -671,6 +691,8 @@ function groupsView() {
           add(T.showWho, T.showWhoHint, "showRequester");
           add(T.showSite, T.showSiteHint, "showPlatform");
           add(T.convertFiles, T.convertFilesGroupHint, "convertFiles");
+          add(T.replyToSource, T.replyToSourceHint, "replyToSource");
+          add(T.quietMode, T.quietModeGroupHint, "quietMode");
           body.appendChild(box);
           body.appendChild(board("group", g.chatId, g.platforms, null, null));
           built = true;

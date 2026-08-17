@@ -11,7 +11,7 @@ public sealed record PrefUpdate(string Scope, long? GroupChatId, string Platform
 
 public sealed record LangUpdate(string Lang);
 
-public sealed record BehaviorUpdate(long? GroupChatId, bool DeleteSourceLink, bool ShowRequester, bool ShowPlatform, bool ConvertFiles);
+public sealed record BehaviorUpdate(long? GroupChatId, bool DeleteSourceLink, bool ShowRequester, bool ShowPlatform, bool ConvertFiles, bool ReplyToSource, bool QuietMode);
 
 public static class MiniAppApi
 {
@@ -64,6 +64,8 @@ public static class MiniAppApi
                     showRequester = gs?.ShowRequester ?? false,
                     showPlatform = gs?.ShowPlatform ?? false,
                     convertFiles = gs?.ConvertFiles ?? false,
+                    replyToSource = gs?.ReplyToSource ?? true,
+                    quietMode = gs?.QuietMode ?? false,
                 },
                 platforms = await PlatformsFor(db, g.ChatId, ct)
             });
@@ -82,7 +84,9 @@ public static class MiniAppApi
                 deleteSourceLink = state?.DeleteSourceLink ?? false,
                 showRequester = state?.ShowRequester ?? false,
                 showPlatform = state?.ShowPlatform ?? false,
-                convertFiles = state?.ConvertFiles ?? true
+                convertFiles = state?.ConvertFiles ?? true,
+                replyToSource = state?.ReplyToSource ?? true,
+                quietMode = state?.QuietMode ?? false
             },
             stats = new
             {
@@ -136,6 +140,8 @@ public static class MiniAppApi
         state.ShowRequester = body.ShowRequester;
         state.ShowPlatform = body.ShowPlatform;
         state.ConvertFiles = body.ConvertFiles;
+        state.ReplyToSource = body.ReplyToSource;
+        state.QuietMode = body.QuietMode;
         await db.SaveChangesAsync(ct);
         return Results.Ok(new { ok = true });
     }

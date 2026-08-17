@@ -33,8 +33,13 @@ public sealed class DownloadModule(SiphonApi api, ProbeCache probes, JobRunner r
             && await runner.TryInstantAsync(ctx, url, pref, message.MessageId, ct))
             return;
 
-        var placeholder = await ctx.Bot.SendMessage(ctx.ChatId, ctx.L.Probing, replyParameters: new ReplyParameters { MessageId = message.MessageId, AllowSendingWithoutReply = true }, cancellationToken: ct);
-        await ctx.Bot.SendChatAction(ctx.ChatId, ChatAction.Typing, cancellationToken: ct);
+        var msgId = 0;
+        if (!ctx.State.QuietMode)
+        {
+            var placeholder = await ctx.Bot.SendMessage(ctx.ChatId, ctx.L.Probing, replyParameters: new ReplyParameters { MessageId = message.MessageId, AllowSendingWithoutReply = true }, cancellationToken: ct);
+            msgId = placeholder.MessageId;
+            await ctx.Bot.SendChatAction(ctx.ChatId, ChatAction.Typing, cancellationToken: ct);
+        }
         ProbeResult? probe;
         try
         {
@@ -42,17 +47,17 @@ public sealed class DownloadModule(SiphonApi api, ProbeCache probes, JobRunner r
         }
         catch (BackendException ex)
         {
-            await EditPlaceholderAsync(ctx, placeholder.MessageId, ctx.L.ErrorFor(ex.Code), ct);
+            await EditPlaceholderAsync(ctx, msgId, ctx.L.ErrorFor(ex.Code), ct);
             return;
         }
         catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or TimeoutRejectedException && !ct.IsCancellationRequested)
         {
-            await EditPlaceholderAsync(ctx, placeholder.MessageId, ctx.L.ServerDown, ct);
+            await EditPlaceholderAsync(ctx, msgId, ctx.L.ServerDown, ct);
             return;
         }
         if (probe.IsLive)
         {
-            await EditPlaceholderAsync(ctx, placeholder.MessageId, ctx.L.ErrorFor("live-not-supported"), ct);
+            await EditPlaceholderAsync(ctx, msgId, ctx.L.ErrorFor("live-not-supported"), ct);
             return;
         }
 
@@ -65,14 +70,14 @@ public sealed class DownloadModule(SiphonApi api, ProbeCache probes, JobRunner r
         if (ctx.IsGroup)
         {
             ctx.OwnerUserId = (await db.Groups.FindAsync([ctx.ChatId], ct))?.OwnerUserId;
-            await RunGroupAsync(ctx, entry, probe, pref, mb, placeholder.MessageId, ct);
+            await RunGroupAsync(ctx, entry, probe, pref, mb, msgId, ct);
             return;
         }
 
         var plan = PrefResolver.Resolve(probe, pref, mb);
         if (plan.Step == PrefStep.Run)
         {
-            await RunVariantAsync(ctx, entry, plan.Kind, plan.Format, plan.Index, placeholder.MessageId, null, ct);
+            await RunVariantAsync(ctx, entry, plan.Kind, plan.Format, plan.Index, msgId, null, ct);
             return;
         }
 
@@ -88,7 +93,7 @@ public sealed class DownloadModule(SiphonApi api, ProbeCache probes, JobRunner r
                 var (qm, autoRun) = VariantKeyboard.BuildQuality(probe, token, plan.Kind, plan.Format, 0, mb, ctx.L, formatLocked: true);
                 if (autoRun is int index)
                 {
-                    await RunVariantAsync(ctx, entry, plan.Kind, plan.Format, index, placeholder.MessageId, null, ct);
+                    await RunVariantAsync(ctx, entry, plan.Kind, plan.Format, index, msgId, null, ct);
                     return;
                 }
                 markup = qm;
@@ -104,11 +109,15 @@ public sealed class DownloadModule(SiphonApi api, ProbeCache probes, JobRunner r
                 break;
         }
         var title = string.IsNullOrWhiteSpace(probe.Title) ? url : probe.Title!;
-        await ctx.Bot.EditMessageText(ctx.ChatId, placeholder.MessageId, $"{title}\n\n{prompt}", replyMarkup: markup, cancellationToken: ct);
+        var screen = $"{title}\n\n{prompt}";
+        if (msgId == 0)
+            await ctx.Bot.SendMessage(ctx.ChatId, screen, replyParameters: new ReplyParameters { MessageId = message.MessageId, AllowSendingWithoutReply = true }, replyMarkup: markup, cancellationToken: ct);
+        else
+            await ctx.Bot.EditMessageText(ctx.ChatId, msgId, screen, replyMarkup: markup, cancellationToken: ct);
     }
 
     static Task EditPlaceholderAsync(UpdateContext ctx, int messageId, string text, CancellationToken ct) =>
-        ctx.Bot.EditMessageText(ctx.ChatId, messageId, text, cancellationToken: ct);
+        messageId == 0 ? Task.CompletedTask : ctx.Bot.EditMessageText(ctx.ChatId, messageId, text, cancellationToken: ct);
 
     async Task RunGroupAsync(UpdateContext ctx, CachedProbe entry, ProbeResult probe, UserPref pref, int mb, int messageId, CancellationToken ct)
     {
@@ -295,6 +304,7 @@ public sealed class DownloadModule(SiphonApi api, ProbeCache probes, JobRunner r
             await ctx.Bot.AnswerCallbackQuery(cb.Id, text, showAlert: true, cancellationToken: ct);
             return;
         }
+        if (messageId == 0) return;
         try
         {
             await ctx.Bot.EditMessageText(ctx.ChatId, messageId, text, cancellationToken: ct);

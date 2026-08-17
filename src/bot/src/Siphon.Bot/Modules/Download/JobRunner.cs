@@ -57,6 +57,7 @@ public sealed class JobRunner(IOptions<LimitsOptions> limits, IHttpClientFactory
             await ctx.Bot.AnswerCallbackQuery(cb.Id, text, showAlert: true, cancellationToken: ct);
             return;
         }
+        if (messageId == 0) return;
         try
         {
             await ctx.Bot.EditMessageText(ctx.ChatId, messageId, text, cancellationToken: ct);
@@ -82,7 +83,7 @@ public sealed class JobRunner(IOptions<LimitsOptions> limits, IHttpClientFactory
 
         async Task EditAsync(string text, bool force = true)
         {
-            if (text == lastText) return;
+            if (messageId == 0 || text == lastText) return;
             if (!force && (DateTime.UtcNow - lastEdit).TotalSeconds < lim.EditThrottleSeconds) return;
             try
             {
@@ -180,7 +181,9 @@ public sealed class JobRunner(IOptions<LimitsOptions> limits, IHttpClientFactory
         }
         await edit(ctx.L.Uploading);
         var probe = entry.Probe;
-        var reply = ctx.State.DeleteSourceLink ? null : new ReplyParameters { MessageId = entry.SourceMessageId, AllowSendingWithoutReply = true };
+        var reply = ctx.State.ReplyToSource && !ctx.State.DeleteSourceLink
+            ? new ReplyParameters { MessageId = entry.SourceMessageId, AllowSendingWithoutReply = true }
+            : null;
         var duration = probe.DurationSec is double d ? (int?)d : null;
         var caption = SourceCaption(ctx, entry.Url);
         await ctx.Bot.SendChatAction(ctx.ChatId, ActionFor(file.ContentType), cancellationToken: ct);
@@ -206,12 +209,15 @@ public sealed class JobRunner(IOptions<LimitsOptions> limits, IHttpClientFactory
         {
             sent = await ctx.Bot.SendDocument(ctx.ChatId, input, caption: caption, replyParameters: reply, cancellationToken: ct);
         }
-        try
+        if (messageId != 0)
         {
-            await ctx.Bot.DeleteMessage(ctx.ChatId, messageId, ct);
-        }
-        catch (ApiRequestException)
-        {
+            try
+            {
+                await ctx.Bot.DeleteMessage(ctx.ChatId, messageId, ct);
+            }
+            catch (ApiRequestException)
+            {
+            }
         }
         var db = ctx.Services.GetRequiredService<BotDb>();
         Remember(db, cacheKey, sent);
@@ -307,7 +313,9 @@ public sealed class JobRunner(IOptions<LimitsOptions> limits, IHttpClientFactory
 
     static async Task<bool> ResendAsync(UpdateContext ctx, int sourceMessageId, CachedFile hit, int? placeholderId, CancellationToken ct)
     {
-        var reply = ctx.State.DeleteSourceLink ? null : new ReplyParameters { MessageId = sourceMessageId, AllowSendingWithoutReply = true };
+        var reply = ctx.State.ReplyToSource && !ctx.State.DeleteSourceLink
+            ? new ReplyParameters { MessageId = sourceMessageId, AllowSendingWithoutReply = true }
+            : null;
         var input = InputFile.FromFileId(hit.FileId);
         try
         {

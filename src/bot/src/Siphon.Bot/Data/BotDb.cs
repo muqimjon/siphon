@@ -14,6 +14,8 @@ public sealed class ChatState
     public bool ShowRequester { get; set; }
     public bool ShowPlatform { get; set; }
     public bool ConvertFiles { get; set; } = true;
+    public bool ReplyToSource { get; set; } = true;
+    public bool QuietMode { get; set; }
 }
 
 public sealed class UsageEvent
