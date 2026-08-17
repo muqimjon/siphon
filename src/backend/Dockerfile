@@ -14,9 +14,9 @@ WORKDIR /app
 RUN apt-get update \
     && apt-get install -y --no-install-recommends ffmpeg python3 python3-pip ca-certificates curl unzip \
     && pip3 install --no-cache-dir --break-system-packages yt-dlp gallery-dl bgutil-ytdlp-pot-provider \
-    && curl -fsSL https://deno.land/install.sh | sh -s -- --yes \
+    && curl -fsSL -o /tmp/deno.zip https://github.com/denoland/deno/releases/latest/download/deno-x86_64-unknown-linux-gnu.zip \
+    && unzip -o /tmp/deno.zip -d /usr/local/bin && rm /tmp/deno.zip && chmod +x /usr/local/bin/deno \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
-ENV PATH="/root/.deno/bin:${PATH}"
 
 COPY --from=build /app .
 
