@@ -194,7 +194,7 @@ public sealed class YtDlpEngine(IOptions<SiphonOptions> options, SelfUpdater upd
         if (_options.PotProviderUrl is not null)
         {
             args.AddRange(["--extractor-args", $"youtubepot-bgutilhttp:base_url={_options.PotProviderUrl}"]);
-            args.AddRange(["--extractor-args", "youtube:player_client=tv"]);
+            args.AddRange(["--extractor-args", "youtube:player_client=default,-web_safari"]);
             args.AddRange(["--remote-components", "ejs:github"]);
         }
     }
