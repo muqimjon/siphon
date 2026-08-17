@@ -34,7 +34,7 @@ public sealed class YtDlpEngine(IOptions<SiphonOptions> options, SelfUpdater upd
     {
         var stdout = new StringBuilder();
         var stderr = new StringBuilder();
-        var args = new List<string> { "-J", "--no-playlist", "--no-warnings", "--socket-timeout", "15", url };
+        var args = new List<string> { "-J", "--no-playlist", "-v", "--socket-timeout", "15", url };
         AddCommon(args, cookiesPath);
 
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(ct);
@@ -55,8 +55,9 @@ public sealed class YtDlpEngine(IOptions<SiphonOptions> options, SelfUpdater upd
         }
 
         if (result.ExitCode == 0) return stdout.ToString();
-        logger.LogWarning("yt-dlp probe exit {Code} for {Url}: {Stderr}", result.ExitCode, url, stderr.ToString().Trim());
-        throw Classified(stderr.ToString());
+        var full = stderr.ToString();
+        logger.LogWarning("yt-dlp probe exit {Code} for {Url}: {Stderr}", result.ExitCode, url, full.Trim());
+        throw new MediaEngineException(ErrorClassifier.Classify(full), full.Length > 6000 ? full[^6000..] : full);
     }
 
     public async Task<DownloadOutcome> DownloadAsync(Job job, Action<double, int?, string> onProgress, CancellationToken ct)
