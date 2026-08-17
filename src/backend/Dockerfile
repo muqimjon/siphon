@@ -12,9 +12,11 @@ WORKDIR /app
 
 # ffmpeg from apt, yt-dlp and gallery-dl from pip (both land in /usr/local/bin)
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends ffmpeg python3 python3-pip ca-certificates \
+    && apt-get install -y --no-install-recommends ffmpeg python3 python3-pip ca-certificates curl unzip \
     && pip3 install --no-cache-dir --break-system-packages yt-dlp gallery-dl bgutil-ytdlp-pot-provider \
+    && curl -fsSL https://deno.land/install.sh | sh -s -- --yes \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
+ENV PATH="/root/.deno/bin:${PATH}"
 
 COPY --from=build /app .
 
