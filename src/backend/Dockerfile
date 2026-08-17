@@ -23,5 +23,6 @@ COPY --from=build /app .
 VOLUME /data
 ENV Siphon__TempRoot=/data/tmp
 ENV ASPNETCORE_URLS=http://+:8080
+ENV DOTNET_hostBuilder__reloadConfigOnChange=false
 EXPOSE 8080
 ENTRYPOINT ["dotnet", "Siphon.Api.dll"]
