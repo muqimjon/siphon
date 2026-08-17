@@ -16,3 +16,7 @@ src/extension/node_modules/
 
 # secrets
 .env
+
+# Cloudflare tunnel credentials (PC home server)
+cloudflared/
+docker-compose.pc.yml
