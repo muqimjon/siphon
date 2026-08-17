@@ -11,5 +11,6 @@ COPY --from=build /app .
 VOLUME /data
 ENV Db__Path=/data/bot.db
 ENV ASPNETCORE_URLS=http://+:8090
+ENV DOTNET_hostBuilder__reloadConfigOnChange=false
 EXPOSE 8090
 ENTRYPOINT ["dotnet", "Siphon.Bot.dll"]
