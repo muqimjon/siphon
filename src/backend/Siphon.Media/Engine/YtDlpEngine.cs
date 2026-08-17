@@ -34,7 +34,7 @@ public sealed class YtDlpEngine(IOptions<SiphonOptions> options, SelfUpdater upd
     {
         var stdout = new StringBuilder();
         var stderr = new StringBuilder();
-        var args = new List<string> { "-J", "--no-playlist", "-v", "--socket-timeout", "15", url };
+        var args = new List<string> { "-J", "--no-playlist", "--no-warnings", "--socket-timeout", "15", url };
         AddCommon(args, cookiesPath);
 
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(ct);
@@ -55,9 +55,8 @@ public sealed class YtDlpEngine(IOptions<SiphonOptions> options, SelfUpdater upd
         }
 
         if (result.ExitCode == 0) return stdout.ToString();
-        var full = stderr.ToString();
-        logger.LogWarning("yt-dlp probe exit {Code} for {Url}: {Stderr}", result.ExitCode, url, full.Trim());
-        throw new MediaEngineException(ErrorClassifier.Classify(full), full.Length > 6000 ? full[^6000..] : full);
+        logger.LogWarning("yt-dlp probe exit {Code} for {Url}: {Stderr}", result.ExitCode, url, stderr.ToString().Trim());
+        throw Classified(stderr.ToString());
     }
 
     public async Task<DownloadOutcome> DownloadAsync(Job job, Action<double, int?, string> onProgress, CancellationToken ct)
@@ -187,11 +186,41 @@ public sealed class YtDlpEngine(IOptions<SiphonOptions> options, SelfUpdater upd
     private void AddCommon(List<string> args, string? cookiesPath)
     {
         args.AddRange(["--ffmpeg-location", _options.Tools.FfmpegPath]);
-        var cookies = cookiesPath ?? _options.CookiesFile;
-        if (cookies is not null && File.Exists(cookies)) args.AddRange(["--cookies", cookies]);
+        var cookies = cookiesPath is not null
+            ? (File.Exists(cookiesPath) ? cookiesPath : null)
+            : WritableCookies(_options.CookiesFile);
+        if (cookies is not null) args.AddRange(["--cookies", cookies]);
         if (_options.ProxyUrl is not null) args.AddRange(["--proxy", _options.ProxyUrl]);
         if (_options.PotProviderUrl is not null)
+        {
             args.AddRange(["--extractor-args", $"youtubepot-bgutilhttp:base_url={_options.PotProviderUrl}"]);
+            args.AddRange(["--remote-components", "ejs:github"]);
+        }
+    }
+
+    private string? _writableCookies;
+    private readonly Lock _cookieLock = new();
+
+    private string? WritableCookies(string? source)
+    {
+        if (source is null || !File.Exists(source)) return null;
+        if (_writableCookies is not null && File.Exists(_writableCookies)) return _writableCookies;
+        lock (_cookieLock)
+        {
+            if (_writableCookies is not null && File.Exists(_writableCookies)) return _writableCookies;
+            try
+            {
+                var dir = string.IsNullOrEmpty(_options.TempRoot) ? Path.GetTempPath() : _options.TempRoot;
+                Directory.CreateDirectory(dir);
+                var dest = Path.Combine(dir, "yt-cookies.txt");
+                File.Copy(source, dest, overwrite: true);
+                return _writableCookies = dest;
+            }
+            catch
+            {
+                return source;
+            }
+        }
     }
 
     private async Task<(int Code, string Stdout, string Stderr)> RunDownloadAsync(
