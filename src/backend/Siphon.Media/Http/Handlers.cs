@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Siphon.Media.Delivery;
 using Siphon.Media.Engine;
@@ -8,7 +9,7 @@ using Siphon.Media.Probing;
 
 namespace Siphon.Media.Http;
 
-public sealed class ProbeHandler(YtDlpEngine ytDlp, GalleryDlEngine galleryDl, ProbeJsonCache probeCache, IOptions<SiphonOptions> options)
+public sealed class ProbeHandler(YtDlpEngine ytDlp, GalleryDlEngine galleryDl, ProbeJsonCache probeCache, IOptions<SiphonOptions> options, ILogger<ProbeHandler> logger)
 {
     public async Task<IResult> Handle(ProbeRequest request, CancellationToken ct)
     {
@@ -26,6 +27,7 @@ public sealed class ProbeHandler(YtDlpEngine ytDlp, GalleryDlEngine galleryDl, P
             await File.WriteAllTextAsync(cookiesPath, request.Cookies, ct);
         }
 
+        var outcome = "ok";
         try
         {
             var json = await ytDlp.ProbeJsonAsync(request.Url, cookiesPath, ct);
@@ -41,7 +43,7 @@ public sealed class ProbeHandler(YtDlpEngine ytDlp, GalleryDlEngine galleryDl, P
             try
             {
                 var count = await galleryDl.CountAsync(request.Url, cookiesPath, ct);
-                if (count == 0) return Problems.Create(ex.Code, ex.Message);
+                if (count == 0) { outcome = ex.Code; return Problems.Create(ex.Code, ex.Message); }
                 var images = Enumerable.Range(1, Math.Min(count, options.Value.MaxGalleryImages))
                     .Select(i => new ImageEntry(i, null, null, null)).ToList();
                 return Results.Ok(new ProbeResult(request.Url, "gallery", uri.Segments.Length > 1 ? uri.Segments[^1].Trim('/') : "gallery",
@@ -49,6 +51,7 @@ public sealed class ProbeHandler(YtDlpEngine ytDlp, GalleryDlEngine galleryDl, P
             }
             catch (MediaEngineException gallery)
             {
+                outcome = gallery.Code == ErrorCodes.LoginRequired ? gallery.Code : ex.Code;
                 return gallery.Code == ErrorCodes.LoginRequired
                     ? Problems.Create(gallery.Code, gallery.Message)
                     : Problems.Create(ex.Code, ex.Message);
@@ -56,10 +59,12 @@ public sealed class ProbeHandler(YtDlpEngine ytDlp, GalleryDlEngine galleryDl, P
         }
         catch (MediaEngineException ex)
         {
+            outcome = ex.Code;
             return Problems.Create(ex.Code, ex.Message);
         }
         finally
         {
+            logger.LogInformation("USAGE probe host={Host} outcome={Outcome}", uri.Host, outcome);
             if (cookiesDir is not null) JobEngine.TryDeleteDir(cookiesDir);
         }
     }

@@ -30,7 +30,7 @@
   "err.unavailable": "Media not found — it may be deleted or private.",
   "err.geo-blocked": "This media isn't available in your region.",
   "err.age-restricted": "Age-restricted — couldn't download it.",
-  "err.login-required": "You need to be signed in to access this.",
+  "err.login-required": "Couldn't open this link right now. Please try again in a bit.",
   "err.live-not-supported": "Live streams can't be downloaded. Try again after it ends.",
   "err.playlist-not-supported": "Playlists aren't supported yet. Paste a single video link.",
   "err.too-large": "The file is too large.",

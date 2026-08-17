@@ -68,7 +68,7 @@ public sealed class MsgUz : Msg
         "unavailable" => "Bu kontent topilmadi — o'chirilgan yoki yopiq bo'lsa kerak 😔",
         "geo-blocked" => "Bu kontent bizning hudud uchun yopiq ekan 😔",
         "age-restricted" => "Bunda yosh cheklovi bor ekan, yuklab bo'lmadi 😔",
-        "login-required" => "Buni ochish uchun sayt login so'rayapti, men esa kira olmayman 😔",
+        "login-required" => "Hozir bu havolani ochib bo'lmadi. Birozdan keyin qayta urinib ko'ring 🙂",
         "live-not-supported" => "Jonli efirni yuklab bo'lmaydi. Efir tugagach urinib ko'ring 🙂",
         "playlist-not-supported" => "Butun pleylistni emas, bitta videoning havolasini yuboring 🙂",
         "too-large" => "Bu fayl juda katta ekan, yuklab bera olmayman 😔",

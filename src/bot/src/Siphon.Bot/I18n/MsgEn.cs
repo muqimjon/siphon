@@ -68,7 +68,7 @@ public sealed class MsgEn : Msg
         "unavailable" => "Couldn't find this content — it may be deleted or private 😔",
         "geo-blocked" => "This content is blocked in our region 😔",
         "age-restricted" => "This one is age-restricted, I couldn't download it 😔",
-        "login-required" => "The site asks for a login, and I can't sign in 😔",
+        "login-required" => "Couldn't open this link right now. Please try again in a bit 🙂",
         "live-not-supported" => "Live streams can't be downloaded. Try again once it's over 🙂",
         "playlist-not-supported" => "Send a link to a single video, not a whole playlist 🙂",
         "too-large" => "This file is too big for me to send 😔",

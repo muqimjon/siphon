@@ -30,7 +30,7 @@
   "err.unavailable": "Media topilmadi — o'chirilgan yoki yopiq bo'lishi mumkin.",
   "err.geo-blocked": "Bu media sizning hududingizda ochilmaydi.",
   "err.age-restricted": "Yosh cheklovi bor — yuklab bo'lmadi.",
-  "err.login-required": "Buni ochish uchun saytga kirish kerak.",
+  "err.login-required": "Hozir bu havolani ochib bo'lmadi. Birozdan keyin qayta urinib ko'ring.",
   "err.live-not-supported": "Jonli efirni yuklab bo'lmaydi. Efir tugagach urinib ko'ring.",
   "err.playlist-not-supported": "Pleylistlar hozircha yuklanmaydi. Bitta video havolasini qo'ying.",
   "err.too-large": "Fayl juda katta.",
