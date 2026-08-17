@@ -16,7 +16,7 @@ public sealed class ConvertModule(SiphonApi api, ConvertCache cache, JobRunner r
     public IReadOnlyList<BotCommand> Commands { get; } = [];
 
     public bool CanHandle(UpdateContext ctx) =>
-        ctx.Callback?.Data?.StartsWith("c:") == true || (ctx.State.ConvertFiles && Extract(ctx.Message) is not null);
+        ctx.Callback?.Data?.StartsWith("cv:") == true || (ctx.State.ConvertFiles && Extract(ctx.Message) is not null);
 
     public Task HandleAsync(UpdateContext ctx, CancellationToken ct) =>
         ctx.Callback is null ? OfferAsync(ctx, ct) : RunAsync(ctx, ct);
@@ -35,14 +35,14 @@ public sealed class ConvertModule(SiphonApi api, ConvertCache cache, JobRunner r
         var token = cache.Put(new CachedFileJob(file, ctx.Message!.MessageId));
         var rows = new List<InlineKeyboardButton[]>();
         if (file.HasAudio)
-            rows.Add([InlineKeyboardButton.WithCallbackData(ctx.L.ToMp3, $"c:{token}:mp3")]);
+            rows.Add([InlineKeyboardButton.WithCallbackData(ctx.L.ToMp3, $"cv:{token}:mp3")]);
         if (file.HasVideo)
         {
             rows.Add([
-                InlineKeyboardButton.WithCallbackData(ctx.L.ToVideoNote, $"c:{token}:videonote"),
-                InlineKeyboardButton.WithCallbackData(ctx.L.ToGif, $"c:{token}:gif"),
+                InlineKeyboardButton.WithCallbackData(ctx.L.ToVideoNote, $"cv:{token}:videonote"),
+                InlineKeyboardButton.WithCallbackData(ctx.L.ToGif, $"cv:{token}:gif"),
             ]);
-            rows.Add([InlineKeyboardButton.WithCallbackData(ctx.L.ToMp4, $"c:{token}:mp4")]);
+            rows.Add([InlineKeyboardButton.WithCallbackData(ctx.L.ToMp4, $"cv:{token}:mp4")]);
         }
 
         await ctx.Bot.SendMessage(ctx.ChatId, ctx.L.ConvertPrompt,
