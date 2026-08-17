@@ -123,7 +123,7 @@ namespace Siphon.Bot
     {
         public string BaseUrl { get; set; } = "http://localhost:5046";
         public string ApiKey { get; set; } = "";
-        public int TimeoutSeconds { get; set; } = 30;
+        public int TimeoutSeconds { get; set; } = 60;
     }
 
     public sealed class GateOptions
