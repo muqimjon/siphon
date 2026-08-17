@@ -13,7 +13,7 @@ WORKDIR /app
 # ffmpeg from apt, yt-dlp and gallery-dl from pip (both land in /usr/local/bin)
 RUN apt-get update \
     && apt-get install -y --no-install-recommends ffmpeg python3 python3-pip ca-certificates \
-    && pip3 install --no-cache-dir --break-system-packages yt-dlp gallery-dl \
+    && pip3 install --no-cache-dir --break-system-packages yt-dlp gallery-dl bgutil-ytdlp-pot-provider \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 COPY --from=build /app .

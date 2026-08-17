@@ -189,6 +189,8 @@ public sealed class YtDlpEngine(IOptions<SiphonOptions> options, SelfUpdater upd
         var cookies = cookiesPath ?? _options.CookiesFile;
         if (cookies is not null && File.Exists(cookies)) args.AddRange(["--cookies", cookies]);
         if (_options.ProxyUrl is not null) args.AddRange(["--proxy", _options.ProxyUrl]);
+        if (_options.PotProviderUrl is not null)
+            args.AddRange(["--extractor-args", $"youtubepot-bgutilhttp:base_url={_options.PotProviderUrl}"]);
     }
 
     private async Task<(int Code, string Stdout, string Stderr)> RunDownloadAsync(

@@ -18,6 +18,7 @@ public sealed class SiphonOptions
     public int MinFreeDiskMb { get; set; } = 5120;
     public string? ProxyUrl { get; set; }
     public string? CookiesFile { get; set; }
+    public string? PotProviderUrl { get; set; }
     public SelfUpdateOptions SelfUpdate { get; set; } = new();
     public string FileTokenSecret { get; set; } = "";
     public Dictionary<string, string> ApiKeys { get; set; } = [];
