@@ -180,7 +180,7 @@ public sealed class JobRunner(IOptions<LimitsOptions> limits, IHttpClientFactory
         }
         await edit(ctx.L.Uploading);
         var probe = entry.Probe;
-        var reply = new ReplyParameters { MessageId = entry.SourceMessageId, AllowSendingWithoutReply = true };
+        var reply = ctx.State.DeleteSourceLink ? null : new ReplyParameters { MessageId = entry.SourceMessageId, AllowSendingWithoutReply = true };
         var duration = probe.DurationSec is double d ? (int?)d : null;
         var caption = SourceCaption(ctx, entry.Url);
         await ctx.Bot.SendChatAction(ctx.ChatId, ActionFor(file.ContentType), cancellationToken: ct);
@@ -307,7 +307,7 @@ public sealed class JobRunner(IOptions<LimitsOptions> limits, IHttpClientFactory
 
     static async Task<bool> ResendAsync(UpdateContext ctx, int sourceMessageId, CachedFile hit, int? placeholderId, CancellationToken ct)
     {
-        var reply = new ReplyParameters { MessageId = sourceMessageId, AllowSendingWithoutReply = true };
+        var reply = ctx.State.DeleteSourceLink ? null : new ReplyParameters { MessageId = sourceMessageId, AllowSendingWithoutReply = true };
         var input = InputFile.FromFileId(hit.FileId);
         try
         {
